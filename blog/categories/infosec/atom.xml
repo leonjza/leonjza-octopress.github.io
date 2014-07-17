@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Infosec | #!/slash/note]]></title>
+  <link href="http://leonjza.github.io/blog/categories/infosec/atom.xml" rel="self"/>
+  <link href="http://leonjza.github.io/"/>
+  <updated>2014-07-17T17:32:40+02:00</updated>
+  <id>http://leonjza.github.io/</id>
+  <author>
+    <name><![CDATA[Leon Jacobs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[URL Expansion - I'm Paranoid Like That]]></title>
+    <link href="http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that/"/>
+    <updated>2013-07-31T18:19:00+02:00</updated>
+    <id>http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that</id>
+    <content type="html"><![CDATA[<h3>So there is a good use</h3>
+
+<p>URL Shorteners, as they are most commonly known, are pretty useful in places where you are limited to the amount of characters you are allowed to type. Twitter being the prime example. However, it is not only because of services like that that these URL shortening services exist. Sometimes, URL&rsquo;s are are just plain crazy long, and very error prone when you have to copy and paste/link them someone. I guess we can call this a useful feature?</p>
+
+<h3>And a bad use</h3>
+
+<p>Of course, like most of the stuff you find on the internet, there has to be a way to abuse it too. Many people that consider themselves to be &ldquo;IT Literate&rdquo;, be it second nature, or they have been burned before, will usually check out the link they are about to click. URL Shortening services take this &ldquo;check&rdquo; right out. It is now easier to get someone to click on a url to <em>somedodywebsite.io/free_trojan_screensaver_no_virus_promise.exe</em> as by the time the page has loaded, it may very well be too late.</p>
+
+<p>There are also concerns about tracking too. But that is a different debate all together.</p>
+
+<h3>Rise of the URL Expander.</h3>
+
+<p>There are tons, and I mean, <strong>tons</strong> of &lsquo;URL Expansion&rsquo; services available online. <a href="http://longurl.org/,">http://longurl.org/,</a> <a href="http://urlex.org/">http://urlex.org/</a> and <a href="http://www.wheredoesthislinkgo.com/">http://www.wheredoesthislinkgo.com/</a> to name a few. All from a simple Google Search. There are even browser plugins that would automatically &lsquo;expand&rsquo; urls  as you hover over them.</p>
+
+<p>This is cool and all. But how do I know that those services are not modifying the URL&rsquo;s? How do I know the browser plugin is not also fooling around somehow? Does that sound pretty paranoid to you? Well&hellip; :D</p>
+
+<h3>Time for longurl.py</h3>
+
+<p>I wanted something to use on the command line, that would allow me to see <strong>exactly</strong> where I was going. Thus, <em>longurl.py</em> came to be.</p>
+
+<p>Get the script with: <code>$ git clone https://github.com/th3l33k/longurl.git</code></p>
+
+<p>With this, I am able to see each 30x type redirect, as well as where it will take me. A sample usage case would be:</p>
+
+<p>```bash longurl.py Usage
+% ./longurl.py <a href="http://t.co/CHwi0q7DyF">http://t.co/CHwi0q7DyF</a>
+[<em>] Next stop: &lsquo;<a href="http://t.co/CHwi0q7DyF">http://t.co/CHwi0q7DyF</a>&rsquo;
+[</em>] Got status: 301 with reason: Moved Permanently
+[<em>] Next stop: &lsquo;<a href="http://bit.ly/14hneHx">http://bit.ly/14hneHx</a>&rsquo;
+[</em>] Got status: 301 with reason: Moved
+[<em>] Next stop: &lsquo;<a href="http://t.co/lqyFnSivpw">http://t.co/lqyFnSivpw</a>&rsquo;
+[</em>] Got status: 301 with reason: Moved Permanently
+[<em>] Next stop: &lsquo;<a href="http://reg.cx/27nM">http://reg.cx/27nM</a>&rsquo;
+[</em>] Got status: 302 with reason: Found
+[<em>] Next stop: &lsquo;<a href="http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/">http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/</a>&rsquo;
+[</em>] Got status: 200 with reason: OK</p>
+
+<p>[*] The final looks to be: &lsquo;<a href="http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/">http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/</a>&rsquo;
+```</p>
+
+<p>Now you can see each &lsquo;hop&rsquo; it would have taken, as well as have your &lsquo;check before click&rsquo; ability back. Like I said, there are lots of other ways to get the same thing done, but I preferred knowing exactly what is going on, rather than just getting the final URL, missing potential bad URL&rsquo;s in between that could lead to other <em>interesting</em> finding. :)</p>
+
+<p><strong>EDIT</strong>
+A similar effect can be seen with this one curl command:</p>
+]]></content>
+  </entry>
+  
+</feed>

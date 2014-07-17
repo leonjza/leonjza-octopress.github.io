@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Shell | #!/slash/note]]></title>
+  <link href="http://leonjza.github.io/blog/categories/shell/atom.xml" rel="self"/>
+  <link href="http://leonjza.github.io/"/>
+  <updated>2014-07-17T17:32:40+02:00</updated>
+  <id>http://leonjza.github.io/</id>
+  <author>
+    <name><![CDATA[Leon Jacobs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Quick Win: Quickly Execute Last Shell Command]]></title>
+    <link href="http://leonjza.github.io/blog/2013/06/23/quick-win-quickly-execute-last-shell-command/"/>
+    <updated>2013-06-23T10:42:00+02:00</updated>
+    <id>http://leonjza.github.io/blog/2013/06/23/quick-win-quickly-execute-last-shell-command</id>
+    <content type="html"><![CDATA[<h3>Work clever, not hard</h3>
+
+<p>This will be the first post of a series of quick shell tips for getting things done, fast. Infact, it will probably just serve as a notepad for me on the topic ;)</p>
+
+<h3>Last shell command</h3>
+
+<p>If you are using a shell, such as <a href="http://www.gnu.org/software/bash/bash.html">Bash</a>, which is pretty much the default on most Linux distributions, then you probably know that you can just use the <strong>up</strong> arrow to get the last command. But, if you are using a shell such as <a href="http://www.zsh.org/">Zsh</a> like me, you&rsquo;d quickly come to realise that the global <code>~/.histfile</code> can be a tad frustrating if you are expecting the last command you typed in <strong>that</strong> terminal window to appear when you press <strong>up</strong>. Only to realise, its literally the last command you typed in <em>another</em> shell.</p>
+
+<h3>Bang Bang to the rescue!</h3>
+
+<p>Simply type <code>!!</code> and <em>enter</em> and the last command that was run in <strong>that</strong> terminal will be either echoed or executed, depending on how your shell is configured to handle the command.</p>
+]]></content>
+  </entry>
+  
+</feed>

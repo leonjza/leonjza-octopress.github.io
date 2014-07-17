@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Hello World! Oh and Here's Some Code! - #!/slash/note</title>
+  <meta name="author" content="Leon Jacobs">
+
+  
+  <meta name="description" content="Introduction Finally! A blog engine I like! :) No exceptionally bloated backend database with plugins that just get hacked. Yup, slim and sleek. And &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="#!/slash/note" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44457032-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">#!/slash/note</a></h1>
+  
+    <h2>A checkbox unchecker's notepad</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:leonjza.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Hello World! Oh and Here's Some Code!</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-24T21:11:00+02:00" pubdate data-updated="true">May 24<sup>th</sup>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h3>Introduction</h3>
+
+<p>Finally! A blog engine I like! :) No exceptionally bloated backend database with plugins that just get hacked. Yup, slim and sleek. <em>And</em>, I get to make posts using Vi :D
+Want in on this love? Have a look at <a href="http://octopress.org">Octopress</a> . Yes, it was a real ball ache to get setup thanks to the ruby dependencies, but now that were rollin&#8217; this should be good :D</p>
+
+<h3>Frustrations breed Ideas</h3>
+
+<p>In my day job, I am exposed to a lot of work that will relate around the <a href="http://www.tenable.com/products/nessus">Nessus Vulnerability Scanner</a>.
+Originally, interfacing with this scanner used be via a old and clunky <em>flash</em> interface. It was bad. They have since moved over to a HTML5, ajaxy interface that is light years better. However, for my needs, the default Nessus Interface just does not cut it.</p>
+
+<h3>Open source? Where do I start?</h3>
+
+<p>Based on this old crappy interface, and the need to be able to automate things, I pulled closer the XMLRPC API reference <a href="http://static.tenable.com/documentation/nessus_5.0_XMLRPC_protocol_guide.pdf">documentation</a>. Reading this revealed the API is actually very straight forward. Login &ndash;> get a token &ndash;> make POST with this token and receive XML. Great.</p>
+
+<p>I started hacking away at some PHP to test this out. Back then I was really <em>very</em> new to this &lsquo;&#8217;development&rsquo;&lsquo; thing, so it was really tough to get my head around the concepts of working with the API. Nonetheless, we had something to work with, and this was implemented internally for numerous functions.</p>
+
+<p>Since then, <code>nessus.php</code> was born. The first iteration of this code was, well, worse than it is now, but its now very easy to use ( I believe ).</p>
+
+<h3>Instantiate a NessusInterface instance</h3>
+
+<p>To use this API, we first need to include it in our script, and then init the Class. Effectively, this will log into the scanner using the provided arguments and store the token in the object. Should it fail, it will raise an error.</p>
+
+<figure class='code'><figcaption><span>Sample PHP NessusInterface Usage</span><a href='https://github.com/th3l33k/php-nessus-api'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
+</span><span class='line'><span class="k">require</span> <span class="s2">&quot;nessus.php&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">try</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nv">$api</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">NessusInterface</span><span class="p">(</span>
+</span><span class='line'>        <span class="nv">$__url</span><span class="p">,</span>
+</span><span class='line'>        <span class="nv">$__port</span><span class="p">,</span>
+</span><span class='line'>        <span class="nv">$__username</span><span class="p">,</span>
+</span><span class='line'>        <span class="nv">$__password</span>
+</span><span class='line'>    <span class="p">);</span>
+</span><span class='line'><span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">Exception</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">preprint</span><span class="p">(</span><span class="nv">$e</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">());</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Do some API calls</h4>
+
+<p>Once you have the <code>$api</code> variable setup with a instance of <strong>NessusInterface</strong>, you can use any of the available calls. Most of the API calls will return some form of array:</p>
+
+<figure class='code'><figcaption><span>Sample API calls using NessusInterface</span><a href='https://github.com/th3l33k/php-nessus-api'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
+</span><span class='line'><span class="k">try</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nv">$api</span><span class="o">-&gt;</span><span class="na">feed</span><span class="p">();</span>
+</span><span class='line'>    <span class="c1"># // Will return an array like:</span>
+</span><span class='line'>    <span class="c1">#  Array</span>
+</span><span class='line'>    <span class="c1">#  (</span>
+</span><span class='line'>    <span class="c1">#    [feed] =&gt; ProFeed</span>
+</span><span class='line'>    <span class="c1">#    [server_version] =&gt; 5.2.1</span>
+</span><span class='line'>    <span class="c1">#    [web_server_version] =&gt; 4.0.37 (Build H20130515A)</span>
+</span><span class='line'>    <span class="c1">#    [expiration] =&gt; 1406174400</span>
+</span><span class='line'>    <span class="c1">#    [msp] =&gt; FALSE</span>
+</span><span class='line'>    <span class="c1">#    [loaded_plugin_set] =&gt; 201305240915</span>
+</span><span class='line'>    <span class="c1">#    [expiration_time] =&gt; 425</span>
+</span><span class='line'>    <span class="c1"># )</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">Exception</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">preprint</span><span class="p">(</span><span class="nv">$e</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">());</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Reading the sources will reveal the structures of the returned arrays.
+Get the code <a href="https://github.com/th3l33k/php-nessus-api">here</a></p>
+
+<h3>Its the small things</h3>
+
+<p>This is by no means and elaborate &ldquo;solution&rdquo; really. It&rsquo;s purely another building block for something bigger. A believe there are quite a few fundamentals that the Nessus Scanner does not cover, but perhaps that is beyond the scope of what its designed to do :)</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Leon Jacobs</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-24T21:11:00+02:00" pubdate data-updated="true">May 24<sup>th</sup>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/api/'>api</a>, <a class='category' href='/blog/categories/nessus/'>nessus</a>, <a class='category' href='/blog/categories/php/'>php</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code/" data-via="leonjza" data-counturl="http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/05/25/how-to-extremely-simple-python-jabber-broadcast-bot/" title="Next Post: How To: Extremely simple python Jabber Broadcast Bot">How To: Extremely simple python Jabber Broadcast Bot &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/">Dnsfilexfer - Yet Another Take on File Transfer via DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/">/root/flag.txt - Solving the Relativity Vulnerable VM</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure With a Infamous Bot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and Tty Output to a Virtual Serial Console</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/31/url-expansion-im-paranoid-like-that/">URL Expansion - I'm Paranoid Like That</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Leon Jacobs -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

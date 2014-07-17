@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Python | #!/slash/note]]></title>
+  <link href="http://leonjza.github.io/blog/categories/python/atom.xml" rel="self"/>
+  <link href="http://leonjza.github.io/"/>
+  <updated>2014-07-17T17:32:40+02:00</updated>
+  <id>http://leonjza.github.io/</id>
+  <author>
+    <name><![CDATA[Leon Jacobs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[URL Expansion - I'm Paranoid Like That]]></title>
+    <link href="http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that/"/>
+    <updated>2013-07-31T18:19:00+02:00</updated>
+    <id>http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that</id>
+    <content type="html"><![CDATA[<h3>So there is a good use</h3>
+
+<p>URL Shorteners, as they are most commonly known, are pretty useful in places where you are limited to the amount of characters you are allowed to type. Twitter being the prime example. However, it is not only because of services like that that these URL shortening services exist. Sometimes, URL&rsquo;s are are just plain crazy long, and very error prone when you have to copy and paste/link them someone. I guess we can call this a useful feature?</p>
+
+<h3>And a bad use</h3>
+
+<p>Of course, like most of the stuff you find on the internet, there has to be a way to abuse it too. Many people that consider themselves to be &ldquo;IT Literate&rdquo;, be it second nature, or they have been burned before, will usually check out the link they are about to click. URL Shortening services take this &ldquo;check&rdquo; right out. It is now easier to get someone to click on a url to <em>somedodywebsite.io/free_trojan_screensaver_no_virus_promise.exe</em> as by the time the page has loaded, it may very well be too late.</p>
+
+<p>There are also concerns about tracking too. But that is a different debate all together.</p>
+
+<h3>Rise of the URL Expander.</h3>
+
+<p>There are tons, and I mean, <strong>tons</strong> of &lsquo;URL Expansion&rsquo; services available online. <a href="http://longurl.org/,">http://longurl.org/,</a> <a href="http://urlex.org/">http://urlex.org/</a> and <a href="http://www.wheredoesthislinkgo.com/">http://www.wheredoesthislinkgo.com/</a> to name a few. All from a simple Google Search. There are even browser plugins that would automatically &lsquo;expand&rsquo; urls  as you hover over them.</p>
+
+<p>This is cool and all. But how do I know that those services are not modifying the URL&rsquo;s? How do I know the browser plugin is not also fooling around somehow? Does that sound pretty paranoid to you? Well&hellip; :D</p>
+
+<h3>Time for longurl.py</h3>
+
+<p>I wanted something to use on the command line, that would allow me to see <strong>exactly</strong> where I was going. Thus, <em>longurl.py</em> came to be.</p>
+
+<p>Get the script with: <code>$ git clone https://github.com/th3l33k/longurl.git</code></p>
+
+<p>With this, I am able to see each 30x type redirect, as well as where it will take me. A sample usage case would be:</p>
+
+<p>```bash longurl.py Usage
+% ./longurl.py <a href="http://t.co/CHwi0q7DyF">http://t.co/CHwi0q7DyF</a>
+[<em>] Next stop: &lsquo;<a href="http://t.co/CHwi0q7DyF">http://t.co/CHwi0q7DyF</a>&rsquo;
+[</em>] Got status: 301 with reason: Moved Permanently
+[<em>] Next stop: &lsquo;<a href="http://bit.ly/14hneHx">http://bit.ly/14hneHx</a>&rsquo;
+[</em>] Got status: 301 with reason: Moved
+[<em>] Next stop: &lsquo;<a href="http://t.co/lqyFnSivpw">http://t.co/lqyFnSivpw</a>&rsquo;
+[</em>] Got status: 301 with reason: Moved Permanently
+[<em>] Next stop: &lsquo;<a href="http://reg.cx/27nM">http://reg.cx/27nM</a>&rsquo;
+[</em>] Got status: 302 with reason: Found
+[<em>] Next stop: &lsquo;<a href="http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/">http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/</a>&rsquo;
+[</em>] Got status: 200 with reason: OK</p>
+
+<p>[*] The final looks to be: &lsquo;<a href="http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/">http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/</a>&rsquo;
+```</p>
+
+<p>Now you can see each &lsquo;hop&rsquo; it would have taken, as well as have your &lsquo;check before click&rsquo; ability back. Like I said, there are lots of other ways to get the same thing done, but I preferred knowing exactly what is going on, rather than just getting the final URL, missing potential bad URL&rsquo;s in between that could lead to other <em>interesting</em> finding. :)</p>
+
+<p><strong>EDIT</strong>
+A similar effect can be seen with this one curl command:</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA['Stuff' to Gource.]]></title>
+    <link href="http://leonjza.github.io/blog/2013/07/27/stuff-to-gource/"/>
+    <updated>2013-07-27T14:09:00+02:00</updated>
+    <id>http://leonjza.github.io/blog/2013/07/27/stuff-to-gource</id>
+    <content type="html"><![CDATA[<h3>Stuff to what&hellip;?</h3>
+
+<p>Not too long ago, a colleague introduced me to Gource. In case you have not heard of <a href="https://code.google.com/p/gource/">Gource</a> before, I highly suggest you take a few minutes and check out the project home page <a href="https://code.google.com/p/gource/">here</a>. If you have been developing, or are part of a development project that has been around a while, then Gource should be able to tell you a tale in a strangely mesmerising way about its progression. Go ahead, download and install it. You are going to need it to try the rest of the stuff anyways.</p>
+
+<p><em>Be warned though, watching the output is highly addictive and strangely entertaining, so if you value your productivity, <strong>don&rsquo;t</strong> continue reading this post.</em></p>
+
+<p><img class="<a" src="href="http://i.imgur.com/gFkD3z5.png">http://i.imgur.com/gFkD3z5.png</a>"></p>
+
+<p>In short, Gource will take your repos commit logs from Git, Mecurial, SVN or even CVS (with some work) and splash out a graphical representation of the commits, by committer, across time. It also has a number of tweaks that allows you to change some visuals, focus on specific comitters and add titles etc.</p>
+
+<p>You can also create a Gource &lsquo;movie&rsquo; by specifying the <code>-o</code> option for output. This will provide a sequence of screenshots in PPM format that can later be encoded using something like FFMPEG. Keep in mind that this output is <em>massive</em>. 5mins of output generated something like a 5GB .ppm file for me. You can also just pipe your Gource output directly into ffmpeg, skipping the need to create the .ppm as FFMPEG can read a stream. I of course have no idea how you&rsquo;d accomplish this in Windows, but ok ;D</p>
+
+<p>Majong released a video of exactly this for the Minecraft dev tree. 800+ days worth of work, depicting the commit logs from a alpha 1.2 version through to the 1.5 release bought down 8 minutes. <a href="http://www.youtube.com/watch?v=zRjTyRly5WA">Direct Link</a></p>
+
+<h3>Taking it one step further.</h3>
+
+<p>So all this is cool and stuff. Watching the stories of code get told in a uber cool fashion, causing a lot of productive time to be lost. However, browsing through the Gource Wiki Pages, revealed a rather interesting section. Gource accepts a argument called <code>--log-format custom</code> that allows you to generate, well, custom logs.</p>
+
+<p>According to the <a href="https://code.google.com/p/gource/wiki/CustomLogFormat">wiki documentation</a>, the format for a custom log entry needs to be pipe delimited and have the following format:</p>
+
+<p>```bash Gource sample custom log <a href="https://code.google.com/p/gource/wiki/CustomLogFormat">https://code.google.com/p/gource/wiki/CustomLogFormat</a></p>
+
+<h1>minimum custom log format</h1>
+
+<p>1275543595|andrew|A|src/main.cpp</p>
+
+<h1>optionally, we can set a color value</h1>
+
+<p>1275543595|andrew|A|src/main.cpp|FF0000
+```</p>
+
+<p>So this is, nice. Gource <em>also</em> accepts input from stdin, via <code>-</code> as input obviously. To sum this up. Any, correctly formatted, pipe delimited input can be accepted as a &lsquo;log&rsquo; entry, that Gource should understand. Lets try it out.</p>
+
+<h3>Introducing py2gource.py</h3>
+
+<p>My initial thought on this was that 90% if the custom log formats could be generated on the shell. Rightfully so. With tools like <strong>awk</strong> and <strong>sed</strong>, you can do some pretty neat stuff. However, as powerful as they may be, the approach of writing some middleware that would do all of the parsing and log generation <em>for</em> me, seemed like a better idea. And so, <code>py2gource.py</code> was born. Another terribly coded piece of python to do things I am too lazy to do in any other way.</p>
+
+<p>So far based on what has been coded, the basic idea to use this middleware in a very simple form is: <code>cat something | python py2gource.py | gource</code></p>
+
+<h3>Gource for&hellip; Nmap?</h3>
+
+<p>But, we don&rsquo;t have to <code>cat</code> something for output, right. Just do <code>nmap 127.0.0.1 -v | python py2gource.py | gource</code>. <code>py2gource.py</code> will happily read <em>stdin</em> and parse the output for input formats it understands, specified by <code>-t</code> as needed. For example:</p>
+
+<p>```bash Parsed Nmap Output</p>
+
+<h1>Nmap output before its parsed by py2gource.py</h1>
+
+<p>$ nmap 127.0.0.1 -v</p>
+
+<p>Starting Nmap 6.25 ( <a href="http://nmap.org">http://nmap.org</a> ) at 2013-07-25 19:58 SAST
+Initiating Ping Scan at 19:58
+Scanning 127.0.0.1 [2 ports]
+Completed Ping Scan at 19:58, 0.00s elapsed (1 total hosts)
+Initiating Connect Scan at 19:58
+Scanning localhost (127.0.0.1) [1000 ports]
+Discovered open port 8080/tcp on 127.0.0.1
+Discovered open port 22/tcp on 127.0.0.1
+Discovered open port 80/tcp on 127.0.0.1
+Discovered open port 3306/tcp on 127.0.0.1
+Discovered open port 5222/tcp on 127.0.0.1
+[&hellip;]</p>
+
+<h1>now, parsed by py2gource.py</h1>
+
+<p>$ nmap 127.0.0.1 -v | python py2gource.py -t nmap</p>
+
+<p>1374774922|nmap|A|127.0.0.1/tcp/8080|9C9841
+1374774922|nmap|A|127.0.0.1/tcp/22|9C9841
+1374774922|nmap|A|127.0.0.1/tcp/80|9C9841
+1374774922|nmap|A|127.0.0.1/tcp/3306|9C9841
+1374774923|nmap|A|127.0.0.1/tcp/4000|9C9841
+```</p>
+
+<p>From the above example we can see that the verbose Nmap output has been parsed to be complaint to the custom log format as per the Gource wiki. So, lets pipe this to gource:</p>
+
+<p><code>bash Nmap to gource
+$ nmap -v 192.168.137.0/24 | python py2gource.py -t nmap | gource --realtime --log-format custom - -1440x900 --bloom-intensity 0.3 -e 0.2 -i 120 --title "Nmap of 192.168.137.0/24"
+</code></p>
+
+<p>You should now have a Gource window pop up, with your Nmap results being displayed in a similar fashion as you saw in the Minecraft example. The above command completes the 3 parts required to get output to Gource using the middleware. Granted in the Nmap case, the parser will just not output anything if the IP or IP range that you are scanning has no open ports, or, you forgot to specify the <code>-v</code> argument. <em>This requirement may change later</em>.</p>
+
+<p>Seeing the Nmap scan come alive is pretty cool. It almost convinces one to scan all the things, just to watch the pretty pictures!</p>
+
+<h3>Visualising a Network Telescope</h3>
+
+<p>Where I am currently employed, I am fortunate enough to have access to the data our blackhole provides to us. The setup is pretty simple. There are 13, random /24&rsquo;s (IPV6 coming soon™), sink holed to a box running the <a href="http://qosient.com/argus/">Argus</a> server software. Argus provides a set of client tools that you can use to connect to the server and &lsquo;see&rsquo; what is happening, live.</p>
+
+<p>This was a golden opportunity to add a parser that would parse the output this client receives into Gource. The result? See for yourself:</p>
+
+<p><img class="<a" src="href="http://i.imgur.com/eDc3EPlh.png">http://i.imgur.com/eDc3EPlh.png</a>"></p>
+
+<p>Moments later, even more activity&hellip; :)</p>
+
+<p><img class="<a" src="href="http://i.imgur.com/yPAGoLwh.png">http://i.imgur.com/yPAGoLwh.png</a>"></p>
+
+<p>The parser will take the Argus client output and split the results of the IPv4 destination address by octet. Each octet will form part of the tree structure. Each bubble represents a port that was touched. Finally, each full destination IP address will get its own <em>unique</em> colour, so it will be easy to see when a specific IP has been scanned across multiple ports. Each <em>user</em> is a source IP address. Remember, this is IP space that is used for nothing other than seeing what is happening on it. So things like people scanning your Darknet for open SSH ports will make your Gource go mad, in a good way ofc.</p>
+
+<p>The above screenshots were taken by specifying the <code>--hide dirnames</code> arguments, as we obviously want to try and keep the IP space of the blackhole classified.</p>
+
+<h3>Ok, how did you do THAT</h3>
+
+<p><code>bash Visualising the Argus Darknet with Gource
+$ ~/Downloads/argus-clients-3.0.6.2/bin/ra -S [argus_server]:[argus_port] -n | tee raw | python py2gource.py -t argus | tee parsed | gource --realtime --log-format custom - -1440x900 --bloom-intensity 0.3 --title "Live Darknet Port Activity" -i 30 -f
+</code></p>
+
+<p>I am going to assume you have the Argus server setup complete, and you are able to connect using the <code>ra</code> client. For more information on setting it up, refer to the Argus wiki <a href="http://nsmwiki.org/index.php?title=Argus">here</a>. Which ever machine your using to run Gource on, obviously needs to be able to connect as well.</p>
+
+<p>The Argus parser works without specifying any fancy command line options. I have used <code>-n</code> in the example as I did not want to have the destination port names, but the raw port numbers instead. This output is piped into <code>tee</code>, that will write the output to the file <em>raw</em> as well as stdout. This is not a requirement, but its interesting to see <strong>what</strong> is being parsed. I tail the file in a separate terminal usually and inspect the output. Then the output is passed to <code>py2gource.py</code> with the type set to argus via <code>-t argus</code>. The output generated by this middleware is then finally &lsquo;tee&rsquo;d&rsquo; and sent to Gource, which is configured to accept input in realtime from stdin with <code>--realtime --log-format custom -</code>. The rest of the options I used in the example for Gource is purely graphically related.</p>
+
+<p>The file <em>parsed</em> can be seen as a &lsquo;history&rsquo; file that can be piped into Gource again at a later time to replay potentially interesting events, or, if you are not able to connect directly to argus, and need to grab and parse output on one machine, and then replay on another machine with Gource installed.</p>
+
+<h3>Get the code, setup your own.</h3>
+
+<p>The parser&rsquo;s code is hosted on Github <a href="https://github.com/th3l33k/py2gource">here</a>. Grab the code with <code>git clone https://github.com/th3l33k/py2gource.git</code>. Parsers live in <code>lib/Parsers</code> if you are interested in parsing some other interesting information you may have.</p>
+
+<p>Have fun! :D</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to: Extremely Simple Python Jabber Broadcast Bot]]></title>
+    <link href="http://leonjza.github.io/blog/2013/05/25/how-to-extremely-simple-python-jabber-broadcast-bot/"/>
+    <updated>2013-05-25T10:12:00+02:00</updated>
+    <id>http://leonjza.github.io/blog/2013/05/25/how-to-extremely-simple-python-jabber-broadcast-bot</id>
+    <content type="html"><![CDATA[<h3>Bots! Bots! Bots!</h3>
+
+<p>Generally speaking, a &lsquo;'bot&rsquo;&lsquo; is something that like <em>does work for you</em>. But, for this purpose, the need for a jabber bot came from the fact that I had to deal with a lot of email on a daily basis. This large amount of mail sometimes would cause me to completely miss critical mail alerts. Realising later that I could have prevented a catastrophe if I didn&rsquo;t miss that <strong>one</strong> email was just not on anymore. So, I started investigating ways to get the <em>important</em> stuff delivered faster.</p>
+
+<p>As a team at work, we have long gone dropped the whole Skype group chat thing for our own Jabber server. My privacy related concerns back then was recently heightened <a href="http://lists.randombit.net/pipermail/cryptography/2013-May/004224.html">here</a> when a trap URL received a HEAD request from <strong>65.52.100.214</strong>. The user that received the URL in a chat was under strict instructions not to actually click it&hellip;</p>
+
+<h3>So, how do we do this?</h3>
+
+<p>We implemented a <a href="http://www.igniterealtime.org/projects/openfire/">Openfire Server</a> that was really easy to setup and get going. Whats really nice about this Jabber server is that it supports plugins, some of which you can simply install via the web interface.</p>
+
+<p>One such plugin that was installed is called the <a href="http://www.igniterealtime.org/projects/openfire/plugins/broadcast/readme.html">broadcast</a> plugin. This allows you to broadcast a message to all users on the server or those in defined groups.</p>
+
+<p><img class="<a" src="href="http://i.imgur.com/6i8WhgR.png">http://i.imgur.com/6i8WhgR.png</a>">
+Once this plugin is installed, some minor configuration is required to allow the broadcasting feature to work. In no way is this an extensive guide on the power of the plugin, but for the purpose of this post well just quickly rush over it.</p>
+
+<p>Head over to <em>Server</em> &ndash;> <em>Server Manager</em> &ndash;> <em>System Properties</em>. From here you need to add the fields that are not there with the <strong>plugin.broadcast.</strong> prefix. Don&rsquo;t worry if they are not there, just add them.</p>
+
+<p><img class="<a" src="href="http://i.imgur.com/XmU4d98.png">http://i.imgur.com/XmU4d98.png</a>"></p>
+
+<p>The above is just a sample of a working configuration. Feel free to play around more with different setups.</p>
+
+<p>With everything configured, you should now be able to send a message to something like <em>all@broadcast.jabber.server</em>. In my configuration, <em>plugin.broadcast.all2offline</em> is set to <strong>true</strong>. So, when a message is broadcasted and I was offline, I&rsquo;ll receive the broadcast as soon as I&rsquo;m back :)</p>
+
+<h3>Introducing jabbersend.py</h3>
+
+<p>With our jabber server now configured and working, we are ready to start automating things. From here we need two things. Something that will broadcast for us, and something <em>to</em> broadcast. The <em>what to broadcast</em> is entirely up to you, as the script will accept a text file to broadcast.</p>
+
+<p>The only dependency you probably need to satisfy will be <code>xmpp</code>. This should be easily doable with something like <code>easy_install xmpp</code></p>
+
+<p>```python Send a Jabber Message from a file</p>
+
+<h1>!/usr/bin/python</h1>
+
+<p>import sys,os,xmpp,time</p>
+
+<h1>check the received arguments</h1>
+
+<p>if len(sys.argv) &lt; 2:</p>
+
+<pre><code>print "Syntax: jabbersend.py JID textfile"
+sys.exit(0)
+</code></pre>
+
+<h1>set the values to work with and read the file</h1>
+
+<p>tojid=sys.argv[1]
+m = open(sys.argv[2],&lsquo;r&rsquo;)
+array = m.readlines()
+m.close()</p>
+
+<p>msg=&ldquo;&rdquo;
+for record in array:</p>
+
+<pre><code>    msg = msg + record
+</code></pre>
+
+<h1>configure your jabber account for the bot here.</h1>
+
+<p>username = &lsquo;<a href="&#109;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#x6a;&#x61;&#x62;&#x62;&#101;&#114;&#x5f;&#98;&#x6f;&#116;&#x40;&#106;&#x61;&#x62;&#98;&#x65;&#114;&#x2e;&#x73;&#x65;&#114;&#x76;&#101;&#x72;">&#x6a;&#97;&#x62;&#98;&#101;&#x72;&#x5f;&#x62;&#111;&#x74;&#x40;&#x6a;&#x61;&#98;&#x62;&#101;&#114;&#46;&#115;&#101;&#x72;&#118;&#x65;&#x72;</a>&rsquo; # from whom will the message be sent
+password = &lsquo;jabber_bot_secret_password&rsquo;</p>
+
+<p>jid=xmpp.protocol.JID(username)</p>
+
+<h1>for debugging purposes, uncomment the below line so that &lsquo;debug&rsquo; is 1.</h1>
+
+<h1>This makes the script very verbose though, but its helpful if you stuck ^^</h1>
+
+<h1>cl=xmpp.Client(jid.getDomain(),debug=1)</h1>
+
+<p>cl=xmpp.Client(jid.getDomain(),debug=[])</p>
+
+<h1>Sadly I don&rsquo;t have a valid certificate for my jabber server, so this had to</h1>
+
+<h1>be set to False. I do however recommend, if you can, to get a valid certificate</h1>
+
+<h1>and enable this</h1>
+
+<p>con=cl.connect(secure=False) # Set this to validate the servers certificate.
+if not con:</p>
+
+<pre><code>print "Could not connect"
+sys.exit()
+</code></pre>
+
+<h1>authenticate the client</h1>
+
+<p>auth=cl.auth(jid.getNode(),password,resource=jid.getResource())
+if not auth:</p>
+
+<pre><code>print "Authentication failed"
+sys.exit()
+</code></pre>
+
+<h1>send the message</h1>
+
+<p>id=cl.send(xmpp.protocol.Message(tojid, msg))</p>
+
+<h1>some older servers will not send the message if you disconnect immediately</h1>
+
+<p>time.sleep(1)
+```</p>
+
+<h3>We have the code, now use it!</h3>
+
+<p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
+<code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
+
+<p>If all went OK, you should have received a message from <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#58;&#106;&#97;&#98;&#x62;&#x65;&#x72;&#95;&#98;&#111;&#x74;&#x40;&#x6a;&#97;&#98;&#98;&#101;&#114;&#46;&#115;&#101;&#x72;&#118;&#x65;&#114;">&#x6a;&#x61;&#98;&#x62;&#101;&#x72;&#x5f;&#x62;&#x6f;&#x74;&#64;&#106;&#x61;&#98;&#x62;&#x65;&#114;&#46;&#115;&#101;&#114;&#118;&#x65;&#x72;</a> :P</p>
+
+<p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
+The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
+
+<p>I have a slightly more matured version of this in a python module that I&rsquo;ll share later. If you are interested in this, poke me on twitter @leonjza</p>
+]]></content>
+  </entry>
+  
+</feed>

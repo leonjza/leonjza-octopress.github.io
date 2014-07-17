@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>URL Expansion - I'm Paranoid Like That - #!/slash/note</title>
+  <meta name="author" content="Leon Jacobs">
+
+  
+  <meta name="description" content="So there is a good use URL Shorteners, as they are most commonly known, are pretty useful in places where you are limited to the amount of characters &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="#!/slash/note" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44457032-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">#!/slash/note</a></h1>
+  
+    <h2>A checkbox unchecker's notepad</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:leonjza.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">URL Expansion - I'm Paranoid Like That</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-31T18:19:00+02:00" pubdate data-updated="true">Jul 31<sup>st</sup>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h3>So there is a good use</h3>
+
+<p>URL Shorteners, as they are most commonly known, are pretty useful in places where you are limited to the amount of characters you are allowed to type. Twitter being the prime example. However, it is not only because of services like that that these URL shortening services exist. Sometimes, URL&rsquo;s are are just plain crazy long, and very error prone when you have to copy and paste/link them someone. I guess we can call this a useful feature?</p>
+
+<h3>And a bad use</h3>
+
+<p>Of course, like most of the stuff you find on the internet, there has to be a way to abuse it too. Many people that consider themselves to be &ldquo;IT Literate&rdquo;, be it second nature, or they have been burned before, will usually check out the link they are about to click. URL Shortening services take this &ldquo;check&rdquo; right out. It is now easier to get someone to click on a url to <em>somedodywebsite.io/free_trojan_screensaver_no_virus_promise.exe</em> as by the time the page has loaded, it may very well be too late.</p>
+
+<p>There are also concerns about tracking too. But that is a different debate all together.</p>
+
+<h3>Rise of the URL Expander.</h3>
+
+<p>There are tons, and I mean, <strong>tons</strong> of &lsquo;URL Expansion&rsquo; services available online. <a href="http://longurl.org/,">http://longurl.org/,</a> <a href="http://urlex.org/">http://urlex.org/</a> and <a href="http://www.wheredoesthislinkgo.com/">http://www.wheredoesthislinkgo.com/</a> to name a few. All from a simple Google Search. There are even browser plugins that would automatically &lsquo;expand&rsquo; urls  as you hover over them.</p>
+
+<p>This is cool and all. But how do I know that those services are not modifying the URL&rsquo;s? How do I know the browser plugin is not also fooling around somehow? Does that sound pretty paranoid to you? Well&hellip; :D</p>
+
+<h3>Time for longurl.py</h3>
+
+<p>I wanted something to use on the command line, that would allow me to see <strong>exactly</strong> where I was going. Thus, <em>longurl.py</em> came to be.</p>
+
+<p>Get the script with: <code>$ git clone https://github.com/th3l33k/longurl.git</code></p>
+
+<p>With this, I am able to see each 30x type redirect, as well as where it will take me. A sample usage case would be:</p>
+
+<figure class='code'><figcaption><span>longurl.py Usage</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>% ./longurl.py http://t.co/CHwi0q7DyF
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Next stop: <span class="s1">&#39;http://t.co/CHwi0q7DyF&#39;</span>
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Got status: 301 with reason: Moved Permanently
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Next stop: <span class="s1">&#39;http://bit.ly/14hneHx&#39;</span>
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Got status: 301 with reason: Moved
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Next stop: <span class="s1">&#39;http://t.co/lqyFnSivpw&#39;</span>
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Got status: 301 with reason: Moved Permanently
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Next stop: <span class="s1">&#39;http://reg.cx/27nM&#39;</span>
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Got status: 302 with reason: Found
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Next stop: <span class="s1">&#39;http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/&#39;</span>
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Got status: 200 with reason: OK
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> The final looks to be: <span class="s1">&#39;http://www.theregister.co.uk/2013/07/31/department_defence_no_lenovo_ban/&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now you can see each &lsquo;hop&rsquo; it would have taken, as well as have your &lsquo;check before click&rsquo; ability back. Like I said, there are lots of other ways to get the same thing done, but I preferred knowing exactly what is going on, rather than just getting the final URL, missing potential bad URL&rsquo;s in between that could lead to other <em>interesting</em> finding. :)</p>
+
+<p><strong>EDIT</strong>
+A similar effect can be seen with this one curl command:</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Leon Jacobs</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-31T18:19:00+02:00" pubdate data-updated="true">Jul 31<sup>st</sup>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/infosec/'>infosec</a>, <a class='category' href='/blog/categories/python/'>python</a>, <a class='category' href='/blog/categories/url-expansion/'>url expansion</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that/" data-via="leonjza" data-counturl="http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/07/27/stuff-to-gource/" title="Previous Post: 'stuff' to Gource.">&laquo; 'stuff' to Gource.</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/" title="Next Post: KVM - Redirecting CentOS Kernel and tty output to a virtual serial console">KVM - Redirecting CentOS Kernel and tty output to a virtual serial console &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/">Dnsfilexfer - Yet Another Take on File Transfer via DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/">/root/flag.txt - Solving the Relativity Vulnerable VM</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure With a Infamous Bot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and Tty Output to a Virtual Serial Console</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/31/url-expansion-im-paranoid-like-that/">URL Expansion - I'm Paranoid Like That</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Leon Jacobs -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

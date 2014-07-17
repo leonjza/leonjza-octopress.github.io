@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Sleekxmpp | #!/slash/note]]></title>
+  <link href="http://leonjza.github.io/blog/categories/sleekxmpp/atom.xml" rel="self"/>
+  <link href="http://leonjza.github.io/"/>
+  <updated>2014-07-17T17:32:40+02:00</updated>
+  <id>http://leonjza.github.io/</id>
+  <author>
+    <name><![CDATA[Leon Jacobs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Jabber to Email Using SleekXMPP]]></title>
+    <link href="http://leonjza.github.io/blog/2013/06/07/jabber-to-email-using-sleekxmpp/"/>
+    <updated>2013-06-07T10:48:00+02:00</updated>
+    <id>http://leonjza.github.io/blog/2013/06/07/jabber-to-email-using-sleekxmpp</id>
+    <content type="html"><![CDATA[<h3>So, why would you even want this..?</h3>
+
+<p>Well, to be honest, I am not really sure of many use cases for this, however maybe someone, somewhere will need to do something like this, and I would have done my deed and saved someone some time ::sun::</p>
+
+<h3>Introducing SleekXMPP</h3>
+
+<p><a href="http://sleekxmpp.com/">SleekXMPP</a> is a python XMPP framework. It takes a bit to get your head around it, but once you have some basics covered its quite a rewarding library to work with. :) To start, you need to install 2 dependencies. Python Mailer and SleekXMPP itself. Something like <code>pip install mailer sleekxmpp</code> or for the older school, <code>easy_install sleekxmpp mailer</code> should do the trick. It can&rsquo;t hurt to check if the distro you use has these are packages already too.</p>
+
+<h3>Configuration and testing time</h3>
+
+<p>Once the install completes, do a quick check to see if everything is ok, Try to import the modules. They should return no errors. If they do, check that the installation of the previously mentioned dependencies were successful.</p>
+
+<p>```python Check dependencies
+% python2
+Python 2.7.5 (default, May 12 2013, 12:00:47)
+[GCC 4.8.0 20130502 (prerelease)] on linux2
+Type &ldquo;help&rdquo;, &ldquo;copyright&rdquo;, &ldquo;credits&rdquo; or &ldquo;license&rdquo; for more information.</p>
+
+<blockquote><blockquote><blockquote><p>import sleekxmpp
+import mailer</p>
+
+<p>```</p></blockquote></blockquote></blockquote>
+
+<p>Next, you need a <em>bot</em> account to use. Provision a user on your jabber server for the bot and test with a jabber client that it works.</p>
+
+<h3>Ok, code</h3>
+
+<p>Next, we take the <a href="http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot">sample</a> echobot from the SleekXMPP website, and modify it slightly to handle our incoming message by sending a email, instead of simply replying back what we have sent.</p>
+
+<p>First, we import the mailer requirements with:</p>
+
+<p>```python mailer imports</p>
+
+<p>from mailer import Mailer
+from mailer import Message
+```</p>
+
+<p>The above can be placed right after the option parser has been imported. Then, we only need to change the <code>message</code> method within the <code>EchoBot</code> class really:</p>
+
+<p>```python Shameless SleekXMPP modification of the echobot <a href="http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot">http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot</a></p>
+
+<h1>!/usr/bin/env python</h1>
+
+<p>if msg[&lsquo;type&rsquo;] in (&lsquo;chat&rsquo;, &lsquo;normal&rsquo;):</p>
+
+<p>   print &ldquo;Received Message:\n%(body)s&rdquo; % msg</p>
+
+<p>   # Mail the message Received
+   message = Message(From=&ldquo;&lsquo;Jabber Email Service&rsquo; <a href="&#x6d;&#x61;&#105;&#108;&#x74;&#111;&#58;&#x73;&#111;&#109;&#101;&#111;&#110;&#101;&#x40;&#100;&#x6f;&#109;&#97;&#x69;&#110;&#46;&#99;&#x6f;&#109;">&#x73;&#x6f;&#109;&#101;&#111;&#x6e;&#x65;&#x40;&#x64;&#x6f;&#109;&#x61;&#x69;&#110;&#x2e;&#99;&#111;&#x6d;</a>&rdquo;,</p>
+
+<pre><code>     To=["someone@domain.com"],
+     Subject="[Jabber Message Received] From: %s" % msg["from"])
+</code></pre>
+
+<p>   themessage = msg[&ldquo;body&rdquo;]
+   themessage = themessage.decode(&lsquo;unicode_escape&rsquo;).encode(&lsquo;ascii&rsquo;,&lsquo;ignore&rsquo;)
+   message.Body = themessage</p>
+
+<p>   sender = Mailer(&ldquo;127.0.0.1&rdquo;)
+   sender.send(message)
+```</p>
+
+<p>A complete modified example that includes the above changes:</p>
+
+<p>```python Shameless SleekXMPP modification of the echobot <a href="http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot">http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot</a></p>
+
+<h1>!/usr/bin/env python</h1>
+
+<h1>&ndash;<em>&ndash; coding: utf-8 &ndash;</em>&ndash;</h1>
+
+<p>&ldquo;&rdquo;"</p>
+
+<pre><code>SleekXMPP: The Sleek XMPP Library
+Copyright (C) 2010  Nathanael C. Fritz
+This file is part of SleekXMPP.
+
+See the file LICENSE for copying permission.
+</code></pre>
+
+<p>&ldquo;&rdquo;"</p>
+
+<p>import sys
+import logging
+import getpass
+from optparse import OptionParser</p>
+
+<p>from mailer import Mailer
+from mailer import Message</p>
+
+<p>import sleekxmpp</p>
+
+<h1>Python versions before 3.0 do not use UTF-8 encoding</h1>
+
+<h1>by default. To ensure that Unicode is handled properly</h1>
+
+<h1>throughout SleekXMPP, we will set the default encoding</h1>
+
+<h1>ourselves to UTF-8.</h1>
+
+<p>if sys.version_info &lt; (3, 0):</p>
+
+<pre><code>reload(sys)
+sys.setdefaultencoding('utf8')
+</code></pre>
+
+<p>else:</p>
+
+<pre><code>raw_input = input
+</code></pre>
+
+<p>class EchoBot(sleekxmpp.ClientXMPP):</p>
+
+<pre><code>"""
+A simple SleekXMPP bot that will echo messages it
+receives, along with a short thank you message.
+"""
+
+def __init__(self, jid, password):
+    sleekxmpp.ClientXMPP.__init__(self, jid, password)
+
+    # The session_start event will be triggered when
+    # the bot establishes its connection with the server
+    # and the XML streams are ready for use. We want to
+    # listen for this event so that we we can initialize
+    # our roster.
+    self.add_event_handler("session_start", self.start)
+
+    # The message event is triggered whenever a message
+    # stanza is received. Be aware that that includes
+    # MUC messages and error messages.
+    self.add_event_handler("message", self.message)
+
+def start(self, event):
+    """
+    Process the session_start event.
+
+    Typical actions for the session_start event are
+    requesting the roster and broadcasting an initial
+    presence stanza.
+
+    Arguments:
+        event -- An empty dictionary. The session_start
+                 event does not provide any additional
+                 data.
+    """
+    self.send_presence()
+    self.get_roster()
+    self.nick = "jabberMailBot"
+
+def message(self, msg):
+    """
+    Process incoming message stanzas. Be aware that this also
+    includes MUC messages and error messages. It is usually
+    a good idea to check the messages's type before processing
+    or sending replies.
+
+    Arguments:
+        msg -- The received message stanza. See the documentation
+               for stanza objects and the Message stanza to see
+               how it may be used.
+    """
+    if msg['type'] in ('chat', 'normal'):
+
+        print "Received Message:\n%(body)s" % msg
+
+        # Mail the message Received
+        message = Message(From="'Jabber Email Service' &lt;someone@domain.com&gt;",
+              To=["someone@domain.com"],
+              Subject="[Jabber Message Received] From: %s" % msg["from"])
+        themessage = msg["body"]
+        themessage = themessage.decode('unicode_escape').encode('ascii','ignore')
+        message.Body = themessage
+
+        sender = Mailer("127.0.0.1")
+        sender.send(message)
+</code></pre>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code># Setup the command line arguments.
+optp = OptionParser()
+
+# Output verbosity options.
+optp.add_option('-q', '--quiet', help='set logging to ERROR',
+                action='store_const', dest='loglevel',
+                const=logging.ERROR, default=logging.INFO)
+optp.add_option('-d', '--debug', help='set logging to DEBUG',
+                action='store_const', dest='loglevel',
+                const=logging.DEBUG, default=logging.INFO)
+optp.add_option('-v', '--verbose', help='set logging to COMM',
+                action='store_const', dest='loglevel',
+                const=5, default=logging.INFO)
+
+# JID and password options.
+optp.add_option("-j", "--jid", dest="jid",
+                help="JID to use")
+optp.add_option("-p", "--password", dest="password",
+                help="password to use")
+
+opts, args = optp.parse_args()
+
+# Setup logging.
+logging.basicConfig(level=opts.loglevel,
+                    format='%(levelname)-8s %(message)s')
+
+if opts.jid is None:
+    opts.jid = raw_input("Username: ")
+if opts.password is None:
+    opts.password = getpass.getpass("Password: ")
+
+# Setup the EchoBot and register plugins. Note that while plugins may
+# have interdependencies, the order in which you register them does
+# not matter.
+xmpp = EchoBot(opts.jid, opts.password)
+xmpp.register_plugin('xep_0030') # Service Discovery
+xmpp.register_plugin('xep_0004') # Data Forms
+xmpp.register_plugin('xep_0060') # PubSub
+xmpp.register_plugin('xep_0199') # XMPP Ping
+
+# If you are working with an OpenFire server, you may need
+# to adjust the SSL version used:
+# xmpp.ssl_version = ssl.PROTOCOL_SSLv3
+
+# If you want to verify the SSL certificates offered by a server:
+# xmpp.ca_certs = "path/to/ca/cert"
+
+# Connect to the XMPP server and start processing XMPP stanzas.
+if xmpp.connect():
+    # If you do not have the dnspython library installed, you will need
+    # to manually specify the name of the server if it does not match
+    # the one in the JID. For example, to use Google Talk you would
+    # need to use:
+    #
+    # if xmpp.connect(('talk.google.com', 5222)):
+    #     ...
+    xmpp.process(block=True)
+    print("Done")
+else:
+    print("Unable to connect.")
+</code></pre>
+
+<p>```</p>
+
+<h3>So how do I actually use this thing I just saw?</h3>
+
+<p>Take the complete example and save it to a file like <code>bot.py</code>. Then, run it!
+The complete example will echo the message just before it attempts to mail it. You can comment out line <strong>86</strong> to stop this from happening and run the script with the <code>-q</code> argument once you are happy all is working.</p>
+
+<p>```bash sample run
+% python bot.py -j &ldquo;<a href="&#109;&#97;&#105;&#108;&#x74;&#111;&#58;&#x6d;&#121;&#x45;&#x6d;&#x61;&#x69;&#108;&#98;&#x6f;&#116;&#64;&#109;&#x79;&#74;&#x61;&#x62;&#98;&#101;&#114;&#83;&#101;&#114;&#x76;&#x65;&#114;&#x2e;&#108;&#111;&#x63;&#97;&#x6c;">&#109;&#x79;&#69;&#x6d;&#97;&#x69;&#108;&#x62;&#x6f;&#116;&#x40;&#x6d;&#121;&#x4a;&#x61;&#x62;&#98;&#x65;&#x72;&#83;&#x65;&#114;&#x76;&#x65;&#114;&#x2e;&#x6c;&#x6f;&#99;&#x61;&#108;</a>&rdquo;
+Password:
+INFO     Negotiating TLS
+INFO     Using SSL version: 3
+INFO     CERT: Time until certificate expiration: 952 days, 6:46:01.014041</p>
+
+<p>Received Message:
+This is a test message that will be mailed :D
+```</p>
+
+<h3>Things to note.</h3>
+
+<ul>
+<li>Even though the script allows you to specify a <code>-p</code> argument, I would highly discourage the usage of this. Any person that has access to your machine, be it legitimate or not, would then see your bot&rsquo;s process, with the password in the <code>ps</code> output!</li>
+<li>Ensure the SMTP server specified in line <strong>96</strong> of the complete example allows yo to relay! Change it if needed.</li>
+</ul>
+
+
+<h3>Test! :D</h3>
+
+<p>Send your bot a message and see if your mail arrives ^^</p>
+
+<p><strong>EDIT</strong>: Modify the message encoding to ASCII as the utf8 stuff seems to barf out sometimes :|</p>
+]]></content>
+  </entry>
+  
+</feed>

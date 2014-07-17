@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Nessus | #!/slash/note]]></title>
+  <link href="http://leonjza.github.io/blog/categories/nessus/atom.xml" rel="self"/>
+  <link href="http://leonjza.github.io/"/>
+  <updated>2014-07-17T17:32:40+02:00</updated>
+  <id>http://leonjza.github.io/</id>
+  <author>
+    <name><![CDATA[Leon Jacobs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Hello World! Oh and Here's Some Code!]]></title>
+    <link href="http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code/"/>
+    <updated>2013-05-24T21:11:00+02:00</updated>
+    <id>http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code</id>
+    <content type="html"><![CDATA[<h3>Introduction</h3>
+
+<p>Finally! A blog engine I like! :) No exceptionally bloated backend database with plugins that just get hacked. Yup, slim and sleek. <em>And</em>, I get to make posts using Vi :D
+Want in on this love? Have a look at <a href="http://octopress.org">Octopress</a> . Yes, it was a real ball ache to get setup thanks to the ruby dependencies, but now that were rollin' this should be good :D</p>
+
+<h3>Frustrations breed Ideas</h3>
+
+<p>In my day job, I am exposed to a lot of work that will relate around the <a href="http://www.tenable.com/products/nessus">Nessus Vulnerability Scanner</a>.
+Originally, interfacing with this scanner used be via a old and clunky <em>flash</em> interface. It was bad. They have since moved over to a HTML5, ajaxy interface that is light years better. However, for my needs, the default Nessus Interface just does not cut it.</p>
+
+<h3>Open source? Where do I start?</h3>
+
+<p>Based on this old crappy interface, and the need to be able to automate things, I pulled closer the XMLRPC API reference <a href="http://static.tenable.com/documentation/nessus_5.0_XMLRPC_protocol_guide.pdf">documentation</a>. Reading this revealed the API is actually very straight forward. Login &ndash;> get a token &ndash;> make POST with this token and receive XML. Great.</p>
+
+<p>I started hacking away at some PHP to test this out. Back then I was really <em>very</em> new to this &lsquo;'development&rsquo;&lsquo; thing, so it was really tough to get my head around the concepts of working with the API. Nonetheless, we had something to work with, and this was implemented internally for numerous functions.</p>
+
+<p>Since then, <code>nessus.php</code> was born. The first iteration of this code was, well, worse than it is now, but its now very easy to use ( I believe ).</p>
+
+<h3>Instantiate a NessusInterface instance</h3>
+
+<p>To use this API, we first need to include it in our script, and then init the Class. Effectively, this will log into the scanner using the provided arguments and store the token in the object. Should it fail, it will raise an error.</p>
+
+<p>```php Sample PHP NessusInterface Usage <a href="https://github.com/th3l33k/php-nessus-api">https://github.com/th3l33k/php-nessus-api</a>
+&lt;?php
+require &ldquo;nessus.php&rdquo;;</p>
+
+<p>try {</p>
+
+<pre><code>$api = new NessusInterface(
+    $__url,
+    $__port,
+    $__username,
+    $__password
+);
+</code></pre>
+
+<p>} catch(Exception $e) {</p>
+
+<pre><code>preprint($e-&gt;getMessage());
+</code></pre>
+
+<p>}
+```</p>
+
+<h4>Do some API calls</h4>
+
+<p>Once you have the <code>$api</code> variable setup with a instance of <strong>NessusInterface</strong>, you can use any of the available calls. Most of the API calls will return some form of array:</p>
+
+<p>```php Sample API calls using NessusInterface <a href="https://github.com/th3l33k/php-nessus-api">https://github.com/th3l33k/php-nessus-api</a>
+&lt;?php
+try {</p>
+
+<pre><code>$api-&gt;feed();
+# // Will return an array like:
+#  Array
+#  (
+#    [feed] =&gt; ProFeed
+#    [server_version] =&gt; 5.2.1
+#    [web_server_version] =&gt; 4.0.37 (Build H20130515A)
+#    [expiration] =&gt; 1406174400
+#    [msp] =&gt; FALSE
+#    [loaded_plugin_set] =&gt; 201305240915
+#    [expiration_time] =&gt; 425
+# )
+</code></pre>
+
+<p>} catch(Exception $e) {</p>
+
+<pre><code>preprint($e-&gt;getMessage());
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Reading the sources will reveal the structures of the returned arrays.
+Get the code <a href="https://github.com/th3l33k/php-nessus-api">here</a></p>
+
+<h3>Its the small things</h3>
+
+<p>This is by no means and elaborate &ldquo;solution&rdquo; really. It&rsquo;s purely another building block for something bigger. A believe there are quite a few fundamentals that the Nessus Scanner does not cover, but perhaps that is beyond the scope of what its designed to do :)</p>
+]]></content>
+  </entry>
+  
+</feed>
