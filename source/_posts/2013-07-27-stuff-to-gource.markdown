@@ -21,7 +21,6 @@ In short, Gource will take your repos commit logs from Git, Mecurial, SVN or eve
 You can also create a Gource 'movie' by specifying the `-o` option for output. This will provide a sequence of screenshots in PPM format that can later be encoded using something like FFMPEG. Keep in mind that this output is *massive*. 5mins of output generated something like a 5GB .ppm file for me. You can also just pipe your Gource output directly into ffmpeg, skipping the need to create the .ppm as FFMPEG can read a stream. I of course have no idea how you'd accomplish this in Windows, but ok ;D
 
 Majong released a video of exactly this for the Minecraft dev tree. 800+ days worth of work, depicting the commit logs from a alpha 1.2 version through to the 1.5 release bought down 8 minutes. [Direct Link](http://www.youtube.com/watch?v=zRjTyRly5WA)
-{% youtube zRjTyRly5WA %}
 
 ### Taking it one step further.
 So all this is cool and stuff. Watching the stories of code get told in a uber cool fashion, causing a lot of productive time to be lost. However, browsing through the Gource Wiki Pages, revealed a rather interesting section. Gource accepts a argument called `--log-format custom` that allows you to generate, well, custom logs.
