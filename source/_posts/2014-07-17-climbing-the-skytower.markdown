@@ -59,7 +59,7 @@ The next step was to poke around the web application. I personally really enjoy 
 
 A natural reaction is to try and use a single quote in form fields as a quick and nasty check for potential SQL injection. A login attempt with a username of test and password `'` resulted in:
 
-```
+```bash SQLi Reveal
 There was an error running the query [You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''''' at line 1]
 ```
 
