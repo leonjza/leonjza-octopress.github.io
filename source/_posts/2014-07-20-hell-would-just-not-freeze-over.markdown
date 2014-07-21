@@ -973,8 +973,31 @@ There is a mention of _rockyou_ in the From address. There is a famous rockyou w
 A few hours passed, with 0 luck on cracking the password for the container. I started to realize that this _may_ not be the correct path in getting the container open, assuming that is the next step. However, as a last resort, I opted to copy the files onto my Windows gaming PC and run it via a GPU cracker, [oclHashcat](http://hashcat.net/oclhashcat/).
 
 ```bash Windows ocl hashcat
-# COPY oclHashcat OUTPUT FROM NOTE HERE
-container.tc:letsyouupdateyourfunnotesandmore
+C:\Users\Somedude\Downloads\oclHashcat-1.21\oclHashcat-1.21>oclHashcat64.exe
+-m 6211 C:\Users\Somedude\Desktop\Hell\container.tc C:\Users\Somedude\Desktop\Hell\rockyou.txt
+
+[snip]
+
+C:\Users\Somedude\Desktop\Hell\container.tc:letsyouupdateyourfunnotesandmore
+
+Session.Name...: oclHashcat
+Status.........: Cracked
+Input.Mode.....: File (C:\Users\Somedude\Desktop\Hell\rockyou.txt)
+Hash.Target....: File (C:\Users\Somedude\Desktop\Hell\container.tc)
+Hash.Type......: TrueCrypt 5.0+ PBKDF2-HMAC-RipeMD160 + AES
+Time.Started...: Sun Jul 20 14:26:08 2014 (19 secs)
+Speed.GPU.#1...:    14578 H/s
+Speed.GPU.#2...:    16165 H/s
+Speed.GPU.#*...:    30743 H/s
+Recovered......: 1/1 (100.00%) Digests, 1/1 (100.00%) Salts
+Progress.......: 563201/14343297 (3.93%)
+Skipped........: 0/563201 (0.00%)
+Rejected.......: 1/563201 (0.00%)
+HWMon.GPU.#1...: 64% Util, 54c Temp, 43% Fan
+HWMon.GPU.#2...:  0% Util, 90c Temp, 100% Fan
+
+Started: Sun Jul 20 14:26:08 2014
+Stopped: Sun Jul 20 14:26:42 2014
 ```
 
 About 19 seconds later, we have the password thanks to hashcat!
