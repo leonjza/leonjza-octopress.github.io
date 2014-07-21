@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Solution | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/solution/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-07-21T13:28:58+02:00</updated>
+  <updated>2014-07-21T15:29:38+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -622,8 +622,8 @@ mysql_connect("127.0.0.1", "www-data", "website") or die("Server Error");
 <p>The comment was quite helpful along with all the mentions of Jack on the website, along with the <code>/etc/passwd</code> revealing a <code>jack</code> user, I tried these credentials on a SSH session:</p>
 
 <p>```bash ssh as jack
-root@kali:~# ssh <a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#x3a;&#106;&#97;&#99;&#107;&#64;&#x31;&#x39;&#x32;&#x2e;&#x31;&#x36;&#x38;&#46;&#x35;&#x36;&#x2e;&#49;&#48;&#x32;">&#106;&#x61;&#99;&#x6b;&#64;&#49;&#x39;&#50;&#46;&#x31;&#54;&#56;&#46;&#53;&#54;&#46;&#49;&#48;&#x32;</a>
-<a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#x6f;&#58;&#x6a;&#97;&#x63;&#x6b;&#x40;&#x31;&#57;&#50;&#46;&#x31;&#54;&#56;&#x2e;&#53;&#x36;&#46;&#49;&#x30;&#50;">&#x6a;&#x61;&#x63;&#x6b;&#64;&#49;&#57;&#x32;&#x2e;&#x31;&#54;&#56;&#46;&#53;&#x36;&#46;&#49;&#48;&#50;</a>&rsquo;s password:
+root@kali:~# ssh <a href="&#109;&#97;&#105;&#x6c;&#x74;&#x6f;&#58;&#x6a;&#x61;&#99;&#107;&#64;&#49;&#57;&#x32;&#46;&#x31;&#x36;&#x38;&#x2e;&#x35;&#x36;&#x2e;&#49;&#x30;&#x32;">&#x6a;&#x61;&#99;&#x6b;&#64;&#49;&#x39;&#50;&#x2e;&#49;&#54;&#x38;&#46;&#x35;&#54;&#46;&#x31;&#48;&#50;</a>
+<a href="&#109;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#106;&#97;&#x63;&#x6b;&#x40;&#49;&#x39;&#x32;&#x2e;&#x31;&#x36;&#x38;&#x2e;&#53;&#x36;&#x2e;&#49;&#x30;&#50;">&#106;&#97;&#99;&#107;&#64;&#49;&#57;&#50;&#46;&#x31;&#54;&#x38;&#46;&#53;&#54;&#x2e;&#x31;&#x30;&#50;</a>&rsquo;s password:
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -796,7 +796,7 @@ gpg:   secret keys imported: 1
 $ gpg /var/mail/jack/received/message.eml</p>
 
 <p>You need a passphrase to unlock the secret key for
-user: &ldquo;<a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#58;&#106;&#x61;&#x63;&#107;&#x40;&#99;&#x6f;&#119;&#x6c;&#111;&#x76;&#x65;&#x72;&#115;&#46;&#x63;&#111;&#x6d;">&#x6a;&#x61;&#x63;&#x6b;&#64;&#x63;&#x6f;&#x77;&#x6c;&#x6f;&#118;&#101;&#114;&#115;&#x2e;&#x63;&#111;&#109;</a>&rdquo;</p>
+user: &ldquo;<a href="&#109;&#97;&#x69;&#x6c;&#x74;&#x6f;&#58;&#x6a;&#97;&#99;&#107;&#x40;&#99;&#111;&#x77;&#108;&#x6f;&#x76;&#101;&#x72;&#115;&#x2e;&#x63;&#x6f;&#x6d;">&#106;&#97;&#x63;&#x6b;&#x40;&#x63;&#111;&#x77;&#x6c;&#x6f;&#x76;&#101;&#x72;&#115;&#46;&#x63;&#111;&#x6d;</a>&rdquo;</p>
 
 <h1>used the password g0tmi1k69 found in the MySQL database</h1>
 
@@ -821,8 +821,8 @@ Ok Jack. I&rsquo;ve created the account &lsquo;milk_4_life&rsquo; as per your re
 <p>So, lets ssh in as <code>milk_4_life</code>&hellip;</p>
 
 <p>```bash SSH as milk_4_life
-root@kali:~# ssh <a href="&#x6d;&#97;&#x69;&#108;&#116;&#111;&#x3a;&#x6d;&#105;&#108;&#107;&#x5f;&#x34;&#x5f;&#108;&#105;&#x66;&#101;&#x40;&#49;&#x39;&#50;&#46;&#x31;&#54;&#56;&#46;&#x35;&#x36;&#46;&#49;&#48;&#50;">&#x6d;&#105;&#108;&#x6b;&#x5f;&#x34;&#x5f;&#x6c;&#x69;&#102;&#101;&#x40;&#x31;&#57;&#50;&#x2e;&#49;&#54;&#x38;&#46;&#53;&#54;&#x2e;&#49;&#48;&#50;</a>
-<a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#109;&#105;&#x6c;&#x6b;&#95;&#52;&#x5f;&#108;&#x69;&#102;&#x65;&#x40;&#49;&#x39;&#x32;&#46;&#49;&#54;&#x38;&#46;&#x35;&#x36;&#x2e;&#x31;&#x30;&#50;">&#109;&#105;&#x6c;&#x6b;&#95;&#x34;&#95;&#x6c;&#x69;&#102;&#x65;&#64;&#49;&#57;&#50;&#46;&#49;&#54;&#x38;&#x2e;&#53;&#x36;&#x2e;&#x31;&#x30;&#50;</a>&rsquo;s password:
+root@kali:~# ssh <a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#x6d;&#105;&#x6c;&#107;&#x5f;&#52;&#95;&#x6c;&#x69;&#102;&#101;&#x40;&#49;&#57;&#50;&#x2e;&#x31;&#54;&#x38;&#x2e;&#53;&#54;&#x2e;&#49;&#48;&#50;">&#109;&#x69;&#108;&#107;&#x5f;&#x34;&#95;&#108;&#105;&#102;&#101;&#64;&#x31;&#57;&#50;&#46;&#x31;&#54;&#56;&#x2e;&#53;&#x36;&#x2e;&#x31;&#48;&#x32;</a>
+<a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#111;&#x3a;&#109;&#105;&#108;&#107;&#x5f;&#52;&#95;&#x6c;&#105;&#102;&#101;&#64;&#x31;&#57;&#x32;&#x2e;&#49;&#54;&#x38;&#x2e;&#x35;&#54;&#x2e;&#x31;&#48;&#x32;">&#109;&#x69;&#x6c;&#107;&#95;&#x34;&#x5f;&#108;&#x69;&#102;&#101;&#x40;&#x31;&#x39;&#50;&#x2e;&#x31;&#x36;&#56;&#x2e;&#53;&#54;&#x2e;&#49;&#48;&#x32;</a>&rsquo;s password:
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -1023,7 +1023,7 @@ $ /bin/chmod 600 authorized_keys
 <p>Now we can SSH into the VM as <code>george</code></p>
 
 <p>```bash SSH Access as george
-root@kali:~# ssh <a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#58;&#103;&#x65;&#111;&#x72;&#x67;&#x65;&#64;&#x31;&#x39;&#50;&#46;&#x31;&#54;&#56;&#x2e;&#53;&#x36;&#x2e;&#x31;&#48;&#50;">&#103;&#x65;&#x6f;&#x72;&#103;&#x65;&#x40;&#49;&#x39;&#50;&#46;&#49;&#54;&#56;&#46;&#53;&#54;&#x2e;&#x31;&#x30;&#x32;</a> -i id_rsa
+root@kali:~# ssh <a href="&#109;&#x61;&#105;&#108;&#116;&#111;&#58;&#x67;&#x65;&#111;&#x72;&#103;&#x65;&#64;&#49;&#x39;&#50;&#x2e;&#49;&#54;&#56;&#46;&#x35;&#54;&#x2e;&#x31;&#x30;&#50;">&#x67;&#x65;&#x6f;&#114;&#103;&#x65;&#64;&#x31;&#57;&#50;&#46;&#x31;&#x36;&#x38;&#x2e;&#53;&#54;&#x2e;&#x31;&#48;&#50;</a> -i id_rsa
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -1045,8 +1045,8 @@ george@hell:~$
 
 <p>```bash George&rsquo;s Signup Mail
 george@hell:~$ cat /var/mail/george/signup.eml
-From: <a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#x61;&#100;&#x6d;&#x69;&#110;&#64;&#x72;&#111;&#x63;&#107;&#121;&#111;&#117;&#x2e;&#x63;&#x6f;&#x6d;">&#x61;&#x64;&#x6d;&#105;&#110;&#64;&#114;&#111;&#99;&#x6b;&#121;&#111;&#117;&#x2e;&#x63;&#111;&#x6d;</a>
-To: <a href="&#109;&#97;&#x69;&#x6c;&#116;&#x6f;&#58;&#x73;&#x75;&#112;&#101;&#114;&#x5f;&#x61;&#x64;&#109;&#105;&#110;&#64;&#x68;&#101;&#x6c;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#x73;&#117;&#112;&#101;&#114;&#95;&#x61;&#100;&#x6d;&#105;&#110;&#64;&#104;&#101;&#108;&#108;&#46;&#x63;&#111;&#109;</a>
+From: <a href="&#109;&#97;&#105;&#108;&#x74;&#x6f;&#x3a;&#97;&#100;&#x6d;&#105;&#x6e;&#x40;&#114;&#x6f;&#99;&#107;&#121;&#111;&#x75;&#x2e;&#x63;&#111;&#109;">&#97;&#100;&#109;&#x69;&#x6e;&#64;&#x72;&#x6f;&#99;&#107;&#x79;&#x6f;&#x75;&#46;&#99;&#x6f;&#109;</a>
+To: <a href="&#109;&#97;&#x69;&#108;&#x74;&#x6f;&#58;&#115;&#117;&#x70;&#x65;&#x72;&#x5f;&#x61;&#100;&#x6d;&#105;&#x6e;&#x40;&#104;&#x65;&#108;&#x6c;&#x2e;&#99;&#111;&#109;">&#115;&#117;&#x70;&#101;&#114;&#x5f;&#x61;&#100;&#109;&#x69;&#x6e;&#64;&#x68;&#101;&#x6c;&#108;&#46;&#x63;&#111;&#x6d;</a>
 Subject: Account Activation
 Date: 13th November 2009</p>
 
@@ -1060,11 +1060,32 @@ george@hell:~$
 
 <p>A few hours passed, with 0 luck on cracking the password for the container. I started to realize that this <em>may</em> not be the correct path in getting the container open, assuming that is the next step. However, as a last resort, I opted to copy the files onto my Windows gaming PC and run it via a GPU cracker, <a href="http://hashcat.net/oclhashcat/">oclHashcat</a>.</p>
 
-<p>```bash Windows ocl hashcat</p>
+<p>```bash Windows ocl hashcat
+C:\Users\Somedude\Downloads\oclHashcat-1.21\oclHashcat-1.21>oclHashcat64.exe
+-m 6211 C:\Users\Somedude\Desktop\Hell\container.tc C:\Users\Somedude\Desktop\Hell\rockyou.txt</p>
 
-<h1>COPY oclHashcat OUTPUT FROM NOTE HERE</h1>
+<p>[snip]</p>
 
-<p>container.tc:letsyouupdateyourfunnotesandmore
+<p>C:\Users\Somedude\Desktop\Hell\container.tc:letsyouupdateyourfunnotesandmore</p>
+
+<p>Session.Name&hellip;: oclHashcat
+Status&hellip;&hellip;&hellip;: Cracked
+Input.Mode&hellip;..: File (C:\Users\Somedude\Desktop\Hell\rockyou.txt)
+Hash.Target&hellip;.: File (C:\Users\Somedude\Desktop\Hell\container.tc)
+Hash.Type&hellip;&hellip;: TrueCrypt 5.0+ PBKDF2-HMAC-RipeMD160 + AES
+Time.Started&hellip;: Sun Jul 20 14:26:08 2014 (19 secs)
+Speed.GPU.#1&hellip;:    14578 H/s
+Speed.GPU.#2&hellip;:    16165 H/s
+Speed.GPU.#*&hellip;:    30743 H/s
+Recovered&hellip;&hellip;: 1/1 (100.00%) Digests, 1/1 (100.00%) Salts
+Progress&hellip;&hellip;.: 563201/14343297 (3.93%)
+Skipped&hellip;&hellip;..: 0/563201 (0.00%)
+Rejected&hellip;&hellip;.: 1/563201 (0.00%)
+HWMon.GPU.#1&hellip;: 64% Util, 54c Temp, 43% Fan
+HWMon.GPU.#2&hellip;:  0% Util, 90c Temp, 100% Fan</p>
+
+<p>Started: Sun Jul 20 14:26:08 2014
+Stopped: Sun Jul 20 14:26:42 2014
 ```</p>
 
 <p>About 19 seconds later, we have the password thanks to hashcat!</p>
@@ -1118,7 +1139,7 @@ george@hell:/media/truecrypt1$
 <p>So, a rsa private key. A wild shot in the dark sais this is the private key for one of the other users as per the <code>/etc/passwd</code>. I saved the key to a file on my Kali Linux box and attempted to SSH in as <code>bazza</code>, specifying the private key to use:</p>
 
 <p>```bash ssh access as Bazza
-root@kali:~# ssh <a href="&#x6d;&#97;&#x69;&#108;&#116;&#111;&#x3a;&#x62;&#x61;&#122;&#x7a;&#97;&#64;&#x31;&#57;&#x32;&#x2e;&#49;&#x36;&#56;&#46;&#x35;&#54;&#46;&#x31;&#48;&#x32;">&#x62;&#x61;&#x7a;&#122;&#x61;&#x40;&#x31;&#x39;&#x32;&#x2e;&#x31;&#54;&#56;&#x2e;&#x35;&#x36;&#46;&#49;&#x30;&#x32;</a> -i truecrypt_id_rsa
+root@kali:~# ssh <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#x6f;&#58;&#98;&#x61;&#x7a;&#122;&#x61;&#x40;&#x31;&#57;&#50;&#46;&#x31;&#54;&#56;&#46;&#x35;&#x36;&#x2e;&#49;&#48;&#50;">&#98;&#x61;&#122;&#x7a;&#97;&#64;&#49;&#57;&#x32;&#x2e;&#49;&#x36;&#56;&#x2e;&#x35;&#x36;&#x2e;&#49;&#x30;&#x32;</a> -i truecrypt_id_rsa
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -1397,7 +1418,7 @@ $ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo; || 1=1#&rdquo; <a h
                             "&gt;
 </code></pre>
 
-<p>   <br><strong><font size=4>Welcome <a href="&#109;&#x61;&#105;&#108;&#116;&#x6f;&#x3a;&#106;&#111;&#x68;&#x6e;&#64;&#x73;&#107;&#121;&#116;&#x65;&#x63;&#x68;&#46;&#99;&#111;&#x6d;">&#106;&#111;&#104;&#x6e;&#64;&#x73;&#x6b;&#x79;&#x74;&#101;&#x63;&#x68;&#46;&#99;&#111;&#x6d;</a></font><br /> </br></strong>As you may know, SkyTech has ceased all international operations.<br><br> To all our long term employees, we wish to convey our thanks for your dedication and hard work.<br><br><strong>Unfortunately, all international contracts, including yours have been terminated.</strong><br><br> The remainder of your contract and retirement fund, <strong>$2</strong> ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.<br><br><strong>Username: john</strong><br><strong>Password: hereisjohn</strong> <br><br> We wish you the best of luck in your future endeavors. <br> </div> </div></HTML>%
+<p>   <br><strong><font size=4>Welcome <a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#x6a;&#x6f;&#104;&#x6e;&#x40;&#115;&#x6b;&#121;&#116;&#101;&#99;&#104;&#x2e;&#x63;&#x6f;&#x6d;">&#x6a;&#111;&#104;&#x6e;&#x40;&#x73;&#107;&#121;&#x74;&#x65;&#99;&#104;&#x2e;&#x63;&#111;&#109;</a></font><br /> </br></strong>As you may know, SkyTech has ceased all international operations.<br><br> To all our long term employees, we wish to convey our thanks for your dedication and hard work.<br><br><strong>Unfortunately, all international contracts, including yours have been terminated.</strong><br><br> The remainder of your contract and retirement fund, <strong>$2</strong> ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.<br><br><strong>Username: john</strong><br><strong>Password: hereisjohn</strong> <br><br> We wish you the best of luck in your future endeavors. <br> </div> </div></HTML>%
 ```</p>
 
 <p>And success. We have made some progress :D Little did I know that I don&rsquo;t actually completely understand the progress made yet, but just keep this in mind :)</p>
@@ -1408,10 +1429,10 @@ $ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo; || 1=1#&rdquo; <a h
 I setup my <code>proxychains</code> install to use the http proxy available on the server (<code>http 192.168.137.242 3128</code>) and opened a SSH session through it:</p>
 
 <p>```bash SSH via Squid Proxy
-$ proxychains4 ssh <a href="&#109;&#97;&#105;&#108;&#x74;&#x6f;&#58;&#x6a;&#111;&#x68;&#110;&#x40;&#x31;&#x32;&#55;&#46;&#x30;&#46;&#x30;&#x2e;&#x31;">&#106;&#111;&#104;&#x6e;&#x40;&#49;&#x32;&#x37;&#46;&#48;&#x2e;&#48;&#x2e;&#49;</a>
+$ proxychains4 ssh <a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#x6a;&#111;&#104;&#110;&#64;&#x31;&#x32;&#x37;&#x2e;&#x30;&#x2e;&#48;&#x2e;&#49;">&#106;&#x6f;&#104;&#110;&#x40;&#49;&#x32;&#55;&#x2e;&#x30;&#46;&#48;&#46;&#x31;</a>
 [snip]
 [proxychains] Strict chain  &hellip;  192.168.137.242:3128  &hellip;  127.0.0.1:22  &hellip;  OK
-<a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#x3a;&#x6a;&#x6f;&#104;&#x6e;&#x40;&#x31;&#50;&#x37;&#46;&#x30;&#x2e;&#48;&#46;&#49;">&#x6a;&#111;&#104;&#110;&#64;&#49;&#x32;&#x37;&#x2e;&#x30;&#46;&#x30;&#46;&#x31;</a>&rsquo;s password:
+<a href="&#x6d;&#97;&#x69;&#108;&#x74;&#x6f;&#58;&#x6a;&#111;&#x68;&#110;&#x40;&#x31;&#x32;&#x37;&#46;&#48;&#46;&#x30;&#46;&#49;">&#x6a;&#111;&#x68;&#x6e;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#46;&#48;&#46;&#x31;</a>&rsquo;s password:
 Linux SkyTower 3.2.0-4-amd64 #1 SMP Debian 3.2.54-2 x86_64</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -1624,7 +1645,7 @@ PORT   STATE SERVICE
 
 <p>``` bash SSH Login</p>
 
-<h1>ssh <a href="&#109;&#97;&#105;&#x6c;&#x74;&#111;&#x3a;&#x65;&#x73;&#x68;&#116;&#x65;&#114;&#x40;&#x31;&#57;&#50;&#46;&#49;&#54;&#56;&#x2e;&#53;&#x36;&#46;&#50;&#x31;">&#101;&#x73;&#x68;&#x74;&#x65;&#x72;&#x40;&#x31;&#57;&#x32;&#46;&#x31;&#54;&#x38;&#x2e;&#x35;&#x36;&#x2e;&#50;&#49;</a></h1>
+<h1>ssh <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x65;&#115;&#104;&#x74;&#101;&#114;&#x40;&#x31;&#57;&#x32;&#46;&#49;&#54;&#56;&#46;&#53;&#54;&#x2e;&#50;&#x31;">&#101;&#115;&#104;&#x74;&#101;&#x72;&#64;&#49;&#x39;&#x32;&#x2e;&#x31;&#x36;&#x38;&#46;&#x35;&#x36;&#x2e;&#x32;&#x31;</a></h1>
 
 <p>Permission denied (publickey).
 ```</p>
@@ -1848,7 +1869,7 @@ aXwuOk5Dt0/xQWPAKHL6HYyzQjnad/VAmn6tnxko1A/S8ELiG+MUtg==
 
 <p>```bash SSH access as mauk</p>
 
-<h1>ssh <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#109;&#x61;&#x75;&#x6b;&#64;&#x31;&#57;&#x32;&#46;&#x31;&#x36;&#x38;&#x2e;&#53;&#x36;&#x2e;&#x32;&#49;">&#109;&#97;&#117;&#x6b;&#x40;&#49;&#57;&#x32;&#46;&#x31;&#54;&#56;&#x2e;&#53;&#x36;&#46;&#x32;&#x31;</a> -i key</h1>
+<h1>ssh <a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#58;&#x6d;&#x61;&#117;&#x6b;&#x40;&#49;&#x39;&#50;&#46;&#49;&#54;&#x38;&#46;&#53;&#54;&#x2e;&#x32;&#x31;">&#x6d;&#x61;&#117;&#107;&#64;&#x31;&#57;&#x32;&#46;&#49;&#x36;&#56;&#46;&#53;&#x36;&#46;&#x32;&#49;</a> -i key</h1>
 
 <p>[mauk@Relativity ~]$ id
 uid=1001(mauk) gid=1001(mauk) groups=1001(mauk)
@@ -1866,7 +1887,7 @@ uid=1001(mauk) gid=1001(mauk) groups=1001(mauk)
 <p>```bash Mauks bash_history
 [mauk@Relativity ~]$ cat .bash_history</p>
 
-<p>ssh -f <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#x72;&#111;&#x6f;&#116;&#x40;&#x31;&#x39;&#50;&#x2e;&#49;&#x36;&#x38;&#x2e;&#49;&#52;&#52;&#46;&#50;&#x32;&#56;">&#x72;&#111;&#x6f;&#x74;&#x40;&#49;&#57;&#x32;&#46;&#49;&#x36;&#56;&#46;&#49;&#52;&#52;&#x2e;&#x32;&#50;&#x38;</a> -R 6667:127.0.0.1:6667 -N
+<p>ssh -f <a href="&#109;&#97;&#105;&#x6c;&#x74;&#111;&#58;&#x72;&#111;&#111;&#116;&#64;&#x31;&#x39;&#x32;&#x2e;&#x31;&#x36;&#56;&#x2e;&#49;&#52;&#x34;&#x2e;&#50;&#x32;&#56;">&#x72;&#x6f;&#x6f;&#x74;&#x40;&#49;&#x39;&#50;&#x2e;&#49;&#54;&#56;&#46;&#49;&#52;&#52;&#x2e;&#x32;&#x32;&#56;</a> -R 6667:127.0.0.1:6667 -N
 su &ndash;
 exit
 su &ndash;
