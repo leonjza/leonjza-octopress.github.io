@@ -3,6 +3,12 @@
   
   
   <url>
+    <loc>http://leonjza.github.io/blog/2014/07/20/hell-would-just-not-freeze-over/</loc>
+    <lastmod>2014-07-20T19:00:46+02:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
     <loc>http://leonjza.github.io/blog/2014/07/17/climbing-the-skytower/</loc>
     <lastmod>2014-07-17T18:20:12+02:00</lastmod>
     <priority>0.8</priority>
@@ -77,14 +83,14 @@
   
   <url>
     <loc>http://leonjza.github.io/blog/archives/</loc>
-    <lastmod>2014-07-18T06:42:53+02:00</lastmod>
+    <lastmod>2014-07-21T13:28:58+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/</loc>
-    <lastmod>2014-07-18T06:42:53+02:00</lastmod>
+    <lastmod>2014-07-21T13:28:58+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
