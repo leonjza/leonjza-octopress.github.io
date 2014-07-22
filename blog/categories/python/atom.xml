@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Python | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-07-21T15:29:38+02:00</updated>
+  <updated>2014-07-22T07:02:30+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -76,7 +76,7 @@ A similar effect can be seen with this one curl command:</p>
 
 <p><em>Be warned though, watching the output is highly addictive and strangely entertaining, so if you value your productivity, <strong>don&rsquo;t</strong> continue reading this post.</em></p>
 
-<p><img class="<a" src="href="http://i.imgur.com/gFkD3z5.png">http://i.imgur.com/gFkD3z5.png</a>"></p>
+<p>{% img <a href="http://i.imgur.com/gFkD3z5.png">http://i.imgur.com/gFkD3z5.png</a> %}</p>
 
 <p>In short, Gource will take your repos commit logs from Git, Mecurial, SVN or even CVS (with some work) and splash out a graphical representation of the commits, by committer, across time. It also has a number of tweaks that allows you to change some visuals, focus on specific comitters and add titles etc.</p>
 
@@ -159,11 +159,11 @@ $ nmap -v 192.168.137.0/24 | python py2gource.py -t nmap | gource --realtime --l
 
 <p>This was a golden opportunity to add a parser that would parse the output this client receives into Gource. The result? See for yourself:</p>
 
-<p><img class="<a" src="href="http://i.imgur.com/eDc3EPlh.png">http://i.imgur.com/eDc3EPlh.png</a>"></p>
+<p>{% img <a href="http://i.imgur.com/eDc3EPlh.png">http://i.imgur.com/eDc3EPlh.png</a> %}</p>
 
 <p>Moments later, even more activity&hellip; :)</p>
 
-<p><img class="<a" src="href="http://i.imgur.com/yPAGoLwh.png">http://i.imgur.com/yPAGoLwh.png</a>"></p>
+<p>{% img <a href="http://i.imgur.com/yPAGoLwh.png">http://i.imgur.com/yPAGoLwh.png</a> %}</p>
 
 <p>The parser will take the Argus client output and split the results of the IPv4 destination address by octet. Each octet will form part of the tree structure. Each bubble represents a port that was touched. Finally, each full destination IP address will get its own <em>unique</em> colour, so it will be easy to see when a specific IP has been scanned across multiple ports. Each <em>user</em> is a source IP address. Remember, this is IP space that is used for nothing other than seeing what is happening on it. So things like people scanning your Darknet for open SSH ports will make your Gource go mad, in a good way ofc.</p>
 
@@ -206,12 +206,12 @@ $ ~/Downloads/argus-clients-3.0.6.2/bin/ra -S [argus_server]:[argus_port] -n | t
 
 <p>One such plugin that was installed is called the <a href="http://www.igniterealtime.org/projects/openfire/plugins/broadcast/readme.html">broadcast</a> plugin. This allows you to broadcast a message to all users on the server or those in defined groups.</p>
 
-<p><img class="<a" src="href="http://i.imgur.com/6i8WhgR.png">http://i.imgur.com/6i8WhgR.png</a>">
+<p>{% img <a href="http://i.imgur.com/6i8WhgR.png">http://i.imgur.com/6i8WhgR.png</a> %}
 Once this plugin is installed, some minor configuration is required to allow the broadcasting feature to work. In no way is this an extensive guide on the power of the plugin, but for the purpose of this post well just quickly rush over it.</p>
 
 <p>Head over to <em>Server</em> &ndash;> <em>Server Manager</em> &ndash;> <em>System Properties</em>. From here you need to add the fields that are not there with the <strong>plugin.broadcast.</strong> prefix. Don&rsquo;t worry if they are not there, just add them.</p>
 
-<p><img class="<a" src="href="http://i.imgur.com/XmU4d98.png">http://i.imgur.com/XmU4d98.png</a>"></p>
+<p>{% img <a href="http://i.imgur.com/XmU4d98.png">http://i.imgur.com/XmU4d98.png</a> %}</p>
 
 <p>The above is just a sample of a working configuration. Feel free to play around more with different setups.</p>
 
@@ -252,7 +252,7 @@ for record in array:</p>
 
 <h1>configure your jabber account for the bot here.</h1>
 
-<p>username = &lsquo;<a href="&#x6d;&#x61;&#105;&#108;&#116;&#111;&#x3a;&#106;&#97;&#x62;&#x62;&#101;&#114;&#95;&#x62;&#111;&#116;&#x40;&#x6a;&#x61;&#x62;&#x62;&#101;&#114;&#46;&#115;&#101;&#x72;&#x76;&#x65;&#114;">&#106;&#97;&#x62;&#x62;&#101;&#x72;&#95;&#x62;&#x6f;&#x74;&#64;&#x6a;&#x61;&#x62;&#x62;&#101;&#x72;&#46;&#x73;&#101;&#x72;&#118;&#x65;&#x72;</a>&rsquo; # from whom will the message be sent
+<p>username = &lsquo;<a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#106;&#x61;&#x62;&#98;&#x65;&#114;&#x5f;&#x62;&#x6f;&#116;&#x40;&#x6a;&#97;&#x62;&#98;&#x65;&#x72;&#x2e;&#x73;&#x65;&#114;&#118;&#101;&#x72;">&#x6a;&#x61;&#98;&#x62;&#101;&#114;&#95;&#98;&#111;&#116;&#64;&#x6a;&#97;&#98;&#x62;&#x65;&#114;&#46;&#115;&#101;&#114;&#118;&#101;&#x72;</a>&rsquo; # from whom will the message be sent
 password = &lsquo;jabber_bot_secret_password&rsquo;</p>
 
 <p>jid=xmpp.protocol.JID(username)</p>
@@ -301,7 +301,7 @@ sys.exit()
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#109;&#x61;&#x69;&#x6c;&#116;&#111;&#58;&#x6a;&#97;&#x62;&#98;&#x65;&#114;&#95;&#98;&#x6f;&#x74;&#64;&#x6a;&#x61;&#x62;&#98;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#x76;&#101;&#114;">&#x6a;&#x61;&#x62;&#x62;&#x65;&#114;&#x5f;&#98;&#111;&#116;&#64;&#x6a;&#97;&#98;&#x62;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#118;&#101;&#114;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#58;&#106;&#x61;&#98;&#x62;&#x65;&#x72;&#95;&#x62;&#x6f;&#116;&#x40;&#106;&#97;&#x62;&#x62;&#x65;&#x72;&#46;&#115;&#101;&#114;&#118;&#101;&#x72;">&#106;&#x61;&#98;&#x62;&#101;&#114;&#x5f;&#98;&#x6f;&#x74;&#x40;&#106;&#97;&#x62;&#x62;&#x65;&#x72;&#46;&#115;&#x65;&#114;&#x76;&#x65;&#x72;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>

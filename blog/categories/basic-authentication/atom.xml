@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Basic Authentication | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/basic-authentication/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-07-21T15:29:38+02:00</updated>
+  <updated>2014-07-22T07:02:30+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -293,7 +293,7 @@ A sample command to get this running would be: <code>python proxpy.py -p 8090 -x
 </ol>
 
 
-<p><img class="<a" src="href="http://i.imgur.com/NQFboBV.png">http://i.imgur.com/NQFboBV.png</a>"></p>
+<p>{% img <a href="http://i.imgur.com/NQFboBV.png">http://i.imgur.com/NQFboBV.png</a> %}</p>
 
 <h3>What is the user experience with this?</h3>
 
@@ -301,7 +301,7 @@ A sample command to get this running would be: <code>python proxpy.py -p 8090 -x
 
 <p>On my computer, the authentication dialog has the follow look and feel:</p>
 
-<p><img class="<a" src="href="http://i.imgur.com/9NTWg0W.png">http://i.imgur.com/9NTWg0W.png</a>"></p>
+<p>{% img <a href="http://i.imgur.com/9NTWg0W.png">http://i.imgur.com/9NTWg0W.png</a> %}</p>
 
 <p>Notice the &ldquo;Server Says:&rdquo; Section. This is typically the <code>realm</code> part of the authentication request. When using the <code>dtob.py</code> plugin, it is changed to <code>pwnd</code>. This dialog looks no different when using any form of HTTP based authentication. Hence, when the downgrade attack occurs, the user is unaware that anything different is happening in the background.</p>
 
