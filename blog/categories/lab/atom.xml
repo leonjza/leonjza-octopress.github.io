@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Lab | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/lab/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-07-22T07:02:30+02:00</updated>
+  <updated>2014-07-22T07:15:26+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -32,7 +32,7 @@
 
 <p>So for $700, you can buy a relatively easy to setup piece of software that would allow you to <em>steal</em> credentials from random victims. This activity is only one part of a larger cybertheft cycle. The wikipedia article <a href="http://en.wikipedia.org/wiki/Zeus_(Trojan_horse)">here</a> does a excellent job to describe the process in a image:</p>
 
-<p>{% img <a href="http://upload.wikimedia.org/wikipedia/en/2/2d/FBI_Fraud_Scheme_Zeus_Trojan.jpg">http://upload.wikimedia.org/wikipedia/en/2/2d/FBI_Fraud_Scheme_Zeus_Trojan.jpg</a> %}</p>
+<p><img class="<a" src="href="http://upload.wikimedia.org/wikipedia/en/2/2d/FBI_Fraud_Scheme_Zeus_Trojan.jpg">http://upload.wikimedia.org/wikipedia/en/2/2d/FBI_Fraud_Scheme_Zeus_Trojan.jpg</a>"></p>
 
 <h3>The Zeus Bot Architecture</h3>
 
@@ -120,17 +120,17 @@ Zeus/output
 
 <p>It was pretty obvious I was missing <code>php-mbstring</code>, so I went and installed it and restarted Apache. Now, loading my <code>cp.php</code>, I was greeted with a polite message asking me how I am :D</p>
 
-<p>{% img <a href="http://i.imgur.com/cCgsLBk.png">http://i.imgur.com/cCgsLBk.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/cCgsLBk.png">http://i.imgur.com/cCgsLBk.png</a>"></p>
 
 <h4>Installing the Command &amp; Control</h4>
 
 <p>I noticed a install folder in the obtained sources and browsed to <code>install/</code> and found a very nice, easy to understand installer:</p>
 
-<p>{% img <a href="http://i.imgur.com/e1fYvPG.png">http://i.imgur.com/e1fYvPG.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/e1fYvPG.png">http://i.imgur.com/e1fYvPG.png</a>"></p>
 
 <p>Here I realized I needed to have a mysql server running, so I proceeded to install that too and create a database <code>cpdb</code> for the control panel. From here, it was literally a case of install and login. We now have a working Zeus command and control server. That really was not so hard was it? In fact, its worryingly easy.</p>
 
-<p>{% img <a href="http://i.imgur.com/La5zzZI.png">http://i.imgur.com/La5zzZI.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/La5zzZI.png">http://i.imgur.com/La5zzZI.png</a>"></p>
 
 <h4>Compiling the Bot</h4>
 
@@ -138,11 +138,11 @@ Zeus/output
 
 <p>Next, I browsed to the <code>output/builder/</code> folder again and opened the <code>config.txt</code> file in notepad. Here, I really had to set minimal options. One to specify the location of the <code>config.bin</code> and the others for the location of updated bot binaries and what URL the Command and Control server lives at. All pretty straight forward. I also had to set the <code>encryption_key</code>, which should correspond to the key used when we installed the server side PHP stuff earlier.</p>
 
-<p>{% img <a href="http://i.imgur.com/xQQeqQl.png">http://i.imgur.com/xQQeqQl.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/xQQeqQl.png">http://i.imgur.com/xQQeqQl.png</a>"></p>
 
 <p>The next step was to <em>compile</em> the bot. While this may sound complex, it&rsquo;s not. In fact, 2 clicks, granted the config files syntax is correct, and you will have a working compiled exe to work with. The <strong>compiler</strong> interface looked like this:</p>
 
-<p>{% img <a href="http://i.imgur.com/f13Baez.png">http://i.imgur.com/f13Baez.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/f13Baez.png">http://i.imgur.com/f13Baez.png</a>"></p>
 
 <p>1,2,3 done. We now have a <code>zeus-bot.exe</code>. The malware is now customized to speak to my Command &amp; Control server using my unique encryption key. Again, up until this point everything has been pretty easy and straight forward.</p>
 
@@ -194,17 +194,17 @@ Zeus/output
 
 <p>We are also able to, using the control panel, see some more information based on the newly connected bot:</p>
 
-<p>{% img <a href="http://i.imgur.com/aKe4kJh.png">http://i.imgur.com/aKe4kJh.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/aKe4kJh.png">http://i.imgur.com/aKe4kJh.png</a>"></p>
 
 <p>An interesting thing to note here. It appears that the Zeus bot opens up a socks port on the client machines. If the Command &amp; Control server is able to connect to this IP, and the socks port, then it will be able to pull a screenshot of the current state the client pc is in. This is an <em>almost live</em> image. On the client, we can see that the process <code>explorer.exe</code> is listening in port 35419. This is the same port that the web interface is reporting as the SOCKS port.</p>
 
-<p>{% img <a href="http://i.imgur.com/fiy0u2N.png">http://i.imgur.com/fiy0u2N.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/fiy0u2N.png">http://i.imgur.com/fiy0u2N.png</a>"></p>
 
 <p>In the case of my lab setup, this SOCKS connection was not possible due to the fact that the client is reporting as connected from 172.16.50.2, which is the fake, natted public ip of the lab firewall. The firewall itself is most certainly not listening on that port so the connection would fail. Maybe if I port forwarded the connection back into the fake LAN it would have been able to connect but this I did not test.</p>
 
 <p>So, to test the screen-shotting features, I infected another client on the fake Internet, where the Command &amp; Control server <strong>will</strong> be able to connect to. The result?</p>
 
-<p>{% img <a href="http://i.imgur.com/GMqlVCM.png">http://i.imgur.com/GMqlVCM.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/GMqlVCM.png">http://i.imgur.com/GMqlVCM.png</a>"></p>
 
 <p>There is <strong>no</strong> visual sign of this activity to the user. The user may be busy with some highly confidential work on hes workstation, unaware that an intruder is able to see what he is seeing. You know, like using that secret text file with all your passwords in it.</p>
 
@@ -241,7 +241,7 @@ bot_bc_add vnc 172.16.50.181 9000
 
 <p>Next, the attacker can sit and watch hes Back Connect Server&rsquo;s output and see when a new bot has connected. He may now connect using hes VNC client to the client port of the back connect server and viola, VNC access. Alarmingly, the VNC access is not like your traditional VNC where the user will see the pointer move as the VNC user moves it. No, this VNC session starts in a separate <strong>display</strong>, ensuring that the user is still unaware of what is happening. This for me was the most alarming part. It&rsquo;s almost as if hes attaching to another <em>tty</em>.</p>
 
-<p>{% img <a href="http://i.imgur.com/7tg4l2X.png">http://i.imgur.com/7tg4l2X.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/7tg4l2X.png">http://i.imgur.com/7tg4l2X.png</a>"></p>
 
 <h3>Web Injects, the real threat.</h3>
 
@@ -271,7 +271,7 @@ data_end
 
 <p>In the above extract from the web injects we can see that the http<strong>s</strong>://wellsfargo.com (note the s) website will have a extra field added, asking for a <em>ATM PIN</em> before the password field. Now, an important thing to note here. Yes, a website owner could change the web sources which will make this web inject not work, however, the POST data will still be recorded for this watched URL and eventually stored on the C&amp;C.</p>
 
-<p>{% img <a href="http://npercoco.typepad.com/.a/6a0133f264aa62970b01910426b229970c-pi">http://npercoco.typepad.com/.a/6a0133f264aa62970b01910426b229970c-pi</a> %}</p>
+<p><img class="<a" src="href="http://npercoco.typepad.com/.a/6a0133f264aa62970b01910426b229970c-pi">http://npercoco.typepad.com/.a/6a0133f264aa62970b01910426b229970c-pi</a>"></p>
 
 <h3>Summary</h3>
 

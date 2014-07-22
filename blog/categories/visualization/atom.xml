@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Visualization | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/visualization/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-07-22T07:02:30+02:00</updated>
+  <updated>2014-07-22T07:15:26+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -24,7 +24,7 @@
 
 <p><em>Be warned though, watching the output is highly addictive and strangely entertaining, so if you value your productivity, <strong>don&rsquo;t</strong> continue reading this post.</em></p>
 
-<p>{% img <a href="http://i.imgur.com/gFkD3z5.png">http://i.imgur.com/gFkD3z5.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/gFkD3z5.png">http://i.imgur.com/gFkD3z5.png</a>"></p>
 
 <p>In short, Gource will take your repos commit logs from Git, Mecurial, SVN or even CVS (with some work) and splash out a graphical representation of the commits, by committer, across time. It also has a number of tweaks that allows you to change some visuals, focus on specific comitters and add titles etc.</p>
 
@@ -107,11 +107,11 @@ $ nmap -v 192.168.137.0/24 | python py2gource.py -t nmap | gource --realtime --l
 
 <p>This was a golden opportunity to add a parser that would parse the output this client receives into Gource. The result? See for yourself:</p>
 
-<p>{% img <a href="http://i.imgur.com/eDc3EPlh.png">http://i.imgur.com/eDc3EPlh.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/eDc3EPlh.png">http://i.imgur.com/eDc3EPlh.png</a>"></p>
 
 <p>Moments later, even more activity&hellip; :)</p>
 
-<p>{% img <a href="http://i.imgur.com/yPAGoLwh.png">http://i.imgur.com/yPAGoLwh.png</a> %}</p>
+<p><img class="<a" src="href="http://i.imgur.com/yPAGoLwh.png">http://i.imgur.com/yPAGoLwh.png</a>"></p>
 
 <p>The parser will take the Argus client output and split the results of the IPv4 destination address by octet. Each octet will form part of the tree structure. Each bubble represents a port that was touched. Finally, each full destination IP address will get its own <em>unique</em> colour, so it will be easy to see when a specific IP has been scanned across multiple ports. Each <em>user</em> is a source IP address. Remember, this is IP space that is used for nothing other than seeing what is happening on it. So things like people scanning your Darknet for open SSH ports will make your Gource go mad, in a good way ofc.</p>
 

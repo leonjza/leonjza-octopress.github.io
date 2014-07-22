@@ -70,6 +70,7 @@
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
 </ul>
 
 </nav>
@@ -236,7 +237,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#x3a;&#x6a;&#x61;&#98;&#98;&#x65;&#114;&#95;&#98;&#111;&#116;&#64;&#x6a;&#97;&#x62;&#98;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#x76;&#101;&#x72;">&#106;&#97;&#x62;&#98;&#101;&#114;&#95;&#98;&#x6f;&#116;&#64;&#106;&#97;&#98;&#98;&#101;&#114;&#x2e;&#115;&#101;&#114;&#118;&#101;&#x72;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#x6a;&#x61;&#x62;&#x62;&#x65;&#x72;&#95;&#98;&#111;&#116;&#64;&#x6a;&#x61;&#x62;&#98;&#101;&#114;&#x2e;&#115;&#101;&#114;&#118;&#101;&#114;">&#x6a;&#97;&#98;&#x62;&#101;&#114;&#x5f;&#x62;&#x6f;&#116;&#64;&#106;&#x61;&#98;&#x62;&#x65;&#x72;&#x2e;&#x73;&#101;&#114;&#x76;&#101;&#114;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
@@ -324,7 +325,56 @@ The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see
         <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure With a Infamous Bot</a>
       </li>
     
+      <li class="post">
+        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and Tty Output to a Virtual Serial Console</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/31/url-expansion-im-paranoid-like-that/">URL Expansion - I'm Paranoid Like That</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/27/stuff-to-gource/">'Stuff' to Gource.</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/25/dtob-dot-py-digest-to-basic-authentication-a-simple-example-of-a-authentication-downgrade-attack/">dtob.py: Digest to Basic Authentication; a Simple Example of a Authentication 'Downgrade' Attack</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/23/quick-win-quickly-execute-last-shell-command/">Quick Win: Quickly Execute Last Shell Command</a>
+      </li>
+    
   </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/leonjza">@leonjza</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'leonjza',
+            count: 2,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
 </section>
 
 
