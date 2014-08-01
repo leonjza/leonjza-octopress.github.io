@@ -1219,5 +1219,7 @@ oj@hell:~$
 
 I am however satisfied that I have come this far, and will definitely endeavor to nail this format string vuln sometime. But that time is not now.
 
+**Edit:** One way to root the machine is to make use of the fact that you can run `truecrypt` as `root`, and provide a evil container, spawning you a `root` shell. An example of this can be seen [here](http://vinicius777.github.io/blog/2014/07/14/truecrypt-privilege-escalation/) (and actually references this VM)
+
 ## summary
 Hell sure as heck taught me a lot and was one fun experience! Shoutout to [@0x42424242](https://twitter.com/@0x42424242) for the time taken to make this VM available.
