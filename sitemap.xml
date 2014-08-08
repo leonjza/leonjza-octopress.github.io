@@ -3,6 +3,12 @@
   
   
   <url>
+    <loc>http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag/</loc>
+    <lastmod>2014-08-07T12:17:53+02:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
     <loc>http://leonjza.github.io/blog/2014/07/20/hell-would-just-not-freeze-over/</loc>
     <lastmod>2014-07-20T19:00:46+02:00</lastmod>
     <priority>0.8</priority>
@@ -83,21 +89,21 @@
   
   <url>
     <loc>http://leonjza.github.io/blog/archives/</loc>
-    <lastmod>2014-08-01T08:07:14+02:00</lastmod>
+    <lastmod>2014-08-08T10:31:22+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/</loc>
-    <lastmod>2014-08-01T08:07:14+02:00</lastmod>
+    <lastmod>2014-08-08T10:31:22+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/about/</loc>
-    <lastmod>2014-08-01T08:07:14+02:00</lastmod>
+    <lastmod>2014-08-08T10:31:22+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

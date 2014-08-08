@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="foreword Lets start by saying that this is probably one of the toughest boot2root&rsquo;s I have tried thus far. Even though I have managed to get / &hellip;">
+  <meta name="description" content="TL;DR I made a CTF! You should try it! Find it on Vulnhub foreword So, security CTF&rsquo;s are fun. A lot of fun. And can be one heck of a time &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,64 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/08/07/flick-can-you-find-the-flag/">Flick - Can You Find the Flag?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-07T12:17:53+02:00" pubdate data-updated="true">Aug 7<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img src="http://i.imgur.com/kxwW1J8.png"></p>
+
+<h3>TL;DR</h3>
+
+<p>I made a CTF! You should try it! Find it <a href="http://vulnhub.com/entry/flick-1,99/">on Vulnhub</a></p>
+
+<h2>foreword</h2>
+
+<p>So, security CTF&rsquo;s are fun. A lot of fun. And can be one heck of a time sink! Checking my laptops time and realizing its 3am on a week night is normal when I get pulled into one. The frustration, the trolls, the tremendous amounts of learning is all part of the experience of a successful CTF in my opinion.</p>
+
+<h2>preparation</h2>
+
+<p>Having done a few now with varying degrees of success has inspired me to attempt to do the same. So, off I went to CTF island and came back a weekend later with &ldquo;Flick&rdquo;. There is no real meaning to &ldquo;Flick&rdquo;. In fact, the name is the result of: &ldquo;What can I call it?&rdquo; &lt; insert 5u seconds > &ldquo;Flick?&rdquo;.</p>
+
+<h2>details</h2>
+
+<p>&ldquo;Flick&rdquo; aims to give you chance to learn something new. While some things may be trivial for the seasoned penetration tester by day, there may also be one or two things to learn.</p>
+
+<p>As far as hints go, there is not much to give in the beginning. You have to <em>find</em> the flag.txt. It is possible to read it without having root command execution, however, as a added challenge, can you get root command execution? :)</p>
+
+<h2>summary</h2>
+
+<p>I look forward to hearing your experiences with it and good luck! You can find me in #vulnhub on freenode or on twitter @leonjza</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -4945,52 +5003,6 @@ A sample command to get this running would be: <code>python proxpy.py -p 8090 -x
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/06/23/quick-win-quickly-execute-last-shell-command/">Quick Win: Quickly Execute Last Shell Command</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-06-23T10:42:00+02:00" pubdate data-updated="true">Jun 23<sup>rd</sup>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>Work clever, not hard</h3>
-
-<p>This will be the first post of a series of quick shell tips for getting things done, fast. Infact, it will probably just serve as a notepad for me on the topic ;)</p>
-
-<h3>Last shell command</h3>
-
-<p>If you are using a shell, such as <a href="http://www.gnu.org/software/bash/bash.html">Bash</a>, which is pretty much the default on most Linux distributions, then you probably know that you can just use the <strong>up</strong> arrow to get the last command. But, if you are using a shell such as <a href="http://www.zsh.org/">Zsh</a> like me, you&rsquo;d quickly come to realise that the global <code>~/.histfile</code> can be a tad frustrating if you are expecting the last command you typed in <strong>that</strong> terminal window to appear when you press <strong>up</strong>. Only to realise, its literally the last command you typed in <em>another</em> shell.</p>
-
-<h3>Bang Bang to the rescue!</h3>
-
-<p>Simply type <code>!!</code> and <em>enter</em> and the last command that was run in <strong>that</strong> terminal will be either echoed or executed, depending on how your shell is configured to handle the command.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -5004,6 +5016,10 @@ A sample command to get this running would be: <code>python proxpy.py -p 8090 -x
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/07/flick-can-you-find-the-flag/">Flick - Can You Find the Flag?</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/07/20/hell-would-just-not-freeze-over/">Hell Would Just Not Freeze Over!</a>
@@ -5039,10 +5055,6 @@ A sample command to get this running would be: <code>python proxpy.py -p 8090 -x
     
       <li class="post">
         <a href="/blog/2013/06/25/dtob-dot-py-digest-to-basic-authentication-a-simple-example-of-a-authentication-downgrade-attack/">dtob.py: Digest to Basic Authentication; a Simple Example of a Authentication &#8216;Downgrade&#8217; Attack</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/06/23/quick-win-quickly-execute-last-shell-command/">Quick Win: Quickly Execute Last Shell Command</a>
       </li>
     
   </ul>

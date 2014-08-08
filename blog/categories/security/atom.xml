@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Security | #!/slash/note]]></title>
+  <link href="http://leonjza.github.io/blog/categories/security/atom.xml" rel="self"/>
+  <link href="http://leonjza.github.io/"/>
+  <updated>2014-08-08T10:31:22+02:00</updated>
+  <id>http://leonjza.github.io/</id>
+  <author>
+    <name><![CDATA[Leon Jacobs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Flick - Can You Find the Flag?]]></title>
+    <link href="http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag/"/>
+    <updated>2014-08-07T12:17:53+02:00</updated>
+    <id>http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag</id>
+    <content type="html"><![CDATA[<p><img class="<a" src="href="http://i.imgur.com/kxwW1J8.png">http://i.imgur.com/kxwW1J8.png</a>"></p>
+
+<h3>TL;DR</h3>
+
+<p>I made a CTF! You should try it! Find it <a href="http://vulnhub.com/entry/flick-1,99/">on Vulnhub</a></p>
+
+<h2>foreword</h2>
+
+<p>So, security CTF&rsquo;s are fun. A lot of fun. And can be one heck of a time sink! Checking my laptops time and realizing its 3am on a week night is normal when I get pulled into one. The frustration, the trolls, the tremendous amounts of learning is all part of the experience of a successful CTF in my opinion.</p>
+
+<h2>preparation</h2>
+
+<p>Having done a few now with varying degrees of success has inspired me to attempt to do the same. So, off I went to CTF island and came back a weekend later with &ldquo;Flick&rdquo;. There is no real meaning to &ldquo;Flick&rdquo;. In fact, the name is the result of: &ldquo;What can I call it?&rdquo; &lt; insert 5u seconds > &ldquo;Flick?&rdquo;.</p>
+
+<h2>details</h2>
+
+<p>&ldquo;Flick&rdquo; aims to give you chance to learn something new. While some things may be trivial for the seasoned penetration tester by day, there may also be one or two things to learn.</p>
+
+<p>As far as hints go, there is not much to give in the beginning. You have to <em>find</em> the flag.txt. It is possible to read it without having root command execution, however, as a added challenge, can you get root command execution? :)</p>
+
+<h2>summary</h2>
+
+<p>I look forward to hearing your experiences with it and good luck! You can find me in #vulnhub on freenode or on twitter @leonjza</p>
+]]></content>
+  </entry>
+  
+</feed>

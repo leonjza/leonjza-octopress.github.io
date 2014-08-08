@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-01T08:07:14+02:00</updated>
+  <updated>2014-08-08T10:31:22+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -12,6 +12,37 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Flick - Can You Find the Flag?]]></title>
+    <link href="http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag/"/>
+    <updated>2014-08-07T12:17:53+02:00</updated>
+    <id>http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag</id>
+    <content type="html"><![CDATA[<p><img src="http://i.imgur.com/kxwW1J8.png"></p>
+
+<h3>TL;DR</h3>
+
+<p>I made a CTF! You should try it! Find it <a href="http://vulnhub.com/entry/flick-1,99/">on Vulnhub</a></p>
+
+<h2>foreword</h2>
+
+<p>So, security CTF&rsquo;s are fun. A lot of fun. And can be one heck of a time sink! Checking my laptops time and realizing its 3am on a week night is normal when I get pulled into one. The frustration, the trolls, the tremendous amounts of learning is all part of the experience of a successful CTF in my opinion.</p>
+
+<h2>preparation</h2>
+
+<p>Having done a few now with varying degrees of success has inspired me to attempt to do the same. So, off I went to CTF island and came back a weekend later with &ldquo;Flick&rdquo;. There is no real meaning to &ldquo;Flick&rdquo;. In fact, the name is the result of: &ldquo;What can I call it?&rdquo; &lt; insert 5u seconds > &ldquo;Flick?&rdquo;.</p>
+
+<h2>details</h2>
+
+<p>&ldquo;Flick&rdquo; aims to give you chance to learn something new. While some things may be trivial for the seasoned penetration tester by day, there may also be one or two things to learn.</p>
+
+<p>As far as hints go, there is not much to give in the beginning. You have to <em>find</em> the flag.txt. It is possible to read it without having root command execution, however, as a added challenge, can you get root command execution? :)</p>
+
+<h2>summary</h2>
+
+<p>I look forward to hearing your experiences with it and good luck! You can find me in #vulnhub on freenode or on twitter @leonjza</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Hell Would Just Not Freeze Over!]]></title>
@@ -5240,7 +5271,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#x6f;&#58;&#x6a;&#97;&#98;&#x62;&#x65;&#x72;&#x5f;&#x62;&#111;&#116;&#64;&#106;&#97;&#98;&#98;&#101;&#114;&#46;&#115;&#x65;&#114;&#118;&#101;&#114;">&#106;&#x61;&#98;&#x62;&#101;&#114;&#x5f;&#98;&#111;&#x74;&#x40;&#x6a;&#97;&#98;&#x62;&#101;&#114;&#x2e;&#115;&#101;&#x72;&#x76;&#x65;&#x72;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#109;&#97;&#x69;&#108;&#x74;&#111;&#58;&#106;&#x61;&#x62;&#x62;&#x65;&#x72;&#95;&#98;&#x6f;&#x74;&#x40;&#x6a;&#x61;&#98;&#98;&#x65;&#114;&#x2e;&#115;&#x65;&#x72;&#x76;&#x65;&#114;">&#x6a;&#x61;&#x62;&#x62;&#x65;&#114;&#x5f;&#x62;&#x6f;&#116;&#64;&#106;&#97;&#98;&#98;&#x65;&#x72;&#46;&#x73;&#101;&#114;&#x76;&#101;&#114;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
