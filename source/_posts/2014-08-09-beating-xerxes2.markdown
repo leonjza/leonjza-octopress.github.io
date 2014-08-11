@@ -79,7 +79,7 @@ However, moving on to tcp/8888, we see it identified as `Tornado httpd 2.3`. Som
 
 tcp/8888 hosted a [IPython Notebook](http://ipython.org/notebook.html). We were able to easily create a new note, and abuse the shell command functionality of it for our own purposes. Shell command access could be achieved by prefixing typical shell commands with a `!`. I used this to enumerate a small bit of the current environment, and quickly decided to add myself a ssh key so that I can play further. So, I generated a new key pair just for Xerxes, and uploaded it for the `delacroix` user:
 
-{% img http://i.imgur.com/JrTDTPn.png %}
+{% img https://i.imgur.com/JrTDTPn.png %}
 
 And then a easy SSH in:
 
