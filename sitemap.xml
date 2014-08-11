@@ -3,6 +3,12 @@
   
   
   <url>
+    <loc>http://leonjza.github.io/blog/2014/08/09/beating-xerxes2/</loc>
+    <lastmod>2014-08-09T16:59:53+02:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
     <loc>http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag/</loc>
     <lastmod>2014-08-07T12:17:53+02:00</lastmod>
     <priority>0.8</priority>
@@ -89,21 +95,21 @@
   
   <url>
     <loc>http://leonjza.github.io/blog/archives/</loc>
-    <lastmod>2014-08-08T10:31:22+02:00</lastmod>
+    <lastmod>2014-08-11T09:59:56+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/</loc>
-    <lastmod>2014-08-08T10:31:22+02:00</lastmod>
+    <lastmod>2014-08-11T09:59:56+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/about/</loc>
-    <lastmod>2014-08-08T10:31:22+02:00</lastmod>
+    <lastmod>2014-08-11T09:59:56+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

