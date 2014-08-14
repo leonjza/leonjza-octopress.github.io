@@ -181,7 +181,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><code>nc-data</code> is a, audio file? Ok. I copied the file off Kali Linux, opened it in VLC player and presses play.</p>
+<p><code>nc-data</code> is a, audio file? Ok. I copied the file off Kali Linux, opened it in VLC player and pressed play.</p>
 
 <p><em>(Electronic Noises &amp; Robot Voice)</em> <em>This is Xerxes. Why do you persist in your loneliness?</em> <em>(Electronic Noises)</em></p>
 
@@ -695,7 +695,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Oooooooooooh. So basically 0x8049a48 now sais <code>printf</code> lives at 0x00000004. Not entirely true though, but we will fix this. Fixing this is quite easy too. Using some python again, we can calculate the amount of bytes we must write to get the memory location we want. We know we want to write to <code>system</code>, that lives in memory at 0x40062000. We will split the calculation up into 2 parts, and first write the 0x2000, and then the 0x4006. We can see that we have written 4 bytes already, so to calculate the first part, we will simply subtract 4 from 0x2000 and pad parameter 16 with the amount.</p>
+<p>Oooooooooooh. So basically 0x8049a48 now says <code>printf</code> lives at 0x00000004. Not entirely true though, but we will fix this. Fixing this is quite easy too. Using some python again, we can calculate the amount of bytes we must write to get the memory location we want. We know we want to write to <code>system</code>, that lives in memory at 0x40062000. We will split the calculation up into 2 parts, and first write the 0x2000, and then the 0x4006. We can see that we have written 4 bytes already, so to calculate the first part, we will simply subtract 4 from 0x2000 and pad parameter 16 with the amount.</p>
 
 <figure class='code'><figcaption><span>Calculating the first offset</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>

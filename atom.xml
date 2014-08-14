@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-11T10:01:21+02:00</updated>
+  <updated>2014-08-14T08:09:44+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -92,7 +92,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><code>nc-data</code> is a, audio file? Ok. I copied the file off Kali Linux, opened it in VLC player and presses play.</p>
+<p><code>nc-data</code> is a, audio file? Ok. I copied the file off Kali Linux, opened it in VLC player and pressed play.</p>
 
 <p><em>(Electronic Noises &amp; Robot Voice)</em> <em>This is Xerxes. Why do you persist in your loneliness?</em> <em>(Electronic Noises)</em></p>
 
@@ -606,7 +606,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Oooooooooooh. So basically 0x8049a48 now sais <code>printf</code> lives at 0x00000004. Not entirely true though, but we will fix this. Fixing this is quite easy too. Using some python again, we can calculate the amount of bytes we must write to get the memory location we want. We know we want to write to <code>system</code>, that lives in memory at 0x40062000. We will split the calculation up into 2 parts, and first write the 0x2000, and then the 0x4006. We can see that we have written 4 bytes already, so to calculate the first part, we will simply subtract 4 from 0x2000 and pad parameter 16 with the amount.</p>
+<p>Oooooooooooh. So basically 0x8049a48 now says <code>printf</code> lives at 0x00000004. Not entirely true though, but we will fix this. Fixing this is quite easy too. Using some python again, we can calculate the amount of bytes we must write to get the memory location we want. We know we want to write to <code>system</code>, that lives in memory at 0x40062000. We will split the calculation up into 2 parts, and first write the 0x2000, and then the 0x4006. We can see that we have written 4 bytes already, so to calculate the first part, we will simply subtract 4 from 0x2000 and pad parameter 16 with the amount.</p>
 
 <figure class='code'><figcaption><span>Calculating the first offset</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -6573,7 +6573,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#106;&#97;&#x62;&#98;&#101;&#114;&#95;&#x62;&#111;&#116;&#x40;&#x6a;&#97;&#x62;&#x62;&#101;&#114;&#46;&#115;&#x65;&#114;&#118;&#101;&#114;">&#x6a;&#x61;&#98;&#98;&#101;&#114;&#x5f;&#x62;&#111;&#x74;&#x40;&#x6a;&#x61;&#x62;&#98;&#101;&#x72;&#x2e;&#x73;&#101;&#114;&#x76;&#101;&#114;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#106;&#97;&#98;&#98;&#x65;&#114;&#x5f;&#98;&#111;&#x74;&#64;&#x6a;&#97;&#x62;&#x62;&#101;&#x72;&#x2e;&#115;&#x65;&#x72;&#x76;&#101;&#x72;">&#106;&#97;&#x62;&#x62;&#101;&#x72;&#x5f;&#x62;&#x6f;&#x74;&#x40;&#106;&#97;&#98;&#x62;&#101;&#x72;&#x2e;&#x73;&#x65;&#x72;&#118;&#101;&#114;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
