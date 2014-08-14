@@ -60,7 +60,7 @@ nc-data: MPEG ADTS, layer III, v2,  64 kbps, 22.05 kHz, Monaural
 
 ```
 
-`nc-data` is a, audio file? Ok. I copied the file off Kali Linux, opened it in VLC player and presses play.
+`nc-data` is a, audio file? Ok. I copied the file off Kali Linux, opened it in VLC player and pressed play.
 
 _(Electronic Noises & Robot Voice)_ _This is Xerxes. Why do you persist in your loneliness?_ _(Electronic Noises)_
 
@@ -391,7 +391,7 @@ Breakpoint 1, 0x080486eb in main ()
 (gdb)
 ```
 
-Oooooooooooh. So basically 0x8049a48 now sais `printf` lives at 0x00000004. Not entirely true though, but we will fix this. Fixing this is quite easy too. Using some python again, we can calculate the amount of bytes we must write to get the memory location we want. We know we want to write to `system`, that lives in memory at 0x40062000. We will split the calculation up into 2 parts, and first write the 0x2000, and then the 0x4006. We can see that we have written 4 bytes already, so to calculate the first part, we will simply subtract 4 from 0x2000 and pad parameter 16 with the amount.
+Oooooooooooh. So basically 0x8049a48 now says `printf` lives at 0x00000004. Not entirely true though, but we will fix this. Fixing this is quite easy too. Using some python again, we can calculate the amount of bytes we must write to get the memory location we want. We know we want to write to `system`, that lives in memory at 0x40062000. We will split the calculation up into 2 parts, and first write the 0x2000, and then the 0x4006. We can see that we have written 4 bytes already, so to calculate the first part, we will simply subtract 4 from 0x2000 and pad parameter 16 with the amount.
 
 ```bash Calculating the first offset
 (gdb) shell echo $(python -c 'print 0x2000-0x4')
