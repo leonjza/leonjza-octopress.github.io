@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Infosec | #!/slash/note]]></title>
+  <title><![CDATA[Category: infosec | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/infosec/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-14T08:13:40+02:00</updated>
+  <updated>2014-08-15T09:09:15+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[URL Expansion - I'm Paranoid Like That]]></title>
+    <title type="html"><![CDATA[URL Expansion - I'm paranoid like that]]></title>
     <link href="http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that/"/>
     <updated>2013-07-31T18:19:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that</id>

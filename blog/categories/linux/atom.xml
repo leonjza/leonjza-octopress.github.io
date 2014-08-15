@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Linux | #!/slash/note]]></title>
+  <title><![CDATA[Category: linux | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-14T08:13:40+02:00</updated>
+  <updated>2014-08-15T09:09:15+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[KVM - Redirecting CentOS Kernel and Tty Output to a Virtual Serial Console]]></title>
+    <title type="html"><![CDATA[KVM - Redirecting CentOS Kernel and tty output to a virtual serial console]]></title>
     <link href="http://leonjza.github.io/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/"/>
     <updated>2013-08-03T08:27:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console</id>

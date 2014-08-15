@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Mitm | #!/slash/note]]></title>
+  <title><![CDATA[Category: mitm | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/mitm/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-14T08:13:40+02:00</updated>
+  <updated>2014-08-15T09:09:15+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[dtob.py: Digest to Basic Authentication; a Simple Example of a Authentication 'Downgrade' Attack]]></title>
+    <title type="html"><![CDATA[dtob.py: Digest to Basic authentication; A simple example of a authentication 'downgrade' attack]]></title>
     <link href="http://leonjza.github.io/blog/2013/06/25/dtob-dot-py-digest-to-basic-authentication-a-simple-example-of-a-authentication-downgrade-attack/"/>
     <updated>2013-06-25T18:52:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/06/25/dtob-dot-py-digest-to-basic-authentication-a-simple-example-of-a-authentication-downgrade-attack</id>

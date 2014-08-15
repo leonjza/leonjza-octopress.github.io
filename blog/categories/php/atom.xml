@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Php | #!/slash/note]]></title>
+  <title><![CDATA[Category: php | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/php/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-14T08:13:40+02:00</updated>
+  <updated>2014-08-15T09:09:15+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Hello World! Oh and Here's Some Code!]]></title>
+    <title type="html"><![CDATA[Hello World! Oh and here's some code!]]></title>
     <link href="http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code/"/>
     <updated>2013-05-24T21:11:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code</id>

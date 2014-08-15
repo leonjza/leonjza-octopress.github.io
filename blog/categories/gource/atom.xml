@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Gource | #!/slash/note]]></title>
+  <title><![CDATA[Category: gource | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/gource/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-14T08:13:40+02:00</updated>
+  <updated>2014-08-15T09:09:15+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA['Stuff' to Gource.]]></title>
+    <title type="html"><![CDATA['stuff' to Gource.]]></title>
     <link href="http://leonjza.github.io/blog/2013/07/27/stuff-to-gource/"/>
     <updated>2013-07-27T14:09:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/07/27/stuff-to-gource</id>

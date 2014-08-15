@@ -1,0 +1,902 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>#!/slash/note</title>
+  <meta name="author" content="Leon Jacobs">
+
+  
+  <meta name="description" content="Work clever, not hard This will be the first post of a series of quick shell tips for getting things done, fast. Infact, it will probably just serve &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://leonjza.github.io/posts/5">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="#!/slash/note" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44457032-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">#!/slash/note</a></h1>
+  
+    <h2>A checkbox unchecker's notepad</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:leonjza.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/23/quick-win-quickly-execute-last-shell-command/">Quick Win: Quickly Execute Last Shell Command</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-23T10:42:00+02:00" pubdate data-updated="true">Jun 23<sup>rd</sup>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>Work clever, not hard</h3>
+
+<p>This will be the first post of a series of quick shell tips for getting things done, fast. Infact, it will probably just serve as a notepad for me on the topic ;)</p>
+
+<h3>Last shell command</h3>
+
+<p>If you are using a shell, such as <a href="http://www.gnu.org/software/bash/bash.html">Bash</a>, which is pretty much the default on most Linux distributions, then you probably know that you can just use the <strong>up</strong> arrow to get the last command. But, if you are using a shell such as <a href="http://www.zsh.org/">Zsh</a> like me, you&rsquo;d quickly come to realise that the global <code>~/.histfile</code> can be a tad frustrating if you are expecting the last command you typed in <strong>that</strong> terminal window to appear when you press <strong>up</strong>. Only to realise, its literally the last command you typed in <em>another</em> shell.</p>
+
+<h3>Bang Bang to the rescue!</h3>
+
+<p>Simply type <code>!!</code> and <em>enter</em> and the last command that was run in <strong>that</strong> terminal will be either echoed or executed, depending on how your shell is configured to handle the command.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/07/jabber-to-email-using-sleekxmpp/">Jabber to Email using SleekXMPP</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-07T10:48:00+02:00" pubdate data-updated="true">Jun 7<sup>th</sup>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>So, why would you even want this..?</h3>
+
+<p>Well, to be honest, I am not really sure of many use cases for this, however maybe someone, somewhere will need to do something like this, and I would have done my deed and saved someone some time ::sun::</p>
+
+<h3>Introducing SleekXMPP</h3>
+
+<p><a href="http://sleekxmpp.com/">SleekXMPP</a> is a python XMPP framework. It takes a bit to get your head around it, but once you have some basics covered its quite a rewarding library to work with. :) To start, you need to install 2 dependencies. Python Mailer and SleekXMPP itself. Something like <code>pip install mailer sleekxmpp</code> or for the older school, <code>easy_install sleekxmpp mailer</code> should do the trick. It can&rsquo;t hurt to check if the distro you use has these are packages already too.</p>
+
+<h3>Configuration and testing time</h3>
+
+<p>Once the install completes, do a quick check to see if everything is ok, Try to import the modules. They should return no errors. If they do, check that the installation of the previously mentioned dependencies were successful.</p>
+
+<figure class='code'><figcaption><span>Check dependencies</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">%</span> <span class="n">python2</span>
+</span><span class='line'><span class="n">Python</span> <span class="mf">2.7</span><span class="o">.</span><span class="mi">5</span> <span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">May</span> <span class="mi">12</span> <span class="mi">2013</span><span class="p">,</span> <span class="mi">12</span><span class="p">:</span><span class="mo">00</span><span class="p">:</span><span class="mi">47</span><span class="p">)</span>
+</span><span class='line'><span class="p">[</span><span class="n">GCC</span> <span class="mf">4.8</span><span class="o">.</span><span class="mi">0</span> <span class="mi">20130502</span> <span class="p">(</span><span class="n">prerelease</span><span class="p">)]</span> <span class="n">on</span> <span class="n">linux2</span>
+</span><span class='line'><span class="n">Type</span> <span class="s">&quot;help&quot;</span><span class="p">,</span> <span class="s">&quot;copyright&quot;</span><span class="p">,</span> <span class="s">&quot;credits&quot;</span> <span class="ow">or</span> <span class="s">&quot;license&quot;</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="o">.</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sleekxmpp</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">mailer</span>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, you need a <em>bot</em> account to use. Provision a user on your jabber server for the bot and test with a jabber client that it works.</p>
+
+<h3>Ok, code</h3>
+
+<p>Next, we take the <a href="http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot">sample</a> echobot from the SleekXMPP website, and modify it slightly to handle our incoming message by sending a email, instead of simply replying back what we have sent.</p>
+
+<p>First, we import the mailer requirements with:</p>
+
+<figure class='code'><figcaption><span>mailer imports</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">mailer</span> <span class="kn">import</span> <span class="n">Mailer</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">mailer</span> <span class="kn">import</span> <span class="n">Message</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The above can be placed right after the option parser has been imported. Then, we only need to change the <code>message</code> method within the <code>EchoBot</code> class really:</p>
+
+<figure class='code'><figcaption><span>Shameless SleekXMPP modification of the echobot</span><a href='http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/env python</span>
+</span><span class='line'><span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;chat&#39;</span><span class="p">,</span> <span class="s">&#39;normal&#39;</span><span class="p">):</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="k">print</span> <span class="s">&quot;Received Message:</span><span class="se">\n</span><span class="si">%(body)s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="c"># Mail the message Received</span>
+</span><span class='line'>   <span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">From</span><span class="o">=</span><span class="s">&quot;&#39;Jabber Email Service&#39; &lt;someone@domain.com&gt;&quot;</span><span class="p">,</span>
+</span><span class='line'>         <span class="n">To</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;someone@domain.com&quot;</span><span class="p">],</span>
+</span><span class='line'>         <span class="n">Subject</span><span class="o">=</span><span class="s">&quot;[Jabber Message Received] From: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">])</span>
+</span><span class='line'>   <span class="n">themessage</span> <span class="o">=</span> <span class="n">msg</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]</span>
+</span><span class='line'>   <span class="n">themessage</span> <span class="o">=</span> <span class="n">themessage</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;unicode_escape&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">,</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
+</span><span class='line'>   <span class="n">message</span><span class="o">.</span><span class="n">Body</span> <span class="o">=</span> <span class="n">themessage</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="n">sender</span> <span class="o">=</span> <span class="n">Mailer</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">)</span>
+</span><span class='line'>   <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A complete modified example that includes the above changes:</p>
+
+<figure class='code'><figcaption><span>Shameless SleekXMPP modification of the echobot</span><a href='http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+<span class='line-number'>141</span>
+<span class='line-number'>142</span>
+<span class='line-number'>143</span>
+<span class='line-number'>144</span>
+<span class='line-number'>145</span>
+<span class='line-number'>146</span>
+<span class='line-number'>147</span>
+<span class='line-number'>148</span>
+<span class='line-number'>149</span>
+<span class='line-number'>150</span>
+<span class='line-number'>151</span>
+<span class='line-number'>152</span>
+<span class='line-number'>153</span>
+<span class='line-number'>154</span>
+<span class='line-number'>155</span>
+<span class='line-number'>156</span>
+<span class='line-number'>157</span>
+<span class='line-number'>158</span>
+<span class='line-number'>159</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/env python</span>
+</span><span class='line'><span class="c"># -*- coding: utf-8 -*-</span>
+</span><span class='line'>
+</span><span class='line'><span class="sd">&quot;&quot;&quot;</span>
+</span><span class='line'><span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
+</span><span class='line'><span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
+</span><span class='line'><span class="sd">    This file is part of SleekXMPP.</span>
+</span><span class='line'>
+</span><span class='line'><span class="sd">    See the file LICENSE for copying permission.</span>
+</span><span class='line'><span class="sd">&quot;&quot;&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">logging</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">getpass</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">from</span> <span class="nn">mailer</span> <span class="kn">import</span> <span class="n">Mailer</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">mailer</span> <span class="kn">import</span> <span class="n">Message</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sleekxmpp</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Python versions before 3.0 do not use UTF-8 encoding</span>
+</span><span class='line'><span class="c"># by default. To ensure that Unicode is handled properly</span>
+</span><span class='line'><span class="c"># throughout SleekXMPP, we will set the default encoding</span>
+</span><span class='line'><span class="c"># ourselves to UTF-8.</span>
+</span><span class='line'><span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+</span><span class='line'>    <span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">else</span><span class="p">:</span>
+</span><span class='line'>    <span class="nb">raw_input</span> <span class="o">=</span> <span class="nb">input</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">EchoBot</span><span class="p">(</span><span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="p">):</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span class='line'><span class="sd">    A simple SleekXMPP bot that will echo messages it</span>
+</span><span class='line'><span class="sd">    receives, along with a short thank you message.</span>
+</span><span class='line'><span class="sd">    &quot;&quot;&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+</span><span class='line'>        <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># The session_start event will be triggered when</span>
+</span><span class='line'>        <span class="c"># the bot establishes its connection with the server</span>
+</span><span class='line'>        <span class="c"># and the XML streams are ready for use. We want to</span>
+</span><span class='line'>        <span class="c"># listen for this event so that we we can initialize</span>
+</span><span class='line'>        <span class="c"># our roster.</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># The message event is triggered whenever a message</span>
+</span><span class='line'>        <span class="c"># stanza is received. Be aware that that includes</span>
+</span><span class='line'>        <span class="c"># MUC messages and error messages.</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+</span><span class='line'>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span class='line'><span class="sd">        Process the session_start event.</span>
+</span><span class='line'>
+</span><span class='line'><span class="sd">        Typical actions for the session_start event are</span>
+</span><span class='line'><span class="sd">        requesting the roster and broadcasting an initial</span>
+</span><span class='line'><span class="sd">        presence stanza.</span>
+</span><span class='line'>
+</span><span class='line'><span class="sd">        Arguments:</span>
+</span><span class='line'><span class="sd">            event -- An empty dictionary. The session_start</span>
+</span><span class='line'><span class="sd">                     event does not provide any additional</span>
+</span><span class='line'><span class="sd">                     data.</span>
+</span><span class='line'><span class="sd">        &quot;&quot;&quot;</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">send_presence</span><span class="p">()</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">get_roster</span><span class="p">()</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="o">=</span> <span class="s">&quot;jabberMailBot&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+</span><span class='line'>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span class='line'><span class="sd">        Process incoming message stanzas. Be aware that this also</span>
+</span><span class='line'><span class="sd">        includes MUC messages and error messages. It is usually</span>
+</span><span class='line'><span class="sd">        a good idea to check the messages&#39;s type before processing</span>
+</span><span class='line'><span class="sd">        or sending replies.</span>
+</span><span class='line'>
+</span><span class='line'><span class="sd">        Arguments:</span>
+</span><span class='line'><span class="sd">            msg -- The received message stanza. See the documentation</span>
+</span><span class='line'><span class="sd">                   for stanza objects and the Message stanza to see</span>
+</span><span class='line'><span class="sd">                   how it may be used.</span>
+</span><span class='line'><span class="sd">        &quot;&quot;&quot;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;chat&#39;</span><span class="p">,</span> <span class="s">&#39;normal&#39;</span><span class="p">):</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="k">print</span> <span class="s">&quot;Received Message:</span><span class="se">\n</span><span class="si">%(body)s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="c"># Mail the message Received</span>
+</span><span class='line'>            <span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">From</span><span class="o">=</span><span class="s">&quot;&#39;Jabber Email Service&#39; &lt;someone@domain.com&gt;&quot;</span><span class="p">,</span>
+</span><span class='line'>                  <span class="n">To</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;someone@domain.com&quot;</span><span class="p">],</span>
+</span><span class='line'>                  <span class="n">Subject</span><span class="o">=</span><span class="s">&quot;[Jabber Message Received] From: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">])</span>
+</span><span class='line'>            <span class="n">themessage</span> <span class="o">=</span> <span class="n">msg</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]</span>
+</span><span class='line'>            <span class="n">themessage</span> <span class="o">=</span> <span class="n">themessage</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;unicode_escape&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">,</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
+</span><span class='line'>            <span class="n">message</span><span class="o">.</span><span class="n">Body</span> <span class="o">=</span> <span class="n">themessage</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">sender</span> <span class="o">=</span> <span class="n">Mailer</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">)</span>
+</span><span class='line'>            <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+</span><span class='line'>    <span class="c"># Setup the command line arguments.</span>
+</span><span class='line'>    <span class="n">optp</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># Output verbosity options.</span>
+</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-q&#39;</span><span class="p">,</span> <span class="s">&#39;--quiet&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to ERROR&#39;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-d&#39;</span><span class="p">,</span> <span class="s">&#39;--debug&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to DEBUG&#39;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-v&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to COMM&#39;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">const</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># JID and password options.</span>
+</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-j&quot;</span><span class="p">,</span> <span class="s">&quot;--jid&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;jid&quot;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;JID to use&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-p&quot;</span><span class="p">,</span> <span class="s">&quot;--password&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;password&quot;</span><span class="p">,</span>
+</span><span class='line'>                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;password to use&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">optp</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># Setup logging.</span>
+</span><span class='line'>    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">loglevel</span><span class="p">,</span>
+</span><span class='line'>                        <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(levelname)-8s</span><span class="s"> </span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Username: &quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="s">&quot;Password: &quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># Setup the EchoBot and register plugins. Note that while plugins may</span>
+</span><span class='line'>    <span class="c"># have interdependencies, the order in which you register them does</span>
+</span><span class='line'>    <span class="c"># not matter.</span>
+</span><span class='line'>    <span class="n">xmpp</span> <span class="o">=</span> <span class="n">EchoBot</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">jid</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0030&#39;</span><span class="p">)</span> <span class="c"># Service Discovery</span>
+</span><span class='line'>    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0004&#39;</span><span class="p">)</span> <span class="c"># Data Forms</span>
+</span><span class='line'>    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0060&#39;</span><span class="p">)</span> <span class="c"># PubSub</span>
+</span><span class='line'>    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0199&#39;</span><span class="p">)</span> <span class="c"># XMPP Ping</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># If you are working with an OpenFire server, you may need</span>
+</span><span class='line'>    <span class="c"># to adjust the SSL version used:</span>
+</span><span class='line'>    <span class="c"># xmpp.ssl_version = ssl.PROTOCOL_SSLv3</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># If you want to verify the SSL certificates offered by a server:</span>
+</span><span class='line'>    <span class="c"># xmpp.ca_certs = &quot;path/to/ca/cert&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># Connect to the XMPP server and start processing XMPP stanzas.</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">xmpp</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+</span><span class='line'>        <span class="c"># If you do not have the dnspython library installed, you will need</span>
+</span><span class='line'>        <span class="c"># to manually specify the name of the server if it does not match</span>
+</span><span class='line'>        <span class="c"># the one in the JID. For example, to use Google Talk you would</span>
+</span><span class='line'>        <span class="c"># need to use:</span>
+</span><span class='line'>        <span class="c">#</span>
+</span><span class='line'>        <span class="c"># if xmpp.connect((&#39;talk.google.com&#39;, 5222)):</span>
+</span><span class='line'>        <span class="c">#     ...</span>
+</span><span class='line'>        <span class="n">xmpp</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Done&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">else</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Unable to connect.&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>So how do I actually use this thing I just saw?</h3>
+
+<p>Take the complete example and save it to a file like <code>bot.py</code>. Then, run it!
+The complete example will echo the message just before it attempts to mail it. You can comment out line <strong>86</strong> to stop this from happening and run the script with the <code>-q</code> argument once you are happy all is working.</p>
+
+<figure class='code'><figcaption><span>sample run</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>% python bot.py -j <span class="s2">&quot;myEmailbot@myJabberServer.local&quot;</span>
+</span><span class='line'>Password:
+</span><span class='line'>INFO     Negotiating TLS
+</span><span class='line'>INFO     Using SSL version: 3
+</span><span class='line'>INFO     CERT: Time <span class="k">until </span>certificate expiration: 952 days, 6:46:01.014041
+</span><span class='line'>
+</span><span class='line'>Received Message:
+</span><span class='line'>This is a <span class="nb">test </span>message that will be mailed :D
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Things to note.</h3>
+
+<ul>
+<li>Even though the script allows you to specify a <code>-p</code> argument, I would highly discourage the usage of this. Any person that has access to your machine, be it legitimate or not, would then see your bot&rsquo;s process, with the password in the <code>ps</code> output!</li>
+<li>Ensure the SMTP server specified in line <strong>96</strong> of the complete example allows yo to relay! Change it if needed.</li>
+</ul>
+
+
+<h3>Test! :D</h3>
+
+<p>Send your bot a message and see if your mail arrives ^^</p>
+
+<p><strong>EDIT</strong>: Modify the message encoding to ASCII as the utf8 stuff seems to barf out sometimes :|</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/25/how-to-extremely-simple-python-jabber-broadcast-bot/">How To: Extremely simple python Jabber Broadcast Bot</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-25T10:12:00+02:00" pubdate data-updated="true">May 25<sup>th</sup>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>Bots! Bots! Bots!</h3>
+
+<p>Generally speaking, a &lsquo;&#8217;bot&rsquo;&lsquo; is something that like <em>does work for you</em>. But, for this purpose, the need for a jabber bot came from the fact that I had to deal with a lot of email on a daily basis. This large amount of mail sometimes would cause me to completely miss critical mail alerts. Realising later that I could have prevented a catastrophe if I didn&rsquo;t miss that <strong>one</strong> email was just not on anymore. So, I started investigating ways to get the <em>important</em> stuff delivered faster.</p>
+
+<p>As a team at work, we have long gone dropped the whole Skype group chat thing for our own Jabber server. My privacy related concerns back then was recently heightened <a href="http://lists.randombit.net/pipermail/cryptography/2013-May/004224.html">here</a> when a trap URL received a HEAD request from <strong>65.52.100.214</strong>. The user that received the URL in a chat was under strict instructions not to actually click it&hellip;</p>
+
+<h3>So, how do we do this?</h3>
+
+<p>We implemented a <a href="http://www.igniterealtime.org/projects/openfire/">Openfire Server</a> that was really easy to setup and get going. Whats really nice about this Jabber server is that it supports plugins, some of which you can simply install via the web interface.</p>
+
+<p>One such plugin that was installed is called the <a href="http://www.igniterealtime.org/projects/openfire/plugins/broadcast/readme.html">broadcast</a> plugin. This allows you to broadcast a message to all users on the server or those in defined groups.</p>
+
+<p><img src="http://i.imgur.com/6i8WhgR.png">
+Once this plugin is installed, some minor configuration is required to allow the broadcasting feature to work. In no way is this an extensive guide on the power of the plugin, but for the purpose of this post well just quickly rush over it.</p>
+
+<p>Head over to <em>Server</em> &ndash;> <em>Server Manager</em> &ndash;> <em>System Properties</em>. From here you need to add the fields that are not there with the <strong>plugin.broadcast.</strong> prefix. Don&rsquo;t worry if they are not there, just add them.</p>
+
+<p><img src="http://i.imgur.com/XmU4d98.png"></p>
+
+<p>The above is just a sample of a working configuration. Feel free to play around more with different setups.</p>
+
+<p>With everything configured, you should now be able to send a message to something like <em>all@broadcast.jabber.server</em>. In my configuration, <em>plugin.broadcast.all2offline</em> is set to <strong>true</strong>. So, when a message is broadcasted and I was offline, I&rsquo;ll receive the broadcast as soon as I&rsquo;m back :)</p>
+
+<h3>Introducing jabbersend.py</h3>
+
+<p>With our jabber server now configured and working, we are ready to start automating things. From here we need two things. Something that will broadcast for us, and something <em>to</em> broadcast. The <em>what to broadcast</em> is entirely up to you, as the script will accept a text file to broadcast.</p>
+
+<p>The only dependency you probably need to satisfy will be <code>xmpp</code>. This should be easily doable with something like <code>easy_install xmpp</code></p>
+
+<figure class='code'><figcaption><span>Send a Jabber Message from a file</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/python</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span><span class="o">,</span><span class="nn">xmpp</span><span class="o">,</span><span class="nn">time</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># check the received arguments</span>
+</span><span class='line'><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;Syntax: jabbersend.py JID textfile&quot;</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># set the values to work with and read the file</span>
+</span><span class='line'><span class="n">tojid</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class='line'><span class="n">m</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">array</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+</span><span class='line'><span class="n">m</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">msg</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+</span><span class='line'><span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">+</span> <span class="n">record</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># configure your jabber account for the bot here.</span>
+</span><span class='line'><span class="n">username</span> <span class="o">=</span> <span class="s">&#39;jabber_bot@jabber.server&#39;</span> <span class="c"># from whom will the message be sent</span>
+</span><span class='line'><span class="n">password</span> <span class="o">=</span> <span class="s">&#39;jabber_bot_secret_password&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">jid</span><span class="o">=</span><span class="n">xmpp</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">JID</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># for debugging purposes, uncomment the below line so that &#39;debug&#39; is 1.</span>
+</span><span class='line'><span class="c"># This makes the script very verbose though, but its helpful if you stuck ^^</span>
+</span><span class='line'><span class="c">#cl=xmpp.Client(jid.getDomain(),debug=1)</span>
+</span><span class='line'><span class="n">cl</span><span class="o">=</span><span class="n">xmpp</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">jid</span><span class="o">.</span><span class="n">getDomain</span><span class="p">(),</span><span class="n">debug</span><span class="o">=</span><span class="p">[])</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Sadly I don&#39;t have a valid certificate for my jabber server, so this had to</span>
+</span><span class='line'><span class="c"># be set to False. I do however recommend, if you can, to get a valid certificate</span>
+</span><span class='line'><span class="c"># and enable this</span>
+</span><span class='line'><span class="n">con</span><span class="o">=</span><span class="n">cl</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">secure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c"># Set this to validate the servers certificate.</span>
+</span><span class='line'><span class="k">if</span> <span class="ow">not</span> <span class="n">con</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;Could not connect&quot;</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># authenticate the client</span>
+</span><span class='line'><span class="n">auth</span><span class="o">=</span><span class="n">cl</span><span class="o">.</span><span class="n">auth</span><span class="p">(</span><span class="n">jid</span><span class="o">.</span><span class="n">getNode</span><span class="p">(),</span><span class="n">password</span><span class="p">,</span><span class="n">resource</span><span class="o">=</span><span class="n">jid</span><span class="o">.</span><span class="n">getResource</span><span class="p">())</span>
+</span><span class='line'><span class="k">if</span> <span class="ow">not</span> <span class="n">auth</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;Authentication failed&quot;</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># send the message</span>
+</span><span class='line'><span class="nb">id</span><span class="o">=</span><span class="n">cl</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">xmpp</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">tojid</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># some older servers will not send the message if you disconnect immediately</span>
+</span><span class='line'><span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>We have the code, now use it!</h3>
+
+<p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
+<code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
+
+<p>If all went OK, you should have received a message from <a href="&#109;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#106;&#97;&#98;&#x62;&#101;&#x72;&#x5f;&#98;&#x6f;&#x74;&#x40;&#x6a;&#97;&#98;&#98;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#118;&#101;&#114;">&#106;&#x61;&#98;&#98;&#x65;&#114;&#x5f;&#98;&#111;&#116;&#x40;&#x6a;&#x61;&#98;&#x62;&#x65;&#x72;&#46;&#115;&#101;&#114;&#118;&#x65;&#x72;</a> :P</p>
+
+<p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
+The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
+
+<p>I have a slightly more matured version of this in a python module that I&rsquo;ll share later. If you are interested in this, poke me on twitter @leonjza</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/posts/6">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/4">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/taming-the-troll/">taming (actually just solving) the troll</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/09/beating-xerxes2/">Beating Xerxes 2 (no, not the Persian King)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/07/flick-can-you-find-the-flag/">flick - can you find the flag?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/20/hell-would-just-not-freeze-over/">Hell would just not freeze over!</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/17/climbing-the-skytower/">Climbing the SkyTower</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/">dnsfilexfer - yet another take on file transfer via DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/">/root/flag.txt - Solving the Relativity Vulnerable VM</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure with a Infamous Bot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and tty output to a virtual serial console</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/31/url-expansion-im-paranoid-like-that/">URL Expansion - I&#8217;m paranoid like that</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/leonjza">@leonjza</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'leonjza',
+            count: 8,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Leon Jacobs -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
