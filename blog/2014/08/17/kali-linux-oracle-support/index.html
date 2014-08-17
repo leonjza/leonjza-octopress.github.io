@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Kali Linux Oracle Support - #!/slash/note</title>
+  <meta name="author" content="Leon Jacobs">
+
+  
+  <meta name="description" content="Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://leonjza.github.io/blog/2014/08/17/kali-linux-oracle-support">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="#!/slash/note" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44457032-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">#!/slash/note</a></h1>
+  
+    <h2>A checkbox unchecker's notepad</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:leonjza.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Kali Linux Oracle Support</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-17T15:46:49+02:00" pubdate data-updated="true">Aug 17<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work out of the box and just get the steps written down quickly. Typically, when you try to use a module such as <code>oracle_login</code>, metasploit may error out with:</p>
+
+<figure class='code'><figcaption><span>Metasploit Oracle Error</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>msf auxiliary<span class="o">(</span>oracle_login<span class="o">)</span> &gt; run
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>-<span class="o">]</span> Failed to load the OCI library: cannot load such file -- oci8
+</span><span class='line'><span class="o">[</span>-<span class="o">]</span> See http://www.metasploit.com/redmine/projects/framework/wiki/OracleUsage <span class="k">for </span>installation instructions
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Auxiliary module execution completed
+</span><span class='line'>msf auxiliary<span class="o">(</span>oracle_login<span class="o">)</span> &gt; run
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The link provided seems a little out of date, so here is an updated guide.</p>
+
+<h2>getting started</h2>
+
+<p>First, if you dont have an account at oracle.com, you will <em>unfortunately</em> need one here. If you don&rsquo;t want to create one, don’t worry, a temp email works as well as you luckily don’t have to confirm ownership of it before you can download.</p>
+
+<h2>sorting oracle first</h2>
+
+<p>Anyways. Create yourself a directory <code>/opt/oracle</code> and <code>cd</code> there. In a browser, navigate to the <a href="http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html">instant client downloads</a> url and choose your architecture. If you hate 32bit Kali, choose <a href="http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html">Linux x86</a>, and 64bit Kali choose <a href="http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html">Linux x86-64</a>.</p>
+
+<p>Next, download the following packages and save them to <code>/opt/oracle</code>:</p>
+
+<ul>
+<li>instantclient-basic-linux-12.1.0.1.0.zip</li>
+<li>instantclient-sqlplus-linux-12.1.0.1.0.zip</li>
+<li>instantclient-sdk-linux-12.1.0.1.0.zip</li>
+</ul>
+
+
+<p>With those downloaded, extract the archives with the <code>unzip</code> command. This should leave you with a directory <code>/opt/oracle/instantclient_12_1/</code>. This is all the files needed to at least get the <code>sqlplus</code> client going. However, when we build the ruby stuff needed for Metasploit, we will need to hax a .so. Do this with:</p>
+
+<figure class='code'><figcaption><span>so symlink</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle/instantclient_12_1# ln libclntsh.so.12.1 libclntsh.so
+</span><span class='line'>
+</span><span class='line'>root@kali:/opt/oracle/instantclient_12_1# ls -lh libclntsh.so
+</span><span class='line'>lrwxrwxrwx 1 root root 17 Aug 17 15:37 libclntsh.so -&gt; libclntsh.so.12.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The last step is to configure the environment so that your shell is&hellip; <em>oracle aware</em>. We do this by setting a few environment variables. I have chosen to just append the lines to the end of my <code>.bashrc</code> file</p>
+
+<figure class='code'><figcaption><span>.bashrc</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle/instantclient_12_1# tail ~/.bashrc
+</span><span class='line'>
+</span><span class='line'><span class="c"># ORACLE</span>
+</span><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/opt/oracle/instantclient_12_1
+</span><span class='line'><span class="nb">export </span><span class="nv">SQLPATH</span><span class="o">=</span>/opt/oracle/instantclient_12_1
+</span><span class='line'><span class="nb">export </span><span class="nv">TNS_ADMIN</span><span class="o">=</span>/opt/oracle/instantclient_12_1
+</span><span class='line'><span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/opt/oracle/instantclient_12_1
+</span><span class='line'><span class="nb">export </span><span class="nv">ORACLE_HOME</span><span class="o">=</span>/opt/oracle/instantclient_12_1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Done! Log out and back and check that these are present in the output of <code>env</code>.</p>
+
+<h2>sorting out metasploit</h2>
+
+<p>The last thing we need to do is setup the metasploit part. For this we need to download <a href="https://github.com/kubo/ruby-oci8/archive/ruby-oci8-2.1.7.zip">ruby-oci8</a>. In <code>/opt/oracle</code>, download it:</p>
+
+<figure class='code'><figcaption><span>download ruby-oci8</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle# wget https://github.com/kubo/ruby-oci8/archive/ruby-oci8-2.1.7.zip
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>2014-08-17 16:11:31 <span class="o">(</span>42.8 KB/s<span class="o">)</span> - <span class="sb">`</span>ruby-oci8-2.1.7.zip<span class="err">&#39;</span> saved <span class="o">[</span>278270<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>root@kali:/opt/oracle# unzip ruby-oci8-2.1.7.zip
+</span><span class='line'>Archive:  ruby-oci8-2.1.7.zip
+</span><span class='line'>fb913e32d8a09bd46e5bf549bd8e554f0870d384
+</span><span class='line'>   creating: ruby-oci8-ruby-oci8-2.1.7/
+</span><span class='line'>  inflating: ruby-oci8-ruby-oci8-2.1.7/.gitignore
+</span><span class='line'>  inflating: ruby-oci8-ruby-oci8-2.1.7/.yardopts
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>  inflating: ruby-oci8-ruby-oci8-2.1.7/test/test_rowid.rb
+</span><span class='line'>root@kali:/opt/oracle#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, move to the extracted directory and install the <code>ruby-dev</code> package if you have not already done so:</p>
+
+<figure class='code'><figcaption><span>ruby-dev</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle# <span class="nb">cd </span>ruby-oci8-ruby-oci8-2.1.7/
+</span><span class='line'>
+</span><span class='line'>root@kali:/opt/oracle/ruby-oci8-ruby-oci8-2.1.7# apt-get install ruby-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Lastly, we will <code>make</code> &amp;&amp; <code>make install</code>. Logout and back in and test that the oracle tools in metasploit are functional :)</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Leon Jacobs</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-17T15:46:49+02:00" pubdate data-updated="true">Aug 17<sup>th</sup>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/how-to/'>how to</a>, <a class='category' href='/blog/categories/kali-linux/'>kali linux</a>, <a class='category' href='/blog/categories/library/'>library</a>, <a class='category' href='/blog/categories/metasploit/'>metasploit</a>, <a class='category' href='/blog/categories/oci/'>oci</a>, <a class='category' href='/blog/categories/oracle/'>oracle</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://leonjza.github.io/blog/2014/08/17/kali-linux-oracle-support/" data-via="leonjza" data-counturl="http://leonjza.github.io/blog/2014/08/17/kali-linux-oracle-support/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/08/15/taming-the-troll/" title="Previous Post: taming (actually just solving) the troll">&laquo; taming (actually just solving) the troll</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/17/kali-linux-oracle-support/">Kali Linux Oracle Support</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/15/taming-the-troll/">taming (actually just solving) the troll</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/09/beating-xerxes2/">Beating Xerxes 2 (no, not the Persian King)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/07/flick-can-you-find-the-flag/">flick - can you find the flag?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/20/hell-would-just-not-freeze-over/">Hell would just not freeze over!</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/07/17/climbing-the-skytower/">Climbing the SkyTower</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/">dnsfilexfer - yet another take on file transfer via DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/">/root/flag.txt - Solving the Relativity Vulnerable VM</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure with a Infamous Bot</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and tty output to a virtual serial console</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/leonjza">@leonjza</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'leonjza',
+            count: 8,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Leon Jacobs -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

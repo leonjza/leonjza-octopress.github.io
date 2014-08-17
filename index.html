@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="foreword Having recently started the road to OSCP, @Maleus21 released Tr0ll on @VulnHub. I figured since the description was Difficulty: Beginner ; &hellip;">
+  <meta name="description" content="Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,158 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/08/17/kali-linux-oracle-support/">Kali Linux Oracle Support</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-17T15:46:49+02:00" pubdate data-updated="true">Aug 17<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work out of the box and just get the steps written down quickly. Typically, when you try to use a module such as <code>oracle_login</code>, metasploit may error out with:</p>
+
+<figure class='code'><figcaption><span>Metasploit Oracle Error</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>msf auxiliary<span class="o">(</span>oracle_login<span class="o">)</span> &gt; run
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>-<span class="o">]</span> Failed to load the OCI library: cannot load such file -- oci8
+</span><span class='line'><span class="o">[</span>-<span class="o">]</span> See http://www.metasploit.com/redmine/projects/framework/wiki/OracleUsage <span class="k">for </span>installation instructions
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Auxiliary module execution completed
+</span><span class='line'>msf auxiliary<span class="o">(</span>oracle_login<span class="o">)</span> &gt; run
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The link provided seems a little out of date, so here is an updated guide.</p>
+
+<h2>getting started</h2>
+
+<p>First, if you dont have an account at oracle.com, you will <em>unfortunately</em> need one here. If you don&rsquo;t want to create one, don’t worry, a temp email works as well as you luckily don’t have to confirm ownership of it before you can download.</p>
+
+<h2>sorting oracle first</h2>
+
+<p>Anyways. Create yourself a directory <code>/opt/oracle</code> and <code>cd</code> there. In a browser, navigate to the <a href="http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html">instant client downloads</a> url and choose your architecture. If you hate 32bit Kali, choose <a href="http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html">Linux x86</a>, and 64bit Kali choose <a href="http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html">Linux x86-64</a>.</p>
+
+<p>Next, download the following packages and save them to <code>/opt/oracle</code>:</p>
+
+<ul>
+<li>instantclient-basic-linux-12.1.0.1.0.zip</li>
+<li>instantclient-sqlplus-linux-12.1.0.1.0.zip</li>
+<li>instantclient-sdk-linux-12.1.0.1.0.zip</li>
+</ul>
+
+
+<p>With those downloaded, extract the archives with the <code>unzip</code> command. This should leave you with a directory <code>/opt/oracle/instantclient_12_1/</code>. This is all the files needed to at least get the <code>sqlplus</code> client going. However, when we build the ruby stuff needed for Metasploit, we will need to hax a .so. Do this with:</p>
+
+<figure class='code'><figcaption><span>so symlink</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle/instantclient_12_1# ln libclntsh.so.12.1 libclntsh.so
+</span><span class='line'>
+</span><span class='line'>root@kali:/opt/oracle/instantclient_12_1# ls -lh libclntsh.so
+</span><span class='line'>lrwxrwxrwx 1 root root 17 Aug 17 15:37 libclntsh.so -&gt; libclntsh.so.12.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The last step is to configure the environment so that your shell is&hellip; <em>oracle aware</em>. We do this by setting a few environment variables. I have chosen to just append the lines to the end of my <code>.bashrc</code> file</p>
+
+<figure class='code'><figcaption><span>.bashrc</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle/instantclient_12_1# tail ~/.bashrc
+</span><span class='line'>
+</span><span class='line'><span class="c"># ORACLE</span>
+</span><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/opt/oracle/instantclient_12_1
+</span><span class='line'><span class="nb">export </span><span class="nv">SQLPATH</span><span class="o">=</span>/opt/oracle/instantclient_12_1
+</span><span class='line'><span class="nb">export </span><span class="nv">TNS_ADMIN</span><span class="o">=</span>/opt/oracle/instantclient_12_1
+</span><span class='line'><span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/opt/oracle/instantclient_12_1
+</span><span class='line'><span class="nb">export </span><span class="nv">ORACLE_HOME</span><span class="o">=</span>/opt/oracle/instantclient_12_1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Done! Log out and back and check that these are present in the output of <code>env</code>.</p>
+
+<h2>sorting out metasploit</h2>
+
+<p>The last thing we need to do is setup the metasploit part. For this we need to download <a href="https://github.com/kubo/ruby-oci8/archive/ruby-oci8-2.1.7.zip">ruby-oci8</a>. In <code>/opt/oracle</code>, download it:</p>
+
+<figure class='code'><figcaption><span>download ruby-oci8</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle# wget https://github.com/kubo/ruby-oci8/archive/ruby-oci8-2.1.7.zip
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>2014-08-17 16:11:31 <span class="o">(</span>42.8 KB/s<span class="o">)</span> - <span class="sb">`</span>ruby-oci8-2.1.7.zip<span class="err">&#39;</span> saved <span class="o">[</span>278270<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>root@kali:/opt/oracle# unzip ruby-oci8-2.1.7.zip
+</span><span class='line'>Archive:  ruby-oci8-2.1.7.zip
+</span><span class='line'>fb913e32d8a09bd46e5bf549bd8e554f0870d384
+</span><span class='line'>   creating: ruby-oci8-ruby-oci8-2.1.7/
+</span><span class='line'>  inflating: ruby-oci8-ruby-oci8-2.1.7/.gitignore
+</span><span class='line'>  inflating: ruby-oci8-ruby-oci8-2.1.7/.yardopts
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>  inflating: ruby-oci8-ruby-oci8-2.1.7/test/test_rowid.rb
+</span><span class='line'>root@kali:/opt/oracle#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, move to the extracted directory and install the <code>ruby-dev</code> package if you have not already done so:</p>
+
+<figure class='code'><figcaption><span>ruby-dev</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle# <span class="nb">cd </span>ruby-oci8-ruby-oci8-2.1.7/
+</span><span class='line'>
+</span><span class='line'>root@kali:/opt/oracle/ruby-oci8-ruby-oci8-2.1.7# apt-get install ruby-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Lastly, we will <code>make</code> &amp;&amp; <code>make install</code>. Logout and back in and test that the oracle tools in metasploit are functional :)</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1893,64 +2045,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/08/07/flick-can-you-find-the-flag/">flick - can you find the flag?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-08-07T12:17:53+02:00" pubdate data-updated="true">Aug 7<sup>th</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><img src="http://i.imgur.com/kxwW1J8.png"></p>
-
-<h3>TL;DR</h3>
-
-<p>I made a CTF! You should try it! Find it <a href="http://vulnhub.com/entry/flick-1,99/">on Vulnhub</a></p>
-
-<h2>foreword</h2>
-
-<p>So, security CTF&rsquo;s are fun. A lot of fun. And can be one heck of a time sink! Checking my laptops time and realizing its 3am on a week night is normal when I get pulled into one. The frustration, the trolls, the tremendous amounts of learning is all part of the experience of a successful CTF in my opinion.</p>
-
-<h2>preparation</h2>
-
-<p>Having done a few now with varying degrees of success has inspired me to attempt to do the same. So, off I went to CTF island and came back a weekend later with &ldquo;Flick&rdquo;. There is no real meaning to &ldquo;Flick&rdquo;. In fact, the name is the result of: &ldquo;What can I call it?&rdquo; &lt; insert 5u seconds > &ldquo;Flick?&rdquo;.</p>
-
-<h2>details</h2>
-
-<p>&ldquo;Flick&rdquo; aims to give you chance to learn something new. While some things may be trivial for the seasoned penetration tester by day, there may also be one or two things to learn.</p>
-
-<p>As far as hints go, there is not much to give in the beginning. You have to <em>find</em> the flag.txt. It is possible to read it without having root command execution, however, as a added challenge, can you get root command execution? :)</p>
-
-<h2>summary</h2>
-
-<p>I look forward to hearing your experiences with it and good luck! You can find me in #vulnhub on freenode or on twitter @leonjza</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1964,6 +2058,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/08/17/kali-linux-oracle-support/">Kali Linux Oracle Support</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/08/15/taming-the-troll/">taming (actually just solving) the troll</a>
@@ -1999,10 +2097,6 @@
     
       <li class="post">
         <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and tty output to a virtual serial console</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/07/31/url-expansion-im-paranoid-like-that/">URL Expansion - I&#8217;m paranoid like that</a>
       </li>
     
   </ul>

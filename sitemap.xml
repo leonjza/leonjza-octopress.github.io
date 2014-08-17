@@ -3,6 +3,12 @@
   
   
   <url>
+    <loc>http://leonjza.github.io/blog/2014/08/17/kali-linux-oracle-support/</loc>
+    <lastmod>2014-08-17T15:46:49+02:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
     <loc>http://leonjza.github.io/blog/2014/08/15/taming-the-troll/</loc>
     <lastmod>2014-08-15T07:12:03+02:00</lastmod>
     <priority>0.8</priority>
@@ -101,21 +107,21 @@
   
   <url>
     <loc>http://leonjza.github.io/blog/archives/</loc>
-    <lastmod>2014-08-15T18:12:41+02:00</lastmod>
+    <lastmod>2014-08-17T16:21:58+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/</loc>
-    <lastmod>2014-08-15T18:12:41+02:00</lastmod>
+    <lastmod>2014-08-17T16:21:58+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/about/</loc>
-    <lastmod>2014-08-15T18:12:41+02:00</lastmod>
+    <lastmod>2014-08-17T16:21:58+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
