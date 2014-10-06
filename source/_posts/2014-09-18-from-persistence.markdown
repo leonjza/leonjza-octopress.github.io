@@ -100,7 +100,7 @@ ID  Response   Lines      Word         Chars          Request
 
 Yay. `wfuzz` is stupidly fast and finished the above in like 4 seconds. Browsing to http://192.168.56.101/debug.php showed us a input field labeled "Ping address:" and a submit button
 
-{% img http://i.imgur.com/neKe18e.png %}
+{% img https://i.imgur.com/neKe18e.png %}
 
 "Command injection?", was the first thought here.
 
