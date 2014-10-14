@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="So, why would you even want this..? Well, to be honest, I am not really sure of many use cases for this, however maybe someone, somewhere will need &hellip;">
+  <meta name="description" content="Work clever, not hard This will be the first post of a series of quick shell tips for getting things done, fast. Infact, it will probably just serve &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,52 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/23/quick-win-quickly-execute-last-shell-command/">Quick Win: Quickly Execute Last Shell Command</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-23T10:42:00+02:00" pubdate data-updated="true">Jun 23<sup>rd</sup>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>Work clever, not hard</h3>
+
+<p>This will be the first post of a series of quick shell tips for getting things done, fast. Infact, it will probably just serve as a notepad for me on the topic ;)</p>
+
+<h3>Last shell command</h3>
+
+<p>If you are using a shell, such as <a href="http://www.gnu.org/software/bash/bash.html">Bash</a>, which is pretty much the default on most Linux distributions, then you probably know that you can just use the <strong>up</strong> arrow to get the last command. But, if you are using a shell such as <a href="http://www.zsh.org/">Zsh</a> like me, you&rsquo;d quickly come to realise that the global <code>~/.histfile</code> can be a tad frustrating if you are expecting the last command you typed in <strong>that</strong> terminal window to appear when you press <strong>up</strong>. Only to realise, its literally the last command you typed in <em>another</em> shell.</p>
+
+<h3>Bang Bang to the rescue!</h3>
+
+<p>Simply type <code>!!</code> and <em>enter</em> and the last command that was run in <strong>that</strong> terminal will be either echoed or executed, depending on how your shell is configured to handle the command.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -714,7 +760,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#x6a;&#97;&#98;&#98;&#x65;&#x72;&#95;&#x62;&#111;&#x74;&#x40;&#106;&#97;&#x62;&#98;&#101;&#114;&#x2e;&#x73;&#101;&#114;&#x76;&#101;&#114;">&#106;&#x61;&#98;&#98;&#x65;&#114;&#x5f;&#98;&#x6f;&#x74;&#64;&#106;&#x61;&#98;&#98;&#x65;&#x72;&#x2e;&#x73;&#x65;&#114;&#x76;&#101;&#114;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#x6f;&#58;&#106;&#97;&#98;&#98;&#x65;&#x72;&#x5f;&#x62;&#x6f;&#x74;&#x40;&#x6a;&#x61;&#98;&#x62;&#101;&#x72;&#x2e;&#x73;&#101;&#114;&#118;&#101;&#x72;">&#x6a;&#x61;&#98;&#98;&#x65;&#x72;&#95;&#x62;&#111;&#x74;&#x40;&#x6a;&#97;&#x62;&#98;&#x65;&#114;&#x2e;&#115;&#101;&#x72;&#118;&#101;&#114;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
@@ -727,146 +773,9 @@ The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/05/24/hello-world-oh-and-heres-some-code/">Hello World! Oh and here&#8217;s some code!</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-05-24T21:11:00+02:00" pubdate data-updated="true">May 24<sup>th</sup>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>Introduction</h3>
-
-<p>Finally! A blog engine I like! :) No exceptionally bloated backend database with plugins that just get hacked. Yup, slim and sleek. <em>And</em>, I get to make posts using Vi :D
-Want in on this love? Have a look at <a href="http://octopress.org">Octopress</a> . Yes, it was a real ball ache to get setup thanks to the ruby dependencies, but now that were rollin&#8217; this should be good :D</p>
-
-<h3>Frustrations breed Ideas</h3>
-
-<p>In my day job, I am exposed to a lot of work that will relate around the <a href="http://www.tenable.com/products/nessus">Nessus Vulnerability Scanner</a>.
-Originally, interfacing with this scanner used be via a old and clunky <em>flash</em> interface. It was bad. They have since moved over to a HTML5, ajaxy interface that is light years better. However, for my needs, the default Nessus Interface just does not cut it.</p>
-
-<h3>Open source? Where do I start?</h3>
-
-<p>Based on this old crappy interface, and the need to be able to automate things, I pulled closer the XMLRPC API reference <a href="http://static.tenable.com/documentation/nessus_5.0_XMLRPC_protocol_guide.pdf">documentation</a>. Reading this revealed the API is actually very straight forward. Login &ndash;> get a token &ndash;> make POST with this token and receive XML. Great.</p>
-
-<p>I started hacking away at some PHP to test this out. Back then I was really <em>very</em> new to this &lsquo;&#8217;development&rsquo;&lsquo; thing, so it was really tough to get my head around the concepts of working with the API. Nonetheless, we had something to work with, and this was implemented internally for numerous functions.</p>
-
-<p>Since then, <code>nessus.php</code> was born. The first iteration of this code was, well, worse than it is now, but its now very easy to use ( I believe ).</p>
-
-<h3>Instantiate a NessusInterface instance</h3>
-
-<p>To use this API, we first need to include it in our script, and then init the Class. Effectively, this will log into the scanner using the provided arguments and store the token in the object. Should it fail, it will raise an error.</p>
-
-<figure class='code'><figcaption><span>Sample PHP NessusInterface Usage</span><a href='https://github.com/th3l33k/php-nessus-api'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
-</span><span class='line'><span class="k">require</span> <span class="s2">&quot;nessus.php&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nv">$api</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">NessusInterface</span><span class="p">(</span>
-</span><span class='line'>        <span class="nv">$__url</span><span class="p">,</span>
-</span><span class='line'>        <span class="nv">$__port</span><span class="p">,</span>
-</span><span class='line'>        <span class="nv">$__username</span><span class="p">,</span>
-</span><span class='line'>        <span class="nv">$__password</span>
-</span><span class='line'>    <span class="p">);</span>
-</span><span class='line'><span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">Exception</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">preprint</span><span class="p">(</span><span class="nv">$e</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">());</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>Do some API calls</h4>
-
-<p>Once you have the <code>$api</code> variable setup with a instance of <strong>NessusInterface</strong>, you can use any of the available calls. Most of the API calls will return some form of array:</p>
-
-<figure class='code'><figcaption><span>Sample API calls using NessusInterface</span><a href='https://github.com/th3l33k/php-nessus-api'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
-</span><span class='line'><span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="nv">$api</span><span class="o">-&gt;</span><span class="na">feed</span><span class="p">();</span>
-</span><span class='line'>    <span class="c1"># // Will return an array like:</span>
-</span><span class='line'>    <span class="c1">#  Array</span>
-</span><span class='line'>    <span class="c1">#  (</span>
-</span><span class='line'>    <span class="c1">#    [feed] =&gt; ProFeed</span>
-</span><span class='line'>    <span class="c1">#    [server_version] =&gt; 5.2.1</span>
-</span><span class='line'>    <span class="c1">#    [web_server_version] =&gt; 4.0.37 (Build H20130515A)</span>
-</span><span class='line'>    <span class="c1">#    [expiration] =&gt; 1406174400</span>
-</span><span class='line'>    <span class="c1">#    [msp] =&gt; FALSE</span>
-</span><span class='line'>    <span class="c1">#    [loaded_plugin_set] =&gt; 201305240915</span>
-</span><span class='line'>    <span class="c1">#    [expiration_time] =&gt; 425</span>
-</span><span class='line'>    <span class="c1"># )</span>
-</span><span class='line'>
-</span><span class='line'><span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">Exception</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="nx">preprint</span><span class="p">(</span><span class="nv">$e</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">());</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Reading the sources will reveal the structures of the returned arrays.
-Get the code <a href="https://github.com/th3l33k/php-nessus-api">here</a></p>
-
-<h3>Its the small things</h3>
-
-<p>This is by no means and elaborate &ldquo;solution&rdquo; really. It&rsquo;s purely another building block for something bigger. A believe there are quite a few fundamentals that the Nessus Scanner does not cover, but perhaps that is beyond the scope of what its designed to do :)</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/posts/7">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -879,6 +788,10 @@ Get the code <a href="https://github.com/th3l33k/php-nessus-api">here</a></p>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/10/14/knock-knock-whos-there-solving-knock-knock/">knock-knock who’s there?</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/09/18/from-persistence/">From Persistence, to pain, to PWN</a>
@@ -914,10 +827,6 @@ Get the code <a href="https://github.com/th3l33k/php-nessus-api">here</a></p>
     
       <li class="post">
         <a href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/">/root/flag.txt - Solving the Relativity Vulnerable VM</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/">Zeus - My Adventure with a Infamous Bot</a>
       </li>
     
   </ul>
