@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-10-27T06:07:12+02:00</updated>
+  <updated>2014-10-27T06:25:59+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -1785,10 +1785,10 @@ Oh. Hai. The sources serving up the image had the comment <code>&lt;!-- Nothing 
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~/Desktop/troll2/c# tail -n 1 cat_the_troll.jpg
-</span><span class='line'>8Ã¯Â¿Â½z2Ã¯Â¿Â½Ã¯Â¿Â½pÃ¯Â¿Â½TÃ¯Â¿Â½lj<span class="se">\p</span>Ã¯Â¿Â½Ã¯Â¿Â½?Ã¯Â¿Â½&lt;Ã¯Â¿Â½SÃ¯Â¿Â½Ã›ÂªÃ¯Â¿Â½Ã¯Â¿Â½6Ã¯Â¿Â½#Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½7U yÃ¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½*/ p?E<span class="nv">$Ã</span>¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½%<span class="o">=</span>Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½.Ã¯Â¿Â½BÃ¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½oÃ¯Â¿Â½ES_Ã¯Â¿Â½
+</span><span class='line'>8�z2��p�T�lj<span class="se">\p</span>��?�&lt;�S�۪��6�#���7U y���*/ p?E<span class="nv">$�</span>��%<span class="o">=</span>���.�B���o�ES_�
 </span><span class='line'>
 </span><span class='line'>root@kali:~/Desktop/troll2/c# tail -n 1 cat_the_troll.jpg.1
-</span><span class='line'>8Ã¯Â¿Â½z2Ã¯Â¿Â½Ã¯Â¿Â½pÃ¯Â¿Â½TÃ¯Â¿Â½lj<span class="se">\p</span>Ã¯Â¿Â½Ã¯Â¿Â½?Ã¯Â¿Â½&lt;Ã¯Â¿Â½SÃ¯Â¿Â½Ã›ÂªÃ¯Â¿Â½Ã¯Â¿Â½6Ã¯Â¿Â½#Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½7U yÃ¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½*/ p?E<span class="nv">$Ã</span>¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½%<span class="o">=</span>Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½.Ã¯Â¿Â½BÃ¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½oÃ¯Â¿Â½ES_Ã¯Â¿Â½Ã¯Â¿Â½Look Deep within y0ur_self <span class="k">for </span>the answer
+</span><span class='line'>8�z2��p�T�lj<span class="se">\p</span>��?�&lt;�S�۪��6�#���7U y���*/ p?E<span class="nv">$�</span>��%<span class="o">=</span>���.�B���o�ES_��Look Deep within y0ur_self <span class="k">for </span>the answer
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -11391,7 +11391,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#109;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#106;&#x61;&#98;&#98;&#101;&#114;&#x5f;&#98;&#111;&#x74;&#x40;&#106;&#97;&#x62;&#x62;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#118;&#101;&#x72;">&#106;&#97;&#x62;&#x62;&#101;&#114;&#x5f;&#98;&#x6f;&#x74;&#64;&#106;&#97;&#98;&#98;&#101;&#x72;&#x2e;&#115;&#101;&#114;&#x76;&#x65;&#114;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#106;&#97;&#98;&#x62;&#101;&#114;&#x5f;&#x62;&#x6f;&#116;&#64;&#x6a;&#97;&#98;&#98;&#x65;&#114;&#46;&#x73;&#x65;&#x72;&#x76;&#101;&#x72;">&#x6a;&#x61;&#98;&#98;&#101;&#x72;&#95;&#x62;&#x6f;&#116;&#64;&#x6a;&#97;&#x62;&#98;&#x65;&#x72;&#46;&#x73;&#101;&#114;&#x76;&#x65;&#114;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
