@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="Introduction Finally! A blog engine I like! :) No exceptionally bloated backend database with plugins that just get hacked. Yup, slim and sleek. And &hellip;">
+  <meta name="description" content="Bots! Bots! Bots! Generally speaking, a &lsquo;&#8217;bot&rsquo;&lsquo; is something that like does work for you. But, for this purpose, the need for &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,180 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/25/how-to-extremely-simple-python-jabber-broadcast-bot/">How To: Extremely simple python Jabber Broadcast Bot</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-25T10:12:00+02:00" pubdate data-updated="true">May 25<sup>th</sup>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>Bots! Bots! Bots!</h3>
+
+<p>Generally speaking, a &lsquo;&#8217;bot&rsquo;&lsquo; is something that like <em>does work for you</em>. But, for this purpose, the need for a jabber bot came from the fact that I had to deal with a lot of email on a daily basis. This large amount of mail sometimes would cause me to completely miss critical mail alerts. Realising later that I could have prevented a catastrophe if I didn&rsquo;t miss that <strong>one</strong> email was just not on anymore. So, I started investigating ways to get the <em>important</em> stuff delivered faster.</p>
+
+<p>As a team at work, we have long gone dropped the whole Skype group chat thing for our own Jabber server. My privacy related concerns back then was recently heightened <a href="http://lists.randombit.net/pipermail/cryptography/2013-May/004224.html">here</a> when a trap URL received a HEAD request from <strong>65.52.100.214</strong>. The user that received the URL in a chat was under strict instructions not to actually click it&hellip;</p>
+
+<h3>So, how do we do this?</h3>
+
+<p>We implemented a <a href="http://www.igniterealtime.org/projects/openfire/">Openfire Server</a> that was really easy to setup and get going. Whats really nice about this Jabber server is that it supports plugins, some of which you can simply install via the web interface.</p>
+
+<p>One such plugin that was installed is called the <a href="http://www.igniterealtime.org/projects/openfire/plugins/broadcast/readme.html">broadcast</a> plugin. This allows you to broadcast a message to all users on the server or those in defined groups.</p>
+
+<p><img src="http://i.imgur.com/6i8WhgR.png">
+Once this plugin is installed, some minor configuration is required to allow the broadcasting feature to work. In no way is this an extensive guide on the power of the plugin, but for the purpose of this post well just quickly rush over it.</p>
+
+<p>Head over to <em>Server</em> &ndash;> <em>Server Manager</em> &ndash;> <em>System Properties</em>. From here you need to add the fields that are not there with the <strong>plugin.broadcast.</strong> prefix. Don&rsquo;t worry if they are not there, just add them.</p>
+
+<p><img src="http://i.imgur.com/XmU4d98.png"></p>
+
+<p>The above is just a sample of a working configuration. Feel free to play around more with different setups.</p>
+
+<p>With everything configured, you should now be able to send a message to something like <em>all@broadcast.jabber.server</em>. In my configuration, <em>plugin.broadcast.all2offline</em> is set to <strong>true</strong>. So, when a message is broadcasted and I was offline, I&rsquo;ll receive the broadcast as soon as I&rsquo;m back :)</p>
+
+<h3>Introducing jabbersend.py</h3>
+
+<p>With our jabber server now configured and working, we are ready to start automating things. From here we need two things. Something that will broadcast for us, and something <em>to</em> broadcast. The <em>what to broadcast</em> is entirely up to you, as the script will accept a text file to broadcast.</p>
+
+<p>The only dependency you probably need to satisfy will be <code>xmpp</code>. This should be easily doable with something like <code>easy_install xmpp</code></p>
+
+<figure class='code'><figcaption><span>Send a Jabber Message from a file</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/python</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span><span class="o">,</span><span class="nn">xmpp</span><span class="o">,</span><span class="nn">time</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># check the received arguments</span>
+</span><span class='line'><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;Syntax: jabbersend.py JID textfile&quot;</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># set the values to work with and read the file</span>
+</span><span class='line'><span class="n">tojid</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class='line'><span class="n">m</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">array</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+</span><span class='line'><span class="n">m</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">msg</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+</span><span class='line'><span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">+</span> <span class="n">record</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># configure your jabber account for the bot here.</span>
+</span><span class='line'><span class="n">username</span> <span class="o">=</span> <span class="s">&#39;jabber_bot@jabber.server&#39;</span> <span class="c"># from whom will the message be sent</span>
+</span><span class='line'><span class="n">password</span> <span class="o">=</span> <span class="s">&#39;jabber_bot_secret_password&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">jid</span><span class="o">=</span><span class="n">xmpp</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">JID</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># for debugging purposes, uncomment the below line so that &#39;debug&#39; is 1.</span>
+</span><span class='line'><span class="c"># This makes the script very verbose though, but its helpful if you stuck ^^</span>
+</span><span class='line'><span class="c">#cl=xmpp.Client(jid.getDomain(),debug=1)</span>
+</span><span class='line'><span class="n">cl</span><span class="o">=</span><span class="n">xmpp</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">jid</span><span class="o">.</span><span class="n">getDomain</span><span class="p">(),</span><span class="n">debug</span><span class="o">=</span><span class="p">[])</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Sadly I don&#39;t have a valid certificate for my jabber server, so this had to</span>
+</span><span class='line'><span class="c"># be set to False. I do however recommend, if you can, to get a valid certificate</span>
+</span><span class='line'><span class="c"># and enable this</span>
+</span><span class='line'><span class="n">con</span><span class="o">=</span><span class="n">cl</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">secure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c"># Set this to validate the servers certificate.</span>
+</span><span class='line'><span class="k">if</span> <span class="ow">not</span> <span class="n">con</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;Could not connect&quot;</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># authenticate the client</span>
+</span><span class='line'><span class="n">auth</span><span class="o">=</span><span class="n">cl</span><span class="o">.</span><span class="n">auth</span><span class="p">(</span><span class="n">jid</span><span class="o">.</span><span class="n">getNode</span><span class="p">(),</span><span class="n">password</span><span class="p">,</span><span class="n">resource</span><span class="o">=</span><span class="n">jid</span><span class="o">.</span><span class="n">getResource</span><span class="p">())</span>
+</span><span class='line'><span class="k">if</span> <span class="ow">not</span> <span class="n">auth</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;Authentication failed&quot;</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># send the message</span>
+</span><span class='line'><span class="nb">id</span><span class="o">=</span><span class="n">cl</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">xmpp</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">tojid</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># some older servers will not send the message if you disconnect immediately</span>
+</span><span class='line'><span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>We have the code, now use it!</h3>
+
+<p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
+<code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
+
+<p>If all went OK, you should have received a message from <a href="&#109;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#106;&#x61;&#98;&#98;&#101;&#114;&#x5f;&#98;&#111;&#x74;&#x40;&#106;&#97;&#x62;&#x62;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#118;&#101;&#x72;">&#106;&#97;&#x62;&#x62;&#101;&#114;&#x5f;&#98;&#x6f;&#x74;&#64;&#106;&#97;&#98;&#98;&#101;&#x72;&#x2e;&#115;&#101;&#114;&#x76;&#x65;&#114;</a> :P</p>
+
+<p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
+The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
+
+<p>I have a slightly more matured version of this in a python module that I&rsquo;ll share later. If you are interested in this, poke me on twitter @leonjza</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -237,6 +411,10 @@ Get the code <a href="https://github.com/th3l33k/php-nessus-api">here</a></p>
       </li>
     
       <li class="post">
+        <a href="/blog/2014/10/10/another-troll-tamed-solving-troll-2/">another troll tamed - solving troll 2</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/09/18/from-persistence/">From Persistence, to pain, to PWN</a>
       </li>
     
@@ -266,10 +444,6 @@ Get the code <a href="https://github.com/th3l33k/php-nessus-api">here</a></p>
     
       <li class="post">
         <a href="/blog/2014/03/11/dnsfilexfer-yet-another-take-on-file-transfer-via-dns/">dnsfilexfer - yet another take on file transfer via DNS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/18/slash-root-slash-flag-dot-txt-solving-the-relativity-vulnerable-vm/">/root/flag.txt - Solving the Relativity Vulnerable VM</a>
       </li>
     
   </ul>
