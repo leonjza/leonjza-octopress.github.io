@@ -14,6 +14,8 @@ categories:
 ##foreword
 Having recently started the road to [OSCP](http://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/), [@Maleus21](https://twitter.com/Maleus21) released [Tr0ll](http://vulnhub.com/entry/tr0ll-1,100/) on [@VulnHub](https://twitter.com/VulnHub). I figured since the description was _Difficulty: Beginner ; Type: boot2root_, I could give it a smash in a evening as a bit of distraction.
 
+<!--more-->
+
 ##nomad, promise
 As usual, I downloaded the VM, extracted the `.rar` and slapped it in Virtual Box. I got the IP 192.168.56.101. Promptly a NMAP was run against it:
 

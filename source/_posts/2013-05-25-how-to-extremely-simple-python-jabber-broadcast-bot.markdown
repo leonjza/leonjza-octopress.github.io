@@ -16,6 +16,8 @@ Generally speaking, a ''bot'' is something that like *does work for you*. But, f
 
 As a team at work, we have long gone dropped the whole Skype group chat thing for our own Jabber server. My privacy related concerns back then was recently heightened [here](http://lists.randombit.net/pipermail/cryptography/2013-May/004224.html) when a trap URL received a HEAD request from **65.52.100.214**. The user that received the URL in a chat was under strict instructions not to actually click it... 
 
+<!--more-->
+
 ### So, how do we do this?
 We implemented a [Openfire Server](http://www.igniterealtime.org/projects/openfire/) that was really easy to setup and get going. Whats really nice about this Jabber server is that it supports plugins, some of which you can simply install via the web interface.
 

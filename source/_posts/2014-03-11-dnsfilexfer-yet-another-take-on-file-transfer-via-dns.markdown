@@ -15,6 +15,8 @@ This is not a old technique. Many a person has written about it and many technic
 ### this article is not...
 ... about anything particularly new. It is simply my ramblings, and some python code slapped together in literally a day in order for me to learn and get my hands dirty with the concepts.
 
+<!--more-->
+
 ## the idea
 At its very core, the idea of DNS file transfers and DNS tunnelling resides in the fact that a few cleverly crafted DNS queries could be merged & formatted together to form part of a larger chunk of data. While DNS itself is not actually meant for file transfers, this method is obviously a very hacky approach.
 

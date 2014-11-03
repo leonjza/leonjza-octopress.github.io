@@ -17,6 +17,8 @@ categories:
 
 Here is my experience taming the troll, again.
 
+<!--more-->
+
 ##getting started
 Like almost all boot2roots, we get right into it by slapping the VM into a hypervisor (VirtualBox in my case), discovering the IP address and running a `nmap` against it:
 

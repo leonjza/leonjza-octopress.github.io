@@ -18,6 +18,7 @@ I made a CTF! You should try it! Find it [on Vulnhub](http://vulnhub.com/entry/f
 ## foreword
 So, security CTF's are fun. A lot of fun. And can be one heck of a time sink! Checking my laptops time and realizing its 3am on a week night is normal when I get pulled into one. The frustration, the trolls, the tremendous amounts of learning is all part of the experience of a successful CTF in my opinion.
 
+<!--more-->
 
 ## preparation
 Having done a few now with varying degrees of success has inspired me to attempt to do the same. So, off I went to CTF island and came back a weekend later with "Flick". There is no real meaning to "Flick". In fact, the name is the result of: "What can I call it?" < insert 5u seconds > "Flick?".

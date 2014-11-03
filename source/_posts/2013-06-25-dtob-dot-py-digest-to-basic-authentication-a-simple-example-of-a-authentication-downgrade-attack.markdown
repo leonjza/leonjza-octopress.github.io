@@ -14,6 +14,8 @@ categories:
 ### Introduction
 Lets start by saying that I am by *no* means an expert at any of what I am about to write. Primarily this post is purely for research purposes. Think of it as one of those *something to do* scenarios. I'd like to cover some basics around HTTP Authentication, and then show a PoC of how this can be abused in a real world scenario. Hopefully this will help educate people to use more secure authentication mechanisms! :)
 
+<!--more-->
+
 ### Authentication at a HTTP Level
 HTTP Level authentication, for the most part, rely on a set of headers to authenticate the user. Generally speaking, the server will present the expected authentication mechanism via a `WWW-Authenticate` header, and expect the client to prepare the correct response back. Each request the user makes after a successful authentication attempt, has to contain the correct headers for the applicable authentication scheme, else the server would normally respond with a `401 - Not Authorised`, and the client has to re-authenticate. It is up to the server/application to validate the headers on each request.
 HTTP level authentication mechanisms include [Basic](http://tools.ietf.org/html/rfc2617#section-2), [Digest](http://tools.ietf.org/html/rfc2617#section-3) as well as more complex schemes such as [Kerberos](http://tools.ietf.org/html/rfc4559), [NTLM](http://davenport.sourceforge.net/ntlm.html#ntlmHttpAuthentication) and [OAuth](http://oauth.net/core/1.0/#auth_header)

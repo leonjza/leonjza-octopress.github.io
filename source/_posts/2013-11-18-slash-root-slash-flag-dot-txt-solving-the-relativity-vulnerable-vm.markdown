@@ -15,6 +15,8 @@ At the time of writing this post, this VM was part of a local security communiti
 
 I think it is interesting to note that I used a very limited set of tools to complete this. No bruteforcers, metasploits, vulnerability scanners and or fancy proxies were used. My toolset consisted out of netcat, nmap and other basic bash commands. There are probably a gazillion ways to do this as lots of this stuff is preference based on how they are approached. However, the basic ideas of the vulnerabilities remain the same.
 
+<!--more-->
+
 ### the challenge
 It all started with an announcement on the Zacon mailing list. A friendly heads-up about the challenge and some details were made available. We were given a hostname of where the challenge lived with clear instructions to find `flag.txt`. Sounds simple. I slapped the hostname as a url in a browser and was met with a image of M.C. Eshter's 'Relativity'. Great. Something to start thinking about. I also nmapped the box. I mean, how else would you start, right? :)
 

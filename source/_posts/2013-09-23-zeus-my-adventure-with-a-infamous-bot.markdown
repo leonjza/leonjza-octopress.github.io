@@ -16,6 +16,8 @@ categories:
 ### Bots for the masses.
 Recently at a conference that I attended, I sat in a class that was talking about Botnets and general 'How Easy They Are' related things. 90% of the technical discussions did not really come as a surprise to me, however, I came to realize that I am not **100%** aware of how ( and I dare say this lightly ) *easy* they have it. The technical competency of the adversary really doesn't have to be at a jaw droppingly high level. In fact, if you can operate the keyboard and mouse, heck, even a tablet/phone once its all setup, then you could potentially be a successful botnet operator.
 
+<!--more-->
+
 ### So, botnet?
 In its simplest form, a bot, from an attackers perspective, is simply a part of a larger resource network. A number, that if not available, does not really matter as there are many more that form part of the larger botnet. A very well known botnet is the [Zeus botnet](http://en.wikipedia.org/wiki/Zeus_(Trojan_horse\)). Popular for its ability to perform credential theft, it was sold from what appears to range from $700 to $15000, depending on the extra *features* that you'd like. Some of these features include the ability to connect via VNC to a remote host in order to graphically control it.
 

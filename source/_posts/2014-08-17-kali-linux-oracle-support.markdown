@@ -26,6 +26,8 @@ msf auxiliary(oracle_login) > run
 
 The link provided seems a little out of date, so here is an updated guide.
 
+<!--more-->
+
 ##getting started
 First, if you dont have an account at oracle.com, you will _unfortunately_ need one here. If you don't want to create one, don’t worry, a temp email works as well as you luckily don’t have to confirm ownership of it before you can download.
 

@@ -16,6 +16,8 @@ Well, to be honest, I am not really sure of many use cases for this, however may
 ### Introducing SleekXMPP
 [SleekXMPP](http://sleekxmpp.com/) is a python XMPP framework. It takes a bit to get your head around it, but once you have some basics covered its quite a rewarding library to work with. :) To start, you need to install 2 dependencies. Python Mailer and SleekXMPP itself. Something like `pip install mailer sleekxmpp` or for the older school, `easy_install sleekxmpp mailer` should do the trick. It can't hurt to check if the distro you use has these are packages already too.
 
+<!--more-->
+
 ### Configuration and testing time
 Once the install completes, do a quick check to see if everything is ok, Try to import the modules. They should return no errors. If they do, check that the installation of the previously mentioned dependencies were successful.
 

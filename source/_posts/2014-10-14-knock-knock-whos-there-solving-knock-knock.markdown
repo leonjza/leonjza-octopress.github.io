@@ -19,6 +19,8 @@ I figured I'd just _have a quick look™_, and midnight that evening ended up wi
 As always, if you have not done this VM yet, this post is a massive spoiler and I would highly recommend you close up here and try it first :)
 This is my experience 'knocking' on the door.
 
+<!--more-->
+
 > “Theodore!”
 
 > “Theodore who?”

@@ -15,6 +15,8 @@ categories:
 Finally! A blog engine I like! :) No exceptionally bloated backend database with plugins that just get hacked. Yup, slim and sleek. *And*, I get to make posts using Vi :D
 Want in on this love? Have a look at [Octopress](http://octopress.org) . Yes, it was a real ball ache to get setup thanks to the ruby dependencies, but now that were rollin' this should be good :D
 
+<!--more-->
+
 ### Frustrations breed Ideas
 In my day job, I am exposed to a lot of work that will relate around the [Nessus Vulnerability Scanner](http://www.tenable.com/products/nessus).
 Originally, interfacing with this scanner used be via a old and clunky *flash* interface. It was bad. They have since moved over to a HTML5, ajaxy interface that is light years better. However, for my needs, the default Nessus Interface just does not cut it.

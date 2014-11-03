@@ -13,6 +13,8 @@ categories:
 ##foreword
 Lets start by saying that this is probably one of the toughest boot2root's I have tried thus far. Even though I have managed to get `/root/flag.txt`, I am yet to actually *root* this beast. I believe I have arguably come quite far and there is only one hurdle left, however, almost 3 days later I have learnt a **TON** of stuff, and am satisfied to start jotting the experience down. Obviously, should I finally get **root**, I'll update here and reflect. This is also a relatively long post as there were a ton of things to do. Give yourself some time if you plan on reading the whole post :)
 
+<!--more-->
+
 ## welcome to hell
 [Hell](http://vulnhub.com/entry/hell-1,95/) is another vulnerable VM hosted at [@VulnHub](https://twitter.com/vulnhub). After recently completing the [SkyTower](https://leonjza.github.io/blog/2014/07/17/climbing-the-skytower/) Vulnerable VM, I was feeling up to the challenge of a potentially more challenging VM. And boy, was it challenging... The wife was away on a _girls weekend out_, so I had plenty of time to sit and really think about things without distractions.
 

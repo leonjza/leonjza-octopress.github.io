@@ -15,6 +15,8 @@ Recently, at a local Security Conference, [@telspacesystems](https://twitter.com
 
 In summary, this CTF taught me some interesting things about SQL injection where filters are present. More specifically, commas were filtered out and resulted in the need from some creative thinking :)
 
+<!--more-->
+
 ## starting off
 The very first thing to do was get the IP assigned by my home router to the VM. Loaded this up into a web browser and saw the skytower web page as per the screenshots in the vulnhub entry. The IP I got was 192.168.137.242.
 

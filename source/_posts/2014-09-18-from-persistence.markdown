@@ -20,6 +20,8 @@ Energy and persistence conquer all things.
 
 This is my experience while trying to complete the challenge. Persistence, once again, challenged me to learn about things that would normally have me just go "meh, next". As expected, this post is also a very big spoiler if you have not completed it yourself yet, so be warned!
 
+<!--more-->
+
 ##lets get our hands dirty
 As usual, the goto tool was Kali Linux, and the normal steps of adding the OVA image to Virtualbox, booting, finding the assigned IP and running a Nmap scan against it was used.
 

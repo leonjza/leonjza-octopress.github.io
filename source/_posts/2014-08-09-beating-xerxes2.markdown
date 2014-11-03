@@ -17,6 +17,8 @@ Xerxes2 is a successor in a boot2root series by [@barrebas](https://twitter.com/
 
 Xerxes2, like most other boot2root type CTF's, has once again forced me to learn a whole lot more than I thought possible. In total it took me about 3 or 4 days on and off to complete. The goal was as usual, read `/root/flag.txt`. This is the path I took to read the flag and gain root command execution. Enjoy!
 
+<!--more-->
+
 ## getting started
 The tool of choice for Xerxes2 was again Kali Linux. I started up the VM and got the IP Address 192.158.56.102 assigned to it. So, to officially kick off the challenge, I started a NMAP scan:
 
