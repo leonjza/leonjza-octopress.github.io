@@ -4,7 +4,7 @@
   <title><![CDATA[Category: basic authentication | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/basic-authentication/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-10-27T06:25:59+02:00</updated>
+  <updated>2014-11-03T19:11:11+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -21,6 +21,9 @@
     <content type="html"><![CDATA[<h3>Introduction</h3>
 
 <p>Lets start by saying that I am by <em>no</em> means an expert at any of what I am about to write. Primarily this post is purely for research purposes. Think of it as one of those <em>something to do</em> scenarios. I&rsquo;d like to cover some basics around HTTP Authentication, and then show a PoC of how this can be abused in a real world scenario. Hopefully this will help educate people to use more secure authentication mechanisms! :)</p>
+
+<!--more-->
+
 
 <h3>Authentication at a HTTP Level</h3>
 

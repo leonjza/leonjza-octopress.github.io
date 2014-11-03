@@ -4,7 +4,7 @@
   <title><![CDATA[Category: metasploit | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/metasploit/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-10-27T06:25:59+02:00</updated>
+  <updated>2014-11-03T19:11:11+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -31,6 +31,9 @@ msf auxiliary(oracle_login) > run</p>
 <p>```</p>
 
 <p>The link provided seems a little out of date, so here is an updated guide.</p>
+
+<!--more-->
+
 
 <h2>getting started</h2>
 

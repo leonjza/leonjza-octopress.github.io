@@ -4,7 +4,7 @@
   <title><![CDATA[Category: zeus | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/zeus/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-10-27T06:25:59+02:00</updated>
+  <updated>2014-11-03T19:11:11+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -25,6 +25,9 @@
 <h3>Bots for the masses.</h3>
 
 <p>Recently at a conference that I attended, I sat in a class that was talking about Botnets and general &lsquo;How Easy They Are&rsquo; related things. 90% of the technical discussions did not really come as a surprise to me, however, I came to realize that I am not <strong>100%</strong> aware of how ( and I dare say this lightly ) <em>easy</em> they have it. The technical competency of the adversary really doesn&rsquo;t have to be at a jaw droppingly high level. In fact, if you can operate the keyboard and mouse, heck, even a tablet/phone once its all setup, then you could potentially be a successful botnet operator.</p>
+
+<!--more-->
+
 
 <h3>So, botnet?</h3>
 

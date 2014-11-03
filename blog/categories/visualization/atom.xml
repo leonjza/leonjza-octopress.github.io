@@ -4,7 +4,7 @@
   <title><![CDATA[Category: visualization | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/visualization/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-10-27T06:25:59+02:00</updated>
+  <updated>2014-11-03T19:11:11+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -25,6 +25,9 @@
 <p><em>Be warned though, watching the output is highly addictive and strangely entertaining, so if you value your productivity, <strong>don&rsquo;t</strong> continue reading this post.</em></p>
 
 <p><img class="<a" src="href="http://i.imgur.com/gFkD3z5.png">http://i.imgur.com/gFkD3z5.png</a>"></p>
+
+<!--more-->
+
 
 <p>In short, Gource will take your repos commit logs from Git, Mecurial, SVN or even CVS (with some work) and splash out a graphical representation of the commits, by committer, across time. It also has a number of tweaks that allows you to change some visuals, focus on specific comitters and add titles etc.</p>
 

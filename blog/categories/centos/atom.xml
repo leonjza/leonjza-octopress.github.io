@@ -4,7 +4,7 @@
   <title><![CDATA[Category: centos | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/centos/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-10-27T06:25:59+02:00</updated>
+  <updated>2014-11-03T19:11:11+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -21,6 +21,9 @@
     <content type="html"><![CDATA[<h3>Console all the things!</h3>
 
 <p>First and foremost, I will start with a warning. Like any other virtualization software, you risk leaving the console open. This is a often overlooked part of securing your infrastructure. An administrator may have been required to do some work on the virtual console, and forget to log out. What if that account that is still logged in, is r00t? Having administrative access to a VM Host gives you access to the consoles, but not necessarily to the guests. Remember to log out! Or, setup shells to auto-logout after a few minutes of inactivity.</p>
+
+<!--more-->
+
 
 <h3>Example virsh console access</h3>
 

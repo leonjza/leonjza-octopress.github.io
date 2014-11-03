@@ -4,7 +4,7 @@
   <title><![CDATA[Category: tools | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/tools/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-10-27T06:25:59+02:00</updated>
+  <updated>2014-11-03T19:11:11+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -23,6 +23,9 @@
 <h3>this article is not&hellip;</h3>
 
 <p>&hellip; about anything particularly new. It is simply my ramblings, and some python code slapped together in literally a day in order for me to learn and get my hands dirty with the concepts.</p>
+
+<!--more-->
+
 
 <h2>the idea</h2>
 

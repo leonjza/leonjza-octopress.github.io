@@ -108,6 +108,9 @@
 
 <p>Lets start by saying that I am by <em>no</em> means an expert at any of what I am about to write. Primarily this post is purely for research purposes. Think of it as one of those <em>something to do</em> scenarios. I&rsquo;d like to cover some basics around HTTP Authentication, and then show a PoC of how this can be abused in a real world scenario. Hopefully this will help educate people to use more secure authentication mechanisms! :)</p>
 
+<!--more-->
+
+
 <h3>Authentication at a HTTP Level</h3>
 
 <p>HTTP Level authentication, for the most part, rely on a set of headers to authenticate the user. Generally speaking, the server will present the expected authentication mechanism via a <code>WWW-Authenticate</code> header, and expect the client to prepare the correct response back. Each request the user makes after a successful authentication attempt, has to contain the correct headers for the applicable authentication scheme, else the server would normally respond with a <code>401 - Not Authorised</code>, and the client has to re-authenticate. It is up to the server/application to validate the headers on each request.

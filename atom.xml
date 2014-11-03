@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-10-27T06:25:59+02:00</updated>
+  <updated>2014-11-03T19:11:11+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -26,6 +26,9 @@
 
 <p>As always, if you have not done this VM yet, this post is a massive spoiler and I would highly recommend you close up here and try it first :)
 This is my experience &lsquo;knocking&rsquo; on the door.</p>
+
+<!--more-->
+
 
 <blockquote><p>“Theodore!”</p>
 
@@ -1655,6 +1658,9 @@ Anyways. As you can see, nothing else that is really useful here. So the next pa
 
 <p>Here is my experience taming the troll, again.</p>
 
+<!--more-->
+
+
 <h2>getting started</h2>
 
 <p>Like almost all boot2roots, we get right into it by slapping the VM into a hypervisor (VirtualBox in my case), discovering the IP address and running a <code>nmap</code> against it:</p>
@@ -2548,6 +2554,9 @@ Tr0ll2 was also nice enough to include <code>gdb</code>, making the exploit deve
 
 
 <p>This is my experience while trying to complete the challenge. Persistence, once again, challenged me to learn about things that would normally have me just go &ldquo;meh, next&rdquo;. As expected, this post is also a very big spoiler if you have not completed it yourself yet, so be warned!</p>
+
+<!--more-->
+
 
 <h2>lets get our hands dirty</h2>
 
@@ -4272,6 +4281,9 @@ I attempted to write a ROP chain and failed.</p>
 
 <p>The link provided seems a little out of date, so here is an updated guide.</p>
 
+<!--more-->
+
+
 <h2>getting started</h2>
 
 <p>First, if you dont have an account at oracle.com, you will <em>unfortunately</em> need one here. If you don&rsquo;t want to create one, don’t worry, a temp email works as well as you luckily don’t have to confirm ownership of it before you can download.</p>
@@ -4381,6 +4393,9 @@ I attempted to write a ROP chain and failed.</p>
     <content type="html"><![CDATA[<h2>foreword</h2>
 
 <p>Having recently started the road to <a href="http://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/">OSCP</a>, <a href="https://twitter.com/Maleus21">@Maleus21</a> released <a href="http://vulnhub.com/entry/tr0ll-1,100/">Tr0ll</a> on <a href="https://twitter.com/VulnHub">@VulnHub</a>. I figured since the description was <em>Difficulty: Beginner ; Type: boot2root</em>, I could give it a smash in a evening as a bit of distraction.</p>
+
+<!--more-->
+
 
 <h2>nomad, promise</h2>
 
@@ -4841,6 +4856,9 @@ I attempted to write a ROP chain and failed.</p>
 <p>Xerxes2 is a successor in a boot2root series by <a href="https://twitter.com/barrebas">@barrebas</a> hosted by <a href="https://twitter.com/vulnhub">@VulnHub</a>. If you haven&rsquo;t done it yet, close this article <em>now</em> and go learn by doing it!</p>
 
 <p>Xerxes2, like most other boot2root type CTF&rsquo;s, has once again forced me to learn a whole lot more than I thought possible. In total it took me about 3 or 4 days on and off to complete. The goal was as usual, read <code>/root/flag.txt</code>. This is the path I took to read the flag and gain root command execution. Enjoy!</p>
+
+<!--more-->
+
 
 <h2>getting started</h2>
 
@@ -6148,6 +6166,9 @@ I attempted to write a ROP chain and failed.</p>
 
 <p>So, security CTF&rsquo;s are fun. A lot of fun. And can be one heck of a time sink! Checking my laptops time and realizing its 3am on a week night is normal when I get pulled into one. The frustration, the trolls, the tremendous amounts of learning is all part of the experience of a successful CTF in my opinion.</p>
 
+<!--more-->
+
+
 <h2>preparation</h2>
 
 <p>Having done a few now with varying degrees of success has inspired me to attempt to do the same. So, off I went to CTF island and came back a weekend later with &ldquo;Flick&rdquo;. There is no real meaning to &ldquo;Flick&rdquo;. In fact, the name is the result of: &ldquo;What can I call it?&rdquo; &lt; insert 5u seconds > &ldquo;Flick?&rdquo;.</p>
@@ -6172,6 +6193,9 @@ I attempted to write a ROP chain and failed.</p>
     <content type="html"><![CDATA[<h2>foreword</h2>
 
 <p>Lets start by saying that this is probably one of the toughest boot2root&rsquo;s I have tried thus far. Even though I have managed to get <code>/root/flag.txt</code>, I am yet to actually <em>root</em> this beast. I believe I have arguably come quite far and there is only one hurdle left, however, almost 3 days later I have learnt a <strong>TON</strong> of stuff, and am satisfied to start jotting the experience down. Obviously, should I finally get <strong>root</strong>, I&rsquo;ll update here and reflect. This is also a relatively long post as there were a ton of things to do. Give yourself some time if you plan on reading the whole post :)</p>
+
+<!--more-->
+
 
 <h2>welcome to hell</h2>
 
@@ -8276,6 +8300,9 @@ After taking a break, I realized that the output that looks like that of <code>/
 
 <p>In summary, this CTF taught me some interesting things about SQL injection where filters are present. More specifically, commas were filtered out and resulted in the need from some creative thinking :)</p>
 
+<!--more-->
+
+
 <h2>starting off</h2>
 
 <p>The very first thing to do was get the IP assigned by my home router to the VM. Loaded this up into a web browser and saw the skytower web page as per the screenshots in the vulnhub entry. The IP I got was 192.168.137.242.</p>
@@ -8680,6 +8707,9 @@ Oh yes, I obviously tried to just cat <code>/root/flag.txt</code>, but didn’t 
 
 <p>&hellip; about anything particularly new. It is simply my ramblings, and some python code slapped together in literally a day in order for me to learn and get my hands dirty with the concepts.</p>
 
+<!--more-->
+
+
 <h2>the idea</h2>
 
 <p>At its very core, the idea of DNS file transfers and DNS tunnelling resides in the fact that a few cleverly crafted DNS queries could be merged &amp; formatted together to form part of a larger chunk of data. While DNS itself is not actually meant for file transfers, this method is obviously a very hacky approach.</p>
@@ -8997,6 +9027,9 @@ Looking at the server, we see that the message is received:</p>
 <p>At the time of writing this post, this VM was part of a local security communities (<a href="http://zacon.org.za/">zacon</a>) pre-con challenge. Finding /root/flag.txt would have entered you into a draw for winning a prize :D However, the greater goal of the challenge was to learn something. I set out some time and attempted the challenge. Fortunately, I managed to complete it in time. So, this is the journey I took to solve this. You can now download and try this VM yourself over at <a href="http://vulnhub.com/entry/devrandom_relativity,55/">VulnHub</a>. Unzip, mount and boot the VM. Once the VM is booted, it should have an IP assigned via DHCP.</p>
 
 <p>I think it is interesting to note that I used a very limited set of tools to complete this. No bruteforcers, metasploits, vulnerability scanners and or fancy proxies were used. My toolset consisted out of netcat, nmap and other basic bash commands. There are probably a gazillion ways to do this as lots of this stuff is preference based on how they are approached. However, the basic ideas of the vulnerabilities remain the same.</p>
+
+<!--more-->
+
 
 <h3>the challenge</h3>
 
@@ -9728,6 +9761,9 @@ Looking at the server, we see that the message is received:</p>
 
 <p>Recently at a conference that I attended, I sat in a class that was talking about Botnets and general &lsquo;How Easy They Are&rsquo; related things. 90% of the technical discussions did not really come as a surprise to me, however, I came to realize that I am not <strong>100%</strong> aware of how ( and I dare say this lightly ) <em>easy</em> they have it. The technical competency of the adversary really doesn&rsquo;t have to be at a jaw droppingly high level. In fact, if you can operate the keyboard and mouse, heck, even a tablet/phone once its all setup, then you could potentially be a successful botnet operator.</p>
 
+<!--more-->
+
+
 <h3>So, botnet?</h3>
 
 <p>In its simplest form, a bot, from an attackers perspective, is simply a part of a larger resource network. A number, that if not available, does not really matter as there are many more that form part of the larger botnet. A very well known botnet is the <a href="http://en.wikipedia.org/wiki/Zeus_(Trojan_horse)">Zeus botnet</a>. Popular for its ability to perform credential theft, it was sold from what appears to range from $700 to $15000, depending on the extra <em>features</em> that you&rsquo;d like. Some of these features include the ability to connect via VNC to a remote host in order to graphically control it.</p>
@@ -10068,6 +10104,9 @@ Looking at the server, we see that the message is received:</p>
 
 <p>First and foremost, I will start with a warning. Like any other virtualization software, you risk leaving the console open. This is a often overlooked part of securing your infrastructure. An administrator may have been required to do some work on the virtual console, and forget to log out. What if that account that is still logged in, is r00t? Having administrative access to a VM Host gives you access to the consoles, but not necessarily to the guests. Remember to log out! Or, setup shells to auto-logout after a few minutes of inactivity.</p>
 
+<!--more-->
+
+
 <h3>Example virsh console access</h3>
 
 <p>Once setup, accessing consoles can be as easy as connecting via SSH to your server. Firing up the virsh client, and connecting to the console:</p>
@@ -10186,6 +10225,9 @@ Looking at the server, we see that the message is received:</p>
 
 <p>URL Shorteners, as they are most commonly known, are pretty useful in places where you are limited to the amount of characters you are allowed to type. Twitter being the prime example. However, it is not only because of services like that that these URL shortening services exist. Sometimes, URL&rsquo;s are are just plain crazy long, and very error prone when you have to copy and paste/link them someone. I guess we can call this a useful feature?</p>
 
+<!--more-->
+
+
 <h3>And a bad use</h3>
 
 <p>Of course, like most of the stuff you find on the internet, there has to be a way to abuse it too. Many people that consider themselves to be &ldquo;IT Literate&rdquo;, be it second nature, or they have been burned before, will usually check out the link they are about to click. URL Shortening services take this &ldquo;check&rdquo; right out. It is now easier to get someone to click on a url to <em>somedodywebsite.io/free_trojan_screensaver_no_virus_promise.exe</em> as by the time the page has loaded, it may very well be too late.</p>
@@ -10254,6 +10296,9 @@ A similar effect can be seen with this one curl command:</p>
 <p><em>Be warned though, watching the output is highly addictive and strangely entertaining, so if you value your productivity, <strong>don&rsquo;t</strong> continue reading this post.</em></p>
 
 <p><img src="http://i.imgur.com/gFkD3z5.png"></p>
+
+<!--more-->
+
 
 <p>In short, Gource will take your repos commit logs from Git, Mecurial, SVN or even CVS (with some work) and splash out a graphical representation of the commits, by committer, across time. It also has a number of tweaks that allows you to change some visuals, focus on specific comitters and add titles etc.</p>
 
@@ -10397,6 +10442,9 @@ A similar effect can be seen with this one curl command:</p>
     <content type="html"><![CDATA[<h3>Introduction</h3>
 
 <p>Lets start by saying that I am by <em>no</em> means an expert at any of what I am about to write. Primarily this post is purely for research purposes. Think of it as one of those <em>something to do</em> scenarios. I&rsquo;d like to cover some basics around HTTP Authentication, and then show a PoC of how this can be abused in a real world scenario. Hopefully this will help educate people to use more secure authentication mechanisms! :)</p>
+
+<!--more-->
+
 
 <h3>Authentication at a HTTP Level</h3>
 
@@ -10818,6 +10866,9 @@ A sample command to get this running would be: <code>python proxpy.py -p 8090 -x
 <h3>Introducing SleekXMPP</h3>
 
 <p><a href="http://sleekxmpp.com/">SleekXMPP</a> is a python XMPP framework. It takes a bit to get your head around it, but once you have some basics covered its quite a rewarding library to work with. :) To start, you need to install 2 dependencies. Python Mailer and SleekXMPP itself. Something like <code>pip install mailer sleekxmpp</code> or for the older school, <code>easy_install sleekxmpp mailer</code> should do the trick. It can&rsquo;t hurt to check if the distro you use has these are packages already too.</p>
+
+<!--more-->
+
 
 <h3>Configuration and testing time</h3>
 
@@ -11264,6 +11315,9 @@ The complete example will echo the message just before it attempts to mail it. Y
 
 <p>As a team at work, we have long gone dropped the whole Skype group chat thing for our own Jabber server. My privacy related concerns back then was recently heightened <a href="http://lists.randombit.net/pipermail/cryptography/2013-May/004224.html">here</a> when a trap URL received a HEAD request from <strong>65.52.100.214</strong>. The user that received the URL in a chat was under strict instructions not to actually click it&hellip;</p>
 
+<!--more-->
+
+
 <h3>So, how do we do this?</h3>
 
 <p>We implemented a <a href="http://www.igniterealtime.org/projects/openfire/">Openfire Server</a> that was really easy to setup and get going. Whats really nice about this Jabber server is that it supports plugins, some of which you can simply install via the web interface.</p>
@@ -11391,7 +11445,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#106;&#97;&#98;&#x62;&#101;&#114;&#x5f;&#x62;&#x6f;&#116;&#64;&#x6a;&#97;&#98;&#98;&#x65;&#114;&#46;&#x73;&#x65;&#x72;&#x76;&#101;&#x72;">&#x6a;&#x61;&#98;&#98;&#101;&#x72;&#95;&#x62;&#x6f;&#116;&#64;&#x6a;&#97;&#x62;&#98;&#x65;&#x72;&#46;&#x73;&#101;&#114;&#x76;&#x65;&#114;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#109;&#97;&#x69;&#x6c;&#116;&#111;&#58;&#x6a;&#97;&#x62;&#x62;&#101;&#x72;&#95;&#x62;&#111;&#116;&#64;&#106;&#x61;&#98;&#98;&#x65;&#x72;&#x2e;&#115;&#101;&#x72;&#118;&#101;&#114;">&#106;&#97;&#x62;&#98;&#x65;&#114;&#95;&#98;&#111;&#x74;&#x40;&#x6a;&#x61;&#x62;&#98;&#x65;&#x72;&#x2e;&#x73;&#x65;&#x72;&#x76;&#101;&#114;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
@@ -11409,6 +11463,9 @@ The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see
 
 <p>Finally! A blog engine I like! :) No exceptionally bloated backend database with plugins that just get hacked. Yup, slim and sleek. <em>And</em>, I get to make posts using Vi :D
 Want in on this love? Have a look at <a href="http://octopress.org">Octopress</a> . Yes, it was a real ball ache to get setup thanks to the ruby dependencies, but now that were rollin&#8217; this should be good :D</p>
+
+<!--more-->
+
 
 <h3>Frustrations breed Ideas</h3>
 
