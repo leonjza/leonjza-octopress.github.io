@@ -10,7 +10,7 @@ categories:
 - challenge
 ---
 
-{% img http://i.imgur.com/kxwW1J8.png %}
+{% img https://i.imgur.com/kxwW1J8.png %}
 
 ### TL;DR
 I made a CTF! You should try it! Find it [on Vulnhub](http://vulnhub.com/entry/flick-1,99/)
