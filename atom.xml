@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-11-03T19:11:11+02:00</updated>
+  <updated>2014-11-05T05:56:02+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -6156,7 +6156,7 @@ I attempted to write a ROP chain and failed.</p>
     <link href="http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag/"/>
     <updated>2014-08-07T12:17:53+02:00</updated>
     <id>http://leonjza.github.io/blog/2014/08/07/flick-can-you-find-the-flag</id>
-    <content type="html"><![CDATA[<p><img src="http://i.imgur.com/kxwW1J8.png"></p>
+    <content type="html"><![CDATA[<p><img src="https://i.imgur.com/kxwW1J8.png"></p>
 
 <h3>TL;DR</h3>
 
@@ -11445,7 +11445,7 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#109;&#97;&#x69;&#x6c;&#116;&#111;&#58;&#x6a;&#97;&#x62;&#x62;&#101;&#x72;&#95;&#x62;&#111;&#116;&#64;&#106;&#x61;&#98;&#98;&#x65;&#x72;&#x2e;&#115;&#101;&#x72;&#118;&#101;&#114;">&#106;&#97;&#x62;&#98;&#x65;&#114;&#95;&#98;&#111;&#x74;&#x40;&#x6a;&#x61;&#x62;&#98;&#x65;&#x72;&#x2e;&#x73;&#x65;&#x72;&#x76;&#101;&#114;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x6a;&#x61;&#98;&#x62;&#101;&#x72;&#95;&#98;&#111;&#116;&#64;&#106;&#x61;&#98;&#98;&#x65;&#114;&#46;&#x73;&#101;&#x72;&#118;&#101;&#x72;">&#106;&#x61;&#x62;&#98;&#x65;&#114;&#95;&#98;&#x6f;&#116;&#x40;&#106;&#x61;&#x62;&#98;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#118;&#101;&#x72;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
