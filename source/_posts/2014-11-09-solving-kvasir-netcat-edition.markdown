@@ -686,7 +686,7 @@ kvasir2.png: PNG image data, 290 x 290, 1-bit colormap, non-interlaced
 
 Lets see what the image looks like:
 
-{% img http://i.imgur.com/r0wxCYh.png %}
+{% img https://i.imgur.com/r0wxCYh.png %}
 
 A QR code! I fetched my phone and scanned it, revealing the string `Nk9yY31hva8q`. Great!... I think. Wait, what does this even mean? I got stumped again into wondering what this arb string is for that I have. It was not the root password for `dev1` either.
 
