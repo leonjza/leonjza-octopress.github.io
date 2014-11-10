@@ -16,9 +16,9 @@ footer: false
 
 {% img left https://i.imgur.com/WQ1w19h.png %}
 
-> [https://keybase.io/leonjza](https://keybase.io/leonjza)  
-> [https://twitter.com/leonjza](https://twitter.com/leonjza)  
-> [https://github.com/leonjza](https://github.com/leonjza)  
-> Alternatively, theninjabag at gmail dot com  
+[https://keybase.io/leonjza](https://keybase.io/leonjza)  
+[https://twitter.com/leonjza](https://twitter.com/leonjza)  
+[https://github.com/leonjza](https://github.com/leonjza)  
+Alternatively, theninjabag at gmail dot com  
 
 wq!
