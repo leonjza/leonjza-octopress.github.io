@@ -7,9 +7,18 @@ sharing: true
 footer: false
 ---
 
-Hello!  
-I am a tech lover, bandwidth abuser, security enthusiast, music fanatic, husband and all round curious person.
+```text
+[
+   "Caffeine fueled", "(╯°□°)╯︵ ┻━┻", "Security guy", "Metalhead",
+   "Checkbox Unchecker", "Shells are my own"
+]
+```
 
-Get hold of me via twitter [@leonjza](https://twitter.com/leonjza), or mail me at theninjabag at gmail dot com. 
+{% img left https://i.imgur.com/WQ1w19h.png %}
+
+> [https://keybase.io/leonjza](https://keybase.io/leonjza)  
+> [https://twitter.com/leonjza](https://twitter.com/leonjza)  
+> [https://github.com/leonjza](https://github.com/leonjza)  
+> Alternatively, theninjabag at gmail dot com  
 
 wq!
