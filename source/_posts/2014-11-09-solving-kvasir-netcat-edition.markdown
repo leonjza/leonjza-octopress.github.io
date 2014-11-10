@@ -40,7 +40,7 @@ Nmap done: 1 IP address (1 host up) scanned in 0.20 seconds
 ```
 
 ##fink ur gud enuf?
-Browing to the IP using Iceweasel, we see a login portal presented to us:
+Browsing to the IP using Iceweasel, we see a login portal presented to us:
 
 {% img https://i.imgur.com/vUSSRt7.png %}
 
