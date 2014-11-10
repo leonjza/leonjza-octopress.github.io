@@ -1,0 +1,69 @@
+==================================================================
+https://keybase.io/leonjza
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://leonjza.github.io
+  * I am leonjza (https://keybase.io/leonjza) on keybase.
+  * I have a public key with fingerprint F166 DCD3 8EBD 747C EC85  97F2 E4BA 1218 56BF 63CA
+
+To claim this, I am signing this object:
+
+{
+    "body": {
+        "key": {
+            "fingerprint": "f166dcd38ebd747cec8597f2e4ba121856bf63ca",
+            "host": "keybase.io",
+            "key_id": "e4ba121856bf63ca",
+            "uid": "750df8997d6cac46ef3a643fe18b9f00",
+            "username": "leonjza"
+        },
+        "service": {
+            "hostname": "leonjza.github.io",
+            "protocol": "https:"
+        },
+        "type": "web_service_binding",
+        "version": 1
+    },
+    "ctime": 1415641573,
+    "expire_in": 157680000,
+    "prev": "36c5c23300935ea58bbc19eb5e2fddcdd612523f6e16c0139402cfbb13ed3c1a",
+    "seqno": 8,
+    "tag": "signature"
+}
+
+with the aforementioned key, yielding the PGP signature:
+
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG v1
+
+owGbwMvMwMT4ZJeQRNj+5FOMpw98T2IISfj5qlopKT+lUsmqWik7FUylZealpxYV
+FGXmlShZKaUZmpmlJKcYW6QmpZibmCenJluYWpqnGaWaJCUaGhlamJolpZkZJycq
+6Shl5BeDdACNSUosTtXLzAeKATnxmSlAUSzqS8ES5qYGKWkWlpbmKWbJickmZqlp
+xolmJsZpqYYWSZZpBgYghcWpRXmJualA1Tmp+XlZVYlKtTpKQMGyzORUkJNBNqMq
+0EvPLMkoTYI4oqAovyQ/OT8HKJ1RUlJQbAXSXlJZAFJfnpoUDzUpPikzLwXoeaCO
+stSi4sz8PCUrQ6DK5JJMkNGGJoamZkBsbqyjlFpRkFmUGp8JUmFqbmZhAAQge1LL
+gEYamyWbJhsZGxsYWBqbpiaaWiQlJRtapiaZphqlpQDDMsXM0MjUyDjNLNXQLNnA
+0NjSxMAoOS0pydA4NcU42RAUNMWphXn5SlYWQGcmpgONLM5Mz0ssKS1KVarl6mSS
+YWFgZGJgY2UCxR8DF6cALFZnzuH/78FccOZdtvGNXQsK8tn0aoT0A/szpPW+3Z5z
+k6Vd1as+8viBlywreDe/O5wfutRj05u6E9KnWmTuqnJ2bMzu4T224gKjdINaDLdm
+p+VtXl6rAJHe1f7qTIs75qyIi/9pnXNujlSs7FvpQ9vatsU2PV1QaFz36o/FlWyt
+r/6ZImyc83L+z/199WZe2Y15psZ8QjzL40PymB9ctHNvOlX3QzZV5b/uwWfSe2f/
+2yA7N//T7pi0o6WvvTx+rDrgkG7wr/V7cIOZ/KFTbofX+izIjfG4GptWGcR5lSNa
+YpOoX82Zu/2vK1qbr57/m3BGy3uel/GBre43325iPPnc6XesX4Pvga8cK7TutZ+4
+Xse6oX5CnrJpjc5v1we5WQvkH1b8jFd5Y/mg3qBeUWDe7uQTU8I2mWXZbGDI/Cp2
+V+zSoaeNfadLrfkm3t30S9zo2HmrR9OYvZ8o/Xa251P5uer+56U/5XNYj7SqnZ48
+WSt7Z8IxxyU+13c+yqxt2hAk25r+ip131uddnT8iC+29uh6qeid9F3M75PWGLXbT
+cePFBiHv/LUMXyYmV6zeX/b80uMLV5tEVBXrM6XOTXt0d9t3b5HIsoeT67crrJjw
+/zZfAU9IzbvfM35fYQhomXjimYxlpk310+ol25JXqlbEyR9KPtjgfDd2ieGL3VoZ
+GnMaJjIvPLXgwFeNt3qu9tMusDKJhkodnhp4SEz15bVkAA==
+=4GPP
+-----END PGP MESSAGE-----
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/leonjza
+
+==================================================================
