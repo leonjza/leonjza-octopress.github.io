@@ -1209,7 +1209,7 @@ The reading on WPA revealed that a encrypted packet is determined similar to a R
 
 With that now known, we can learn about vulnerabilities in this algorithm. More specifically, about [Stream Cipher Attacks](http://en.wikipedia.org/wiki/Stream_cipher_attack) and [Related Key Attacks](http://en.wikipedia.org/wiki/Related-key_attack). With all of the knowledge gained with close to 6 hours of almost straight googling, I was ready to get going at trying something.
 
-My initial understanding was as follows; If I can get 2 unique plaintext’s encrypted using the same IV's, I can XOR the cipher texts of the known clear text to determine the key stream for that IV, and then XOR that key stream with the cipher text I wanted to decrypt. Considering I was able to create encryption samples, I decided not to spend any time on WPA2 and concluded the `2` in `wep2` was another troll :)
+My initial understanding was as follows; If I can get 2 unique plaintext’s encrypted using the same IV's, I can XOR the cipher text of the known clear text with the actual clear text to determine the key stream for that IV. Then XOR that key stream with the cipher text I wanted to decrypt. Considering I was able to create encryption samples, I decided not to spend any time on WPA2 and concluded the `2` in `wep2` was another troll :)
 
 ###attacking the encryption game
 Armed with the knowledge I had now, I started to write some skeleton code to interact with the socket. This was very basic and simply sent and received frames as required.
