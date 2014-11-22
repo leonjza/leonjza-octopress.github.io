@@ -88,7 +88,7 @@ I had quite a number of questions before I started the PWK training. So, let me 
 a: Yes! I am convinced you will learn about things you maybe never even realized was possible. In fact. Not will you learn about common security flaws, you will have the expertise to identify and exploit them as well.
 
 **q: Is scripting/development experience really required?**  
-a: I'd definitely say yes. To narrow it down, I would say that you don't necessarily have to have some mad ninja l33t dev skillz, but hacking away and debugging exiting code (be it C/C++, Python or Perl) to make it work **your** way is definitely a need.
+a: I'd definitely say yes. To narrow it down, I would say that you don't necessarily have to have some mad ninja l33t dev skillz, but hacking away and debugging existing code (be it C/C++, Python or Perl) to make it work **your** way is definitely a need.
 
 **q: How much time would I need to set aside for this?**  
 a: Lots! PWK almost literally ate me up. I was not doing anything else apart from this. I had the odd break for a evening or two, but every chance I had I spent on the labs. Considering I had a full time day job, 3 months was perfect, but I think it may totally be possible to nail it in 1 month assuming you have the free time.
