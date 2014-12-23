@@ -12,7 +12,7 @@ categories:
 ---
 
 ## introduction
-[Pegasus 1](https://www.vulnhub.com/entry/pegasus-1,109/) is a boot2root hosted on [VulnHub](https://www.vulnhub.com/) built by [@TheKnapsy](https://twitter.com/theknapsy). He wrote a [blogpost](http://knapsy.github.io/blog/2014/12/16/pegasus-has-arrived-my-first-boot2root-vm/) about it too containing a small introduction with Pegasus as he’s first boot2root (hoof2root? ;p).
+[Pegasus 1](https://www.vulnhub.com/entry/pegasus-1,109/) is a boot2root hosted on [VulnHub](https://www.vulnhub.com/) built by [@TheKnapsy](https://twitter.com/theknapsy). He wrote a [blogpost](http://knapsy.github.io/blog/2014/12/16/pegasus-has-arrived-my-first-boot2root-vm/) about it too containing a small introduction with Pegasus as his first boot2root (hoof2root? ;p).
 
 {% img right https://i.imgur.com/PI4O7Dp.png %} Having recently played in the [Offsec Playground](https://leonjza.github.io/blog/2014/12/06/playing-in-the-playground-a-offsec-virtual-pentesting-labs-review/) a little after having completed my OSCP, I was relatively exhausted. Pegasus had its fair share of frustrations and had me digging around quite a bit. I did however learn a very valuable lesson... _again_. You will see this in the **my_first** section.
 
