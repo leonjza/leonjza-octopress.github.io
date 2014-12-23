@@ -3,6 +3,12 @@
   
   
   <url>
+    <loc>http://leonjza.github.io/blog/2014/12/23/hoof-to-root-solving-pegasus-1/</loc>
+    <lastmod>2014-12-23T08:29:49+02:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
     <loc>http://leonjza.github.io/blog/2014/12/06/playing-in-the-playground-a-offsec-virtual-pentesting-labs-review/</loc>
     <lastmod>2014-12-06T17:55:38+02:00</lastmod>
     <priority>0.8</priority>
@@ -143,21 +149,21 @@
   
   <url>
     <loc>http://leonjza.github.io/blog/archives/</loc>
-    <lastmod>2014-12-06T21:09:17+02:00</lastmod>
+    <lastmod>2014-12-23T15:15:00+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/</loc>
-    <lastmod>2014-12-06T21:09:17+02:00</lastmod>
+    <lastmod>2014-12-23T15:15:00+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <url>
     <loc>http://leonjza.github.io/about/</loc>
-    <lastmod>2014-12-06T21:09:17+02:00</lastmod>
+    <lastmod>2014-12-23T15:15:00+02:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
