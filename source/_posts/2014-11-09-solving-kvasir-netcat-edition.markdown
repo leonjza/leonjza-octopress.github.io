@@ -4,6 +4,11 @@ title: "solving kvasir - netcat edition"
 date: 2014-11-09 10:27:09 +0200
 comments: true
 categories: 
+- CTF
+- Vulnerable VM
+- Solution
+- Challenge
+- VulnHub
 ---
 
 ##introduction
