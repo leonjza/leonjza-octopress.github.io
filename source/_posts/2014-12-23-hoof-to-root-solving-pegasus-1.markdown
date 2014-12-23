@@ -421,7 +421,9 @@ Anyways, feels aside, it was time to work on a exploit.
 
 For the format string exploit, I don't think its really worth explaining all the details again. In fact, compiling this exploit, I was referring to a older blogpost about [Xerxes2](https://leonjza.github.io/blog/2014/08/09/beating-xerxes2/) which also had a similar thing going. Feel free to check the binary section out there if the next part does not make much sense.
 
-**EDIT** I have since made a small asciinema showing the offset calculations on my Kali VM. Though the offsets are not the same the theory still applies. See it [here](https://asciinema.org/a/14960).
+**EDIT** I have since made a small asciinema showing the offset calculations on my Kali VM. Though the offsets are not the same the theory still applies. {% raw %}
+<script type="text/javascript" src="https://asciinema.org/a/14960.js" id="asciicast-14960" async data-theme="solarized-dark"></script>
+{% endraw %}
 
 
 ### punching more than numbers
