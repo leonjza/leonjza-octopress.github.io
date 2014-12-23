@@ -421,6 +421,8 @@ Anyways, feels aside, it was time to work on a exploit.
 
 For the format string exploit, I don't think its really worth explaining all the details again. In fact, compiling this exploit, I was referring to a older blogpost about [Xerxes2](https://leonjza.github.io/blog/2014/08/09/beating-xerxes2/) which also had a similar thing going. Feel free to check the binary section out there if the next part does not make much sense.
 
+**EDIT** I have since made a small asciinema showing the offset calculations on my Kali VM. Though the offsets are not the same the theory still applies. See it [here](https://asciinema.org/a/14960).
+
 
 ### punching more than numbers
 _So here, I had a pretty big freaking fail. A massive one. Once I had determined the stack position to start corrupting memory with, I was punching in the format strings in the application itself. Meaning, I was giving it the ASCII \x\x\x\x and not the actual bytes as would have been the case if I was using python/printf to redirect the stdout of them to `my_first`'s stdin. Anyways, lessons were learnt, caffeine was injected. It wont happen again. Big up to [@barrebas](https://twitter.com/barrebas) for subtly pointing the fail out ;p_
