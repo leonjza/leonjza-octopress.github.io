@@ -89,7 +89,7 @@ I now have a `jar` file that I could open up in something like [Luyten](http://d
 
 I went through quite a large amount of code, trying to piece together how everything fits into one another. After some time, I finally came across `RootDetection.class`:
 
-{% img http://i.imgur.com/JkeAr3Z.png %}
+{% img https://i.imgur.com/JkeAr3Z.png %}
 
 This is only a section of the code that attempts to detect if the device that the application is running on is rooted. Quite a number of checks are present, however the failure comes in where its only 1 method that is being used to return the Jailbreak status. This method was right at the end and was called `isRooted`. You will see in the next few paragraphs how trivial it is to bypass this.
 
