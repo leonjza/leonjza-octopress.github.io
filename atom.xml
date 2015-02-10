@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2015-02-10T09:07:36+02:00</updated>
+  <updated>2015-02-10T09:09:36+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -114,7 +114,7 @@
 
 <p>I went through quite a large amount of code, trying to piece together how everything fits into one another. After some time, I finally came across <code>RootDetection.class</code>:</p>
 
-<p><img src="http://i.imgur.com/JkeAr3Z.png"></p>
+<p><img src="https://i.imgur.com/JkeAr3Z.png"></p>
 
 <p>This is only a section of the code that attempts to detect if the device that the application is running on is rooted. Quite a number of checks are present, however the failure comes in where its only 1 method that is being used to return the Jailbreak status. This method was right at the end and was called <code>isRooted</code>. You will see in the next few paragraphs how trivial it is to bypass this.</p>
 
