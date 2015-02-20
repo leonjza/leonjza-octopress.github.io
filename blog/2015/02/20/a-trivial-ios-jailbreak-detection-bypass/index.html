@@ -1,0 +1,362 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>a trivial iOS jailbreak detection bypass - #!/slash/note</title>
+  <meta name="author" content="Leon Jacobs">
+
+  
+  <meta name="description" content="introduction Not too long ago, I toyed with a Android root detection bypass. In a similar scenario, I was poking at a iOS application that also had &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://leonjza.github.io/blog/2015/02/20/a-trivial-ios-jailbreak-detection-bypass">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="#!/slash/note" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44457032-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">#!/slash/note</a></h1>
+  
+    <h2>A checkbox unchecker's notepad</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:leonjza.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">a trivial iOS jailbreak detection bypass</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-02-20T21:09:21+02:00" pubdate data-updated="true">Feb 20<sup>th</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>introduction</h2>
+
+<p>Not too long ago, I toyed with a <a href="https://leonjza.github.io/blog/2015/02/09/no-more-jailbreak-detection-an-adventure-into-android-reversing-and-smali-patching/">Android root detection bypass</a>. In a similar scenario, I was poking at a iOS application that also had some root detection built in. For very much the same purpose, I suppose the application has its own ~reasons~ for the jailbreak detection. Of course, this makes the testing I <em>actually</em> wanted to do impossible as I&rsquo;d very much like to dig under the hood :)</p>
+
+<p><img class="right" src="https://i.imgur.com/hWgQMnl.png"></p>
+
+<p>So, its was time to try and bypass the jailbreak detection of the application.
+All I had to work with was a <code>.ipa</code>. Similar to the android <code>.apk</code> file, the <code>.ipa</code> is also just a zipped up archive of the actual application files. To test with, I had a iPad mini. The iPad was running the latest iOS (8.1.2 at the time of this post) and was also jailbroken. If I remember correctly the jailbreak tool used was called TaiG. Anyways, inside the applications <code>.ipa</code> archive was a whole bunch of resource files and what not, including the compiled application executable. This executable is what is of interest.</p>
+
+<!-- more -->
+
+
+<h2>understanding the behavior</h2>
+
+<p>I installed the app onto my iPad, and started to inspect its behavior. When the application starts, it would immediately throw a security related error, notifying the user that it has detected the environment as one that is jailbroken. This happens pretty fast too. Once the jailbreak detection error shows, the application refuses to continue to run. Restarting the application simply continues this loop.</p>
+
+<p>I studied some iOS jailbreak detection methods online which revealed many of them as being pretty obvious. From detecting the presence of <code>/bin/bash</code> or <code>Cydia.app</code>, to examining the exit status if <code>fork()</code>. There are some more advanced methods as well such as checking the existence of certain known <a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/DynamicLibraryUsageGuidelines.html">dylib</a>&rsquo;s too (which apparently is the hardest to circumvent). For the purpose of this post, the jailbreak detection was pretty weak and did not have any of the more advanced methods implemented. In fact, I am pretty sure there won’t be that many apps out there that will be this easy to bypass.</p>
+
+<h2>discovering the implementation</h2>
+
+<p>Armed with some knowledge of how its typically done in the iOS world, I proceeded to take a look at the actual application binary:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>leonjza@laptop » file myApplication
+</span><span class='line'>myApplication: Mach-O executable arm
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Compiled as a <em>Mach-O executable</em> from Objective-C, I loaded up the binary from the extracted <code>.ipa</code> into the Hopper disassembler to help me get an idea of what is happening. Hopper has some nice features such as generating pseudo code etc, so I quite like using it for these types of excursions. To start off, I searched around for strings that were related to the word <strong>jailbreak</strong> within the app. Class definitions, methods or any strings related to the term jailbreak was ok. I just wanted to get something to start off with. I found nothing.</p>
+
+<p>Of course this had me thinking that I may have missed the plot entirely. I continued to search for other things related to jailbreaking, and got a hit immediately for the term <code>/bin/bash</code> in the <em>string</em> section:</p>
+
+<p><img src="https://i.imgur.com/ORnAMFU.png"></p>
+
+<p>In fact, there are quite a few other jailbreak related strings in this section. From within Hopper, one can check where these strings are referenced from. So, I followed this and landed up in a function that does what I would have expected a jailbreak detection function to do, but with a completely unexpected class/method name. <em>&ndash;[MobileDisplay isRetinaDisplay]:</em>. Very sneaky :) So we are working with the <code>isRetinaDisplay</code> method which is the one doing the jailbreak detection:</p>
+
+<p><img src="https://i.imgur.com/1xhyzIB.png"></p>
+
+<p>As can be seen in the above screenshot, the <code>fileExistsAtPath</code> for <code>/Applications/Cydia.app</code> is hardly something I would have expected in a <code>isRetinaDisplay</code> implementation :P</p>
+
+<h2>planning an attack</h2>
+
+<p>At this stage, I was fairly certain that I had found the code I was looking for. From the method name <em>isRetinaDisplay</em>, I reasoned a little and guessed that this was actually supposed to say <code>isJailBroken</code>. I want this method to return false. My mind went straight to getting <a href="http://www.cycript.org/">cycript</a> ready for some <a href="http://iphonedevwiki.net/index.php/Cycript_Tricks">method swizzling</a>. I started to set things up and played around a little, when I realized that I don&rsquo;t think I will be able to manipulate the runtime fast enough for this to work. Remember, the first thing the app does is check the jailbreak status.</p>
+
+<p>A bit of thinking, a few coffees, special alone time with Google and lots of reading, I come to realize that even if I <em>was</em> able to get this method swizzling to work, I&rsquo;d have to do this every time the application starts up. This was not going to work for me. It was time to rethink my strategy.</p>
+
+<p>Considering <em>how</em> the jailbreak detection works, most of the ways that I saw in the application were related to file existence checks. There was also an attempt to write to <code>/private/jailbreak.txt</code>, as well as open a <code>cydia://</code> url. I realized that I could probably just change these strings to things that will inherently fail and cause the method to not return true for any of the checks.</p>
+
+<h2>in 1992 we had hex editors too</h2>
+
+<p>I ssh&rsquo;d into my iPad and located the applications installed directory. Once I had found this, I <code>scp</code>&rsquo;d the compiled binary to my kali linux install, and opened it in a hex editor. I realized later I could have probably just used the binary I already had locally :P</p>
+
+<p>Referencing the disassembly of <code>isRetinaDisplay</code>, I searched for the strings it used using a Hex editor. Each string I would replace a few characters with <code>0</code> ensuring that I keep the original string length intact. For eg: <code>/bin/bash</code> was replaced with <code>/bin/ba00</code>.</p>
+
+<p>I ended up editing the following strings using the hex editor:</p>
+
+<ul>
+<li>/Applications/Cydia.app &ndash;> /Applications/Cyd00.app</li>
+<li>/Library/MobileSubstrate/MobileSubstrate.dylib &ndash;> /Library/MobileSubstrate/MobileSubstra00.dylib</li>
+<li>/bin/bash &ndash;> /bin/ba00</li>
+<li>/usr/sbin/sshd &ndash;> /usr/sbin/ss00</li>
+<li>/etc/apt &ndash;> /etc/a00</li>
+<li>/private/jailbreak.txt &ndash;> /0000000/0000000000000</li>
+<li>cydia://package/com.example.package &ndash;> cyd00://package/com.example.package</li>
+</ul>
+
+
+<p><img src="https://i.imgur.com/J0sefoY.png"></p>
+
+<p>I saved the modifications that I had done, and <code>scp</code>&rsquo;d the binary back to my iPad to the folder where it was installed. I literally just overwrote the existing binary. At this stage I figured I will most certainly have some form of signing related problem as the binary has been tampered with. Well, this was not the case. Instead, I no longer was greeted with the lame jailbreak security error :P</p>
+
+<h2>summary</h2>
+
+<p>In the end, it was pretty easy to find the jailbreak detection code. Deducing a few things based on the disassembly made it easy to find the method responsible for the checks, regardless of the attempt to hide it via a name change. Furthermore, using something as simple as a hex editor, a trivial implementation such as this was very easily bypassed :)</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Leon Jacobs</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-02-20T21:09:21+02:00" pubdate data-updated="true">Feb 20<sup>th</sup>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/bypass/'>bypass</a>, <a class='category' href='/blog/categories/hex/'>hex</a>, <a class='category' href='/blog/categories/ios/'>ios</a>, <a class='category' href='/blog/categories/jailbreak/'>jailbreak</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://leonjza.github.io/blog/2015/02/20/a-trivial-ios-jailbreak-detection-bypass/" data-via="leonjza" data-counturl="http://leonjza.github.io/blog/2015/02/20/a-trivial-ios-jailbreak-detection-bypass/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/02/09/no-more-jailbreak-detection-an-adventure-into-android-reversing-and-smali-patching/" title="Previous Post: no more jailbreak detection - an adventure into Android app reversing and smali patching">&laquo; no more jailbreak detection - an adventure into Android app reversing and smali patching</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <br>
+  <p>
+    <a href="https://leonjza.github.io/about/">Another caffeine fueled security guy.</a>
+ </p>
+</section>
+<section>
+ <p>
+    <a href="http://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/"><img src="https://i.imgur.com/Ew3ZXtn.png"></a>
+ </p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/02/20/a-trivial-ios-jailbreak-detection-bypass/">a trivial iOS jailbreak detection bypass</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/09/no-more-jailbreak-detection-an-adventure-into-android-reversing-and-smali-patching/">no more jailbreak detection - an adventure into Android app reversing and smali patching</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/12/23/hoof-to-root-solving-pegasus-1/">hoof to root ? - solving pegasus 1</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/12/06/playing-in-the-playground-a-offsec-virtual-pentesting-labs-review/">playing in the playground - a offsec virtual pentesting labs review</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/22/trying-harder-oscp-and-me/">trying harder - oscp and me</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/09/solving-kvasir-netcat-edition/">solving kvasir - netcat edition</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/10/14/knock-knock-whos-there-solving-knock-knock/">knock-knock who’s there?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/10/10/another-troll-tamed-solving-troll-2/">another troll tamed - solving troll 2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/09/18/from-persistence/">From Persistence, to pain, to PWN</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/08/17/kali-linux-oracle-support/">Kali Linux Oracle Support</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/leonjza">@leonjza</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'leonjza',
+            count: 8,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Leon Jacobs -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
