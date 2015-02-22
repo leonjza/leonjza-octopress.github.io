@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="introduction Not too long ago, I toyed with a Android root detection bypass. In a similar scenario, I was poking at a iOS application that also had &hellip;">
+  <meta name="description" content="introduction Vulnhub is 0b10 years old. That is binary for 2 :) In order to celebrate this, @_RastaMouse created Sokar. Sokar was used as another &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,60 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/02/21/beating-sokar-the-vulnhub-turns-0b10-challenge/">beating sokar - the vulnhub turns 0b10 challenge</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-02-21T15:55:03+02:00" pubdate data-updated="true">Feb 21<sup>st</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>introduction</h2>
+
+<p><a href="http://blog.vulnhub.com/2015/01/vulnhub-is-0b10.html">Vulnhub is 0b10</a> years old. That is binary for 2 :) In order to celebrate this, <a href="https://twitter.com/_RastaMouse">@_RastaMouse</a>
+ created <a href="https://www.vulnhub.com/entry/sokar-1,113/">Sokar</a>.</p>
+
+<p> <img class="right" src="https://i.imgur.com/brPBCGq.png"></p>
+
+<p>Sokar was used as another writeup competition (the first for 2015), similar to the <a href="https://leonjza.github.io/blog/2014/09/18/from-persistence/">Persistence</a> challenge from Sep &lsquo;14.
+From the <a href="http://blog.vulnhub.com/2015/01/competition-sokar.html">competition announcement blogpost</a>, the rules of engagement were pretty familiar. Boot the VM, pwn it via the network and find the flag.
+Of course, modifying the VM in order to help you get the flag (things like single user mode, rescue disks etc) are not allowed and you have to actually be able to prove how you got r00t.</p>
+
+<p>Sokar frustrated me. A lot. However, almost all of the challenges and configurations of Sokar were plausible. Most of the vulnerabilities are valid in the sense that it may as well be out there in wild. So, it was a great learning experience once again!</p>
+
+<p>Here is my entry for the competition. Enjoy! :)</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/02/21/beating-sokar-the-vulnhub-turns-0b10-challenge/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -505,64 +559,6 @@ This is my experience &lsquo;knocking&rsquo; on the door.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/08/17/kali-linux-oracle-support/">Kali Linux Oracle Support</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-08-17T15:46:49+02:00" pubdate data-updated="true">Aug 17<sup>th</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work out of the box and just get the steps written down quickly. Typically, when you try to use a module such as <code>oracle_login</code>, metasploit may error out with:</p>
-
-<figure class='code'><figcaption><span>Metasploit Oracle Error</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>msf auxiliary<span class="o">(</span>oracle_login<span class="o">)</span> &gt; run
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>-<span class="o">]</span> Failed to load the OCI library: cannot load such file -- oci8
-</span><span class='line'><span class="o">[</span>-<span class="o">]</span> See http://www.metasploit.com/redmine/projects/framework/wiki/OracleUsage <span class="k">for </span>installation instructions
-</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Auxiliary module execution completed
-</span><span class='line'>msf auxiliary<span class="o">(</span>oracle_login<span class="o">)</span> &gt; run
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The link provided seems a little out of date, so here is an updated guide.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/08/17/kali-linux-oracle-support/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -588,6 +584,10 @@ This is my experience &lsquo;knocking&rsquo; on the door.</p>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/02/21/beating-sokar-the-vulnhub-turns-0b10-challenge/">beating sokar - the vulnhub turns 0b10 challenge</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2015/02/20/a-trivial-ios-jailbreak-detection-bypass/">a trivial iOS jailbreak detection bypass</a>
@@ -623,10 +623,6 @@ This is my experience &lsquo;knocking&rsquo; on the door.</p>
     
       <li class="post">
         <a href="/blog/2014/09/18/from-persistence/">From Persistence, to pain, to PWN</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/08/17/kali-linux-oracle-support/">Kali Linux Oracle Support</a>
       </li>
     
   </ul>
