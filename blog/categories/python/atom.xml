@@ -4,7 +4,7 @@
   <title><![CDATA[Category: python | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2015-02-23T07:28:58+02:00</updated>
+  <updated>2015-05-09T12:20:07+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -261,7 +261,7 @@ for record in array:</p>
 
 <h1>configure your jabber account for the bot here.</h1>
 
-<p>username = &lsquo;<a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#106;&#x61;&#98;&#x62;&#x65;&#114;&#95;&#98;&#x6f;&#116;&#64;&#x6a;&#x61;&#x62;&#x62;&#x65;&#x72;&#x2e;&#x73;&#x65;&#114;&#x76;&#101;&#114;">&#106;&#97;&#x62;&#98;&#101;&#114;&#x5f;&#98;&#x6f;&#x74;&#64;&#106;&#x61;&#98;&#x62;&#101;&#x72;&#x2e;&#x73;&#101;&#114;&#x76;&#x65;&#x72;</a>&rsquo; # from whom will the message be sent
+<p>username = &lsquo;<a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x6a;&#97;&#x62;&#x62;&#101;&#114;&#95;&#98;&#x6f;&#116;&#64;&#106;&#97;&#98;&#98;&#x65;&#114;&#x2e;&#x73;&#x65;&#x72;&#x76;&#x65;&#x72;">&#106;&#97;&#98;&#x62;&#x65;&#x72;&#x5f;&#98;&#x6f;&#116;&#64;&#x6a;&#97;&#98;&#x62;&#x65;&#114;&#46;&#x73;&#101;&#114;&#x76;&#101;&#x72;</a>&rsquo; # from whom will the message be sent
 password = &lsquo;jabber_bot_secret_password&rsquo;</p>
 
 <p>jid=xmpp.protocol.JID(username)</p>
@@ -310,7 +310,7 @@ sys.exit()
 <p>Save this code to something like <code>jabbersend.py</code> and execute it like this:
 <code>python jabbersend.py all@broadcast.jabber.server message_file.txt</code></p>
 
-<p>If all went OK, you should have received a message from <a href="&#109;&#97;&#x69;&#108;&#x74;&#x6f;&#x3a;&#106;&#x61;&#98;&#98;&#x65;&#x72;&#x5f;&#98;&#111;&#116;&#64;&#x6a;&#x61;&#98;&#98;&#x65;&#x72;&#x2e;&#115;&#x65;&#x72;&#x76;&#101;&#114;">&#106;&#97;&#x62;&#98;&#101;&#x72;&#x5f;&#98;&#111;&#116;&#64;&#106;&#x61;&#x62;&#98;&#x65;&#x72;&#46;&#115;&#101;&#114;&#118;&#x65;&#114;</a> :P</p>
+<p>If all went OK, you should have received a message from <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x6a;&#x61;&#x62;&#x62;&#101;&#114;&#95;&#98;&#x6f;&#116;&#64;&#106;&#97;&#x62;&#98;&#101;&#x72;&#46;&#x73;&#101;&#114;&#x76;&#101;&#x72;">&#x6a;&#x61;&#x62;&#x62;&#101;&#114;&#95;&#98;&#x6f;&#x74;&#x40;&#x6a;&#x61;&#x62;&#98;&#101;&#x72;&#46;&#115;&#x65;&#x72;&#118;&#x65;&#x72;</a> :P</p>
 
 <p>Our internal implementation of this has been used in multiple areas. From broadcasting OSSEC alerts to broadcasting important events from cronjobs.
 The OSSEC broadcasting I&rsquo;ll blog a little later, but you can obviously see the value that something like this brings. No more missing emails, if I receive a message from the bot, its important :)</p>
