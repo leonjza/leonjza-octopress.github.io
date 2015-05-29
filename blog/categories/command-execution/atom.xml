@@ -4,7 +4,7 @@
   <title><![CDATA[Category: command execution | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/command-execution/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2015-05-28T19:54:14+02:00</updated>
+  <updated>2015-05-29T06:34:37+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -31,7 +31,7 @@
 
 <p><img class="<a" src="href="https://i.imgur.com/5X43NOP.png">https://i.imgur.com/5X43NOP.png</a>"></p>
 
-<p>This looked promising. <em>&lsquo;Type in an arbitrary Groovy script and execute it on the server.&rsquo;</em> I had zero idea what Groovy Script was so to the le-Googles it was. Some research revealed that it is actually possible to execute commands using it. In fact, the syntax was quite expressive as explained the the <a href="http://www.groovy-lang.org/groovy-dev-kit.html#process-management">documentation</a>.</p>
+<p>This looked promising. <em>&lsquo;Type in an arbitrary Groovy script and execute it on the server.&rsquo;</em> I had zero idea what Groovy Script was so to the le-Googles it was. Some research revealed that it is actually possible to execute commands using it. In fact, the syntax was quite expressive as explained in the <a href="http://www.groovy-lang.org/groovy-dev-kit.html#process-management">documentation</a>.</p>
 
 <p><code>text
 def process = "ls -l".execute()
