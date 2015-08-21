@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="Recently I came across a few Jenkins continuous integration servers. A relatively old version I might add but that fact was not important. What was &hellip;">
+  <meta name="description" content="tl;dr Flick II just got published on Vulnhub! You should try it =) introduction After about a year since Flick I, I have finally managed to get &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,60 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/08/21/flickii-vulnerable-vm-with-a-mobile-twist/">flick II - vuln vm with a mobile twist</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-08-21T06:36:19+02:00" pubdate data-updated="true">Aug 21<sup>st</sup>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img src="https://i.imgur.com/PxfWpkG.png"></p>
+
+<h1>tl;dr</h1>
+
+<p>Flick II just got published on <a href="https://www.vulnhub.com/entry/flick-2,122/">Vulnhub</a>! You should try it =)</p>
+
+<h2>introduction</h2>
+
+<p>After about a year since <a href="https://www.vulnhub.com/entry/flick-1,99/">Flick I</a>, I have finally managed to get Flick II out to VulnHub. I learned a lot from Flick I and as a result applied it to Flick II. The making of Flick II was also a very different story. If I have to compare it to the first one (which took 3 nights to build start to finish), Flick II took <em>waay</em> longer. I think the total build / testing time must be over a month.</p>
+
+<p>Originally I had a whole bunch of ideas, and after lots of trial and error, came to what it has become today. I have to give a special shouts to <a href="https://twitter.com/s4gi_">@s4gi_</a> for the inspiration to go with the mobile app idea and <a href="https://twitter.com/barrebas">@barrebas</a> for testing the first <em>really</em> broken version :P</p>
+
+<h2>preparation</h2>
+
+<p>I believe Flick II will be the first Vulnerable VM on <a href="https://twitter.com/VulnHub">@VulnHub</a> with a mobile twist to it. That means you will need to either install the bundled <code>.apk</code> on an Android phone, or run it in an Android emulator in order to progress on the path to root! The <code>.apk</code> is self-signed so expect Android to complain about that if you install it on a phone. Don&rsquo;t feel bad if you don’t trust me (aka. some random guy on the internet). If you don’t, your safest bet then is to use an emulator. The only real requirement for the <code>.apk</code> is that the mobile app must be able to speak to the VM and be run on a relatively recent Android version.</p>
+
+<p>I hope you get to learn as much as I did making it!</p>
+
+<p>Good luck! :D</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -510,54 +564,6 @@ All I had to work with was a <code>.ipa</code>. Similar to the android <code>.ap
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/14/knock-knock-whos-there-solving-knock-knock/">knock-knock who’s there?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-14T09:14:26+02:00" pubdate data-updated="true">Oct 14<sup>th</sup>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>introduction</h2>
-
-<p><a href="http://vulnhub.com/series/knock-knock,53/">Knock-Knock</a> is a vulnerable boot2root VM by <a href="https://twitter.com/zer0w1re">@zer0w1re</a> and sure as heck was packed with interesting twists and things to learn!</p>
-
-<p>I figured I&rsquo;d just <em>have a quick look™</em>, and midnight that evening ended up with <em>root</em> privileges :D</p>
-
-<p>As always, if you have not done this VM yet, this post is a massive spoiler and I would highly recommend you close up here and try it first :)
-This is my experience &lsquo;knocking&rsquo; on the door.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2014/10/14/knock-knock-whos-there-solving-knock-knock/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -583,6 +589,10 @@ This is my experience &lsquo;knocking&rsquo; on the door.</p>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/08/21/flickii-vulnerable-vm-with-a-mobile-twist/">flick II - vuln vm with a mobile twist</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2015/05/26/jenkins-to-meterpreter-toying-with-powersploit/">jenkins to meterpreter - toying with powersploit</a>
@@ -618,10 +628,6 @@ This is my experience &lsquo;knocking&rsquo; on the door.</p>
     
       <li class="post">
         <a href="/blog/2014/11/09/solving-kvasir-netcat-edition/">solving kvasir - netcat edition</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/14/knock-knock-whos-there-solving-knock-knock/">knock-knock who’s there?</a>
       </li>
     
   </ul>
