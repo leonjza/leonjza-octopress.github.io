@@ -4,7 +4,7 @@
   <title><![CDATA[Category: oracle | #!/slash/note]]></title>
   <link href="http://leonjza.github.io/blog/categories/oracle/atom.xml" rel="self"/>
   <link href="http://leonjza.github.io/"/>
-  <updated>2015-09-10T22:57:20+02:00</updated>
+  <updated>2015-09-25T09:40:29+02:00</updated>
   <id>http://leonjza.github.io/</id>
   <author>
     <name><![CDATA[Leon Jacobs]]></name>
@@ -18,7 +18,9 @@
     <link href="http://leonjza.github.io/blog/2014/08/17/kali-linux-oracle-support/"/>
     <updated>2014-08-17T15:46:49+02:00</updated>
     <id>http://leonjza.github.io/blog/2014/08/17/kali-linux-oracle-support</id>
-    <content type="html"><![CDATA[<p>Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work out of the box and just get the steps written down quickly. Typically, when you try to use a module such as <code>oracle_login</code>, metasploit may error out with:</p>
+    <content type="html"><![CDATA[<p><strong>EDIT</strong> This guide has been updated to accomodate a few changes (see <a href="https://github.com/rapid7/metasploit-framework/issues/5422">here</a>)</p>
+
+<p>Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work out of the box and just get the steps written down quickly. Typically, when you try to use a module such as <code>oracle_login</code>, metasploit may error out with:</p>
 
 <p>```bash Metasploit Oracle Error
 msf auxiliary(oracle_login) > run</p>
@@ -90,18 +92,33 @@ root@kali:/opt/oracle# wget https://github.com/kubo/ruby-oci8/archive/ruby-oci8-
 Archive:  ruby-oci8-2.1.7.zip
 fb913e32d8a09bd46e5bf549bd8e554f0870d384
    creating: ruby-oci8-ruby-oci8-2.1.7/
-  inflating: ruby-oci8-ruby-oci8-2.1.7/.gitignore<br/>
-  inflating: ruby-oci8-ruby-oci8-2.1.7/.yardopts<br/>
+  inflating: ruby-oci8-ruby-oci8-2.1.7/.gitignore
+  inflating: ruby-oci8-ruby-oci8-2.1.7/.yardopts
 [&hellip;]
-  inflating: ruby-oci8-ruby-oci8-2.1.7/test/test_rowid.rb<br/>
+  inflating: ruby-oci8-ruby-oci8-2.1.7/test/test_rowid.rb
 root@kali:/opt/oracle#
 <code>``
-Next, move to the extracted directory and install the</code>ruby-dev` package if you have not already done so:</p>
+Next, move to the extracted directory and install the</code>ruby-dev<code>and</code>libgmp-dev` packages if you have not already done so:</p>
 
 <p>```bash ruby-dev
 root@kali:/opt/oracle# cd ruby-oci8-ruby-oci8-2.1.7/</p>
 
-<p>root@kali:/opt/oracle/ruby-oci8-ruby-oci8-2.1.7# apt-get install ruby-dev
+<p>root@kali:/opt/oracle/ruby-oci8-ruby-oci8-2.1.7# apt-get install ruby-dev libgmp-dev
+```</p>
+
+<p>Next, ensure that the <code>ruby</code> interpreter that you will be use is the same as that of Metasploit with</p>
+
+<p><code>bash
+export PATH=/opt/metasploit/ruby/bin:$PATH
+</code></p>
+
+<p>Ensure that you are using the correct version of ruby</p>
+
+<p>```</p>
+
+<h1>ruby -v</h1>
+
+<p>ruby 2.1.6p336 (2015-04-13 revision 50298) [x86_64-linux-gnu]
 ```</p>
 
 <p>Lastly, we will <code>make</code> &amp;&amp; <code>make install</code>. Logout and back in and test that the oracle tools in metasploit are functional :)</p>

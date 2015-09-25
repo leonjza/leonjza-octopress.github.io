@@ -9,7 +9,7 @@
   <meta name="author" content="Leon Jacobs">
 
   
-  <meta name="description" content="Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work &hellip;">
+  <meta name="description" content="EDIT This guide has been updated to accomodate a few changes (see here) Recently I have had to get Oracle support sorted in my Kali Linux install. I &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -104,7 +104,9 @@
   </header>
 
 
-<div class="entry-content"><p>Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work out of the box and just get the steps written down quickly. Typically, when you try to use a module such as <code>oracle_login</code>, metasploit may error out with:</p>
+<div class="entry-content"><p><strong>EDIT</strong> This guide has been updated to accomodate a few changes (see <a href="https://github.com/rapid7/metasploit-framework/issues/5422">here</a>)</p>
+
+<p>Recently I have had to get Oracle support sorted in my Kali Linux install. I will try not to rant about the reasons why it doesn&rsquo;t just work out of the box and just get the steps written down quickly. Typically, when you try to use a module such as <code>oracle_login</code>, metasploit may error out with:</p>
 
 <figure class='code'><figcaption><span>Metasploit Oracle Error</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -212,14 +214,30 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Next, move to the extracted directory and install the <code>ruby-dev</code> package if you have not already done so:</p>
+<p>Next, move to the extracted directory and install the <code>ruby-dev</code> and <code>libgmp-dev</code> packages if you have not already done so:</p>
 
 <figure class='code'><figcaption><span>ruby-dev</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='bash'><span class='line'>root@kali:/opt/oracle# <span class="nb">cd </span>ruby-oci8-ruby-oci8-2.1.7/
 </span><span class='line'>
-</span><span class='line'>root@kali:/opt/oracle/ruby-oci8-ruby-oci8-2.1.7# apt-get install ruby-dev
+</span><span class='line'>root@kali:/opt/oracle/ruby-oci8-ruby-oci8-2.1.7# apt-get install ruby-dev libgmp-dev
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, ensure that the <code>ruby</code> interpreter that you will be use is the same as that of Metasploit with</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span>/opt/metasploit/ruby/bin:<span class="nv">$PATH</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ensure that you are using the correct version of ruby</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># ruby -v</span>
+</span><span class='line'>ruby 2.1.6p336 <span class="o">(</span>2015-04-13 revision 50298<span class="o">)</span> <span class="o">[</span>x86_64-linux-gnu<span class="o">]</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
