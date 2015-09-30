@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: composer | #!/slash/note]]></title>
+  <link href="http://leonjza.github.io/blog/categories/composer/atom.xml" rel="self"/>
+  <link href="http://leonjza.github.io/"/>
+  <updated>2015-09-30T20:34:49+02:00</updated>
+  <id>http://leonjza.github.io/</id>
+  <author>
+    <name><![CDATA[Leon Jacobs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[a totally unnecessary composer shell]]></title>
+    <link href="http://leonjza.github.io/blog/2015/09/30/a-totally-unnecessary-composer-shell/"/>
+    <updated>2015-09-30T19:39:55+02:00</updated>
+    <id>http://leonjza.github.io/blog/2015/09/30/a-totally-unnecessary-composer-shell</id>
+    <content type="html"><![CDATA[<h2>background</h2>
+
+<p><img class="right <a" src="href="https://i.imgur.com/9kOuWWP.png">https://i.imgur.com/9kOuWWP.png</a>"></p>
+
+<p>A silly reverse shell invoked via the Composer Dependency Manager. <a href="https://github.com/leonjza/composer-shell">Source here</a></p>
+
+<p><a href="https://getcomposer.org/">Composer</a>, which is most probably <em>the</em> most popular PHP dependency manager allows for <a href="https://getcomposer.org/doc/articles/scripts.md">scripts</a> to run as callbacks on based an event.
+Callbacks are normally triggered just before or after certain events.</p>
+
+<p>It is possible to provide shell commands to the <code>scripts</code> property in the required <code>composer.json</code> file (with a few restrictions), but this method echoes the command that it executes.
+A slightly more covert approach would be to execute a cleverly named static function in a class included in the codebase. It has to be one that can be autoloaded by composer.</p>
+
+<!--more-->
+
+
+<h2>why?</h2>
+
+<p>I thought a little about which scenarios this may actually be useful in and figured maybe only really strange edge cases where you can only run composer (as root lol?).
+I also remembered a bug in <a href="https://community.rapid7.com/community/metasploit/blog/2015/01/01/12-days-of-haxmas-exploiting-cve-2014-9390-in-git-and-mercurial">git</a> (CVE-2014-9390) that allowed for code execution via &lsquo;poisoned&rsquo; repositories. Well, I guess depending on your perspective, this may be a very similar.</p>
+
+<h2>PoC</h2>
+
+<p>As part of a PoC, I just used the popular <a href="http://pentestmonkey.net/tools/web-shells/php-reverse-shell">pentest-monkey PHP reverse shell</a>, but really, anything is possible that is possible with PHP at this point.</p>
+
+<p></p>
+
+<script type="text/javascript" src="https://asciinema.org/a/b64qlhadvl7zn1912ihwi09wt.js" id="asciicast-b64qlhadvl7zn1912ihwi09wt" data-size="medium" async></script>
+
+
+<p></p>
+]]></content>
+  </entry>
+  
+</feed>
