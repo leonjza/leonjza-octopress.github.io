@@ -6,16 +6,18 @@ I hereby claim:
 
   * I am an admin of https://leonjza.github.io
   * I am leonjza (https://keybase.io/leonjza) on keybase.
-  * I have a public key with fingerprint F166 DCD3 8EBD 747C EC85  97F2 E4BA 1218 56BF 63CA
+  * I have a public key with fingerprint 3F1C 12F5 BDEB 6448 FF06  ADE7 289E BFEB 51F2 9A22
 
-To claim this, I am signing this object:
+To do so, I am signing this object:
 
 {
     "body": {
         "key": {
-            "fingerprint": "f166dcd38ebd747cec8597f2e4ba121856bf63ca",
+            "eldest_kid": "01011e944bce3486fd270bcc60c9952955abad9d7b44bc74cf2267999de4622004780a",
+            "fingerprint": "3f1c12f5bdeb6448ff06ade7289ebfeb51f29a22",
             "host": "keybase.io",
-            "key_id": "e4ba121856bf63ca",
+            "key_id": "289ebfeb51f29a22",
+            "kid": "01011e944bce3486fd270bcc60c9952955abad9d7b44bc74cf2267999de4622004780a",
             "uid": "750df8997d6cac46ef3a643fe18b9f00",
             "username": "leonjza"
         },
@@ -26,39 +28,36 @@ To claim this, I am signing this object:
         "type": "web_service_binding",
         "version": 1
     },
-    "ctime": 1415641573,
+    "ctime": 1447648425,
     "expire_in": 157680000,
-    "prev": "36c5c23300935ea58bbc19eb5e2fddcdd612523f6e16c0139402cfbb13ed3c1a",
-    "seqno": 8,
+    "prev": "bb036ec0cfd6774bf0257c333b552677714b8e3359677a5432358283d9894980",
+    "seqno": 15,
     "tag": "signature"
 }
 
-with the aforementioned key, yielding the PGP signature:
+which yields the signature:
 
 -----BEGIN PGP MESSAGE-----
-Version: GnuPG v1
+Version: Keybase OpenPGP v2.0.49
+Comment: https://keybase.io/crypto
 
-owGbwMvMwMT4ZJeQRNj+5FOMpw98T2IISfj5qlopKT+lUsmqWik7FUylZealpxYV
-FGXmlShZKaUZmpmlJKcYW6QmpZibmCenJluYWpqnGaWaJCUaGhlamJolpZkZJycq
-6Shl5BeDdACNSUosTtXLzAeKATnxmSlAUSzqS8ES5qYGKWkWlpbmKWbJickmZqlp
-xolmJsZpqYYWSZZpBgYghcWpRXmJualA1Tmp+XlZVYlKtTpKQMGyzORUkJNBNqMq
-0EvPLMkoTYI4oqAovyQ/OT8HKJ1RUlJQbAXSXlJZAFJfnpoUDzUpPikzLwXoeaCO
-stSi4sz8PCUrQ6DK5JJMkNGGJoamZkBsbqyjlFpRkFmUGp8JUmFqbmZhAAQge1LL
-gEYamyWbJhsZGxsYWBqbpiaaWiQlJRtapiaZphqlpQDDMsXM0MjUyDjNLNXQLNnA
-0NjSxMAoOS0pydA4NcU42RAUNMWphXn5SlYWQGcmpgONLM5Mz0ssKS1KVarl6mSS
-YWFgZGJgY2UCxR8DF6cALFZnzuH/78FccOZdtvGNXQsK8tn0aoT0A/szpPW+3Z5z
-k6Vd1as+8viBlywreDe/O5wfutRj05u6E9KnWmTuqnJ2bMzu4T224gKjdINaDLdm
-p+VtXl6rAJHe1f7qTIs75qyIi/9pnXNujlSs7FvpQ9vatsU2PV1QaFz36o/FlWyt
-r/6ZImyc83L+z/199WZe2Y15psZ8QjzL40PymB9ctHNvOlX3QzZV5b/uwWfSe2f/
-2yA7N//T7pi0o6WvvTx+rDrgkG7wr/V7cIOZ/KFTbofX+izIjfG4GptWGcR5lSNa
-YpOoX82Zu/2vK1qbr57/m3BGy3uel/GBre43325iPPnc6XesX4Pvga8cK7TutZ+4
-Xse6oX5CnrJpjc5v1we5WQvkH1b8jFd5Y/mg3qBeUWDe7uQTU8I2mWXZbGDI/Cp2
-V+zSoaeNfadLrfkm3t30S9zo2HmrR9OYvZ8o/Xa251P5uer+56U/5XNYj7SqnZ48
-WSt7Z8IxxyU+13c+yqxt2hAk25r+ip131uddnT8iC+29uh6qeid9F3M75PWGLXbT
-cePFBiHv/LUMXyYmV6zeX/b80uMLV5tEVBXrM6XOTXt0d9t3b5HIsoeT67crrJjw
-/zZfAU9IzbvfM35fYQhomXjimYxlpk310+ol25JXqlbEyR9KPtjgfDd2ieGL3VoZ
-GnMaJjIvPLXgwFeNt3qu9tMusDKJhkodnhp4SEz15bVkAA==
-=4GPP
+yMIoAnicrZJNSFRRFMfHzMKJERdiGRXyMIQQex/3fdwR1FATsxaSHyHS8O579868
+nOZN895MfiRmSIgLK7M2WQq2yLLaiNQmMm2VZi7CKEOiAoVSA0sT0u6zWgQtu5vL
+Off3/99zDmfUE+9yx3lGAglM92xX3LPh7qirsqSmv5FBpl7PeBuZWrxx4aCOLdtX
+a+iMl2E5luMwBABpWACKRHReZpGmSawGochDUVSRqkNdRg4iA43wvCRDCHUMJJ5n
+WSArrMpkMcQI+XEkHDFCNrUVCKdxPBGRjpEEgEIIK6k6lnkFYkQwEjnCQ5XnqTBg
+Wo6CFodUC2cbJs3RwLdR3j/4/1x3dMNOFlmdKBDKuqSpGpAwEVQJCARzCoKEZR3Q
+wpGQehJTOojN0IkGlWnKYmgyZmjYmavTyN9Att+wA1H0q6dwxLRNzQzS54Bthy2v
+I7frww5/GiPfbycfMkI6nSVVxHDEMswQ4+UoqdmGY80BIEtAAbyYxeC6sBHBPsMh
+RFlSWHqcf3CMWiLEChLWWI3okiwDRFhelDVBEJAo0knIMgeQggVBhDRQRSDwgqjw
+iqBDBQKoOB1b+FTIdLxpnaqfelqGP6Ta0Qhmmp48rtnsinO7tiRscpbM5U5M/rN6
+H4e2rqWXDHWlLEWtQO1E4dhKA+Eq2goO+oLV4VefMw55fqQen6tK7L25Z9uVb6mz
+wx1vwoWVa7Gmxfu7cy73lN+9lxvMX7jYd306p/5oc2lSaev7bXvcbys796W0P6jy
+DAysghTwdGa96kBxr38tbXVl7vvOifKS/rihpLmZnNbO9Jb+jNFLYel8WfetnqLx
+d31FIy1T43sTGyZf5I/d6ZhXt2ddy1w+9qFCidSdq+9fjjfX77Wt5e0vEL+2py0M
+lj5aLL5RcvfxkZFuYbn48HgwWhZ9XZ239Hxq8sKu9um+s+m5zRzZkfzodnNFdstg
+byz+TMrLfK828eVhpjxZNH/101hm/k9Pc0MV
+=bRQ0
 -----END PGP MESSAGE-----
 
 And finally, I am proving ownership of this host by posting or
@@ -67,3 +66,4 @@ appending to this document.
 View my publicly-auditable identity here: https://keybase.io/leonjza
 
 ==================================================================
+
